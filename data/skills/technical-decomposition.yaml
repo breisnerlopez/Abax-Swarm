@@ -1,0 +1,123 @@
+id: technical-decomposition
+name: Descomposicion Tecnica de Requerimientos
+description: >
+  Proceso estructurado para descomponer requerimientos de negocio en
+  tareas tecnicas accionables, estimables y asignables, asegurando
+  cobertura completa y trazabilidad hacia los objetivos del producto.
+used_by:
+  - tech-lead
+content:
+  when_to_use: |
+    - Al recibir una historia de usuario o epica que requiere trabajo tecnico.
+    - Durante la planificacion de sprint o iteracion.
+    - Cuando un requerimiento es demasiado grande para ser implementado en una sola tarea.
+    - Al estimar esfuerzo de funcionalidades nuevas o cambios significativos.
+    - Cuando se necesita distribuir trabajo entre multiples desarrolladores.
+  instructions: |
+    ## Proceso de Descomposicion Tecnica
+
+    ### 1. Comprension del requerimiento
+    - Leer la historia de usuario completa con criterios de aceptacion.
+    - Identificar los flujos principales y alternativos.
+    - Clarificar ambiguedades con el Product Owner o analista.
+    - Identificar dependencias con otros requerimientos o sistemas.
+    - Definir lo que esta fuera de alcance explicitamente.
+
+    ### 2. Identificacion de componentes afectados
+    - Mapear las capas del sistema involucradas (frontend, backend, base de datos, infraestructura).
+    - Identificar los servicios o modulos que requieren cambios.
+    - Detectar si se necesitan nuevos componentes o integraciones.
+    - Verificar si hay componentes compartidos que impactan a otros equipos.
+
+    ### 3. Descomposicion en tareas tecnicas
+    Cada tarea debe cumplir los criterios INVEST adaptados:
+    - **Independiente**: Puede completarse sin depender de otras tareas en progreso.
+    - **Negociable**: El enfoque tecnico puede ajustarse sin perder el objetivo.
+    - **Valiosa**: Aporta progreso visible hacia el requerimiento.
+    - **Estimable**: El equipo puede estimar su esfuerzo con confianza.
+    - **Pequena**: Completable en 1-3 dias de trabajo como maximo.
+    - **Testeable**: Tiene criterios de verificacion claros.
+
+    ### 4. Tipos de tareas tecnicas
+    - **Diseno**: Definir contratos de API, esquemas de datos, diagramas.
+    - **Backend**: Logica de negocio, endpoints, validaciones, servicios.
+    - **Frontend**: Componentes UI, formularios, flujos de navegacion.
+    - **Base de datos**: Migraciones, indices, procedimientos almacenados.
+    - **Integracion**: Conectores, adaptadores, transformaciones de datos.
+    - **Testing**: Pruebas unitarias, de integracion, e2e, de rendimiento.
+    - **Infraestructura**: Configuracion, despliegue, variables de entorno.
+    - **Documentacion**: API docs, guias de uso, runbooks operativos.
+
+    ### 5. Definicion de criterios de completitud por tarea
+    Para cada tarea documentar:
+    - Descripcion tecnica precisa de lo que se debe implementar.
+    - Criterios de aceptacion tecnicos (no solo funcionales).
+    - Cobertura de pruebas requerida.
+    - Dependencias bloqueantes y no bloqueantes.
+    - Estimacion de esfuerzo (story points o horas).
+
+    ### 6. Ordenamiento y dependencias
+    - Construir grafo de dependencias entre tareas.
+    - Identificar la ruta critica (secuencia mas larga de tareas dependientes).
+    - Maximizar paralelismo asignando tareas independientes a diferentes personas.
+    - Priorizar tareas que desbloquean a otras.
+
+    ## Formato de Descomposicion
+    | # | Tarea | Componente | Dependencias | Estimacion | Asignado |
+    |---|-------|------------|--------------|------------|----------|
+
+  guides:
+    - name: estrategias-descomposicion
+      content: |
+        ## Estrategias de Descomposicion segun Tipo de Requerimiento
+
+        ### CRUD simple
+        1. Migracion de base de datos (crear tabla/campos).
+        2. Modelo de dominio y validaciones.
+        3. Repositorio / capa de acceso a datos.
+        4. Servicio con logica de negocio.
+        5. Endpoints de API (crear, leer, actualizar, eliminar).
+        6. Componentes de interfaz (listado, formulario, detalle).
+        7. Pruebas unitarias y de integracion.
+
+        ### Integracion con sistema externo
+        1. Investigacion y prueba de concepto con la API externa.
+        2. Definicion del contrato y modelo de datos.
+        3. Cliente HTTP / adaptador para el servicio externo.
+        4. Manejo de errores, reintentos y circuit breaker.
+        5. Mapeo de datos entre el modelo externo y el interno.
+        6. Servicio orquestador del flujo de integracion.
+        7. Pruebas con mocks y pruebas de integracion reales.
+
+        ### Cambio transversal (cross-cutting)
+        1. Analisis de impacto en todos los componentes afectados.
+        2. Creacion del componente compartido (middleware, libreria).
+        3. Migracion componente por componente (en orden de riesgo).
+        4. Pruebas de regresion por cada componente migrado.
+        5. Limpieza de codigo obsoleto.
+    - name: estimacion-tecnica
+      content: |
+        ## Guia de Estimacion Tecnica
+
+        ### Factores que afectan la estimacion
+        - **Complejidad tecnica**: algoritmos, concurrencia, integraciones.
+        - **Incertidumbre**: tecnologia nueva, requisitos ambiguos, API externa.
+        - **Deuda tecnica**: refactoring necesario para implementar el cambio.
+        - **Pruebas**: cobertura requerida y complejidad de los escenarios.
+        - **Coordinacion**: dependencia de otros equipos o revisiones.
+
+        ### Tecnica de estimacion por comparacion
+        1. Identificar una tarea de referencia ya completada por el equipo.
+        2. Comparar la nueva tarea en complejidad, volumen y riesgo.
+        3. Ajustar la estimacion proporcionalmente.
+
+        ### Margen de seguridad por nivel de incertidumbre
+        - Baja incertidumbre: estimacion x 1.2 (20% margen).
+        - Media incertidumbre: estimacion x 1.5 (50% margen).
+        - Alta incertidumbre: estimacion x 2.0 (100% margen) o spike previo.
+
+        ### Senales de que la tarea necesita mas descomposicion
+        - Estimacion superior a 3 dias de trabajo.
+        - La descripcion contiene multiples "y" (hacer X y Y y Z).
+        - No se puede explicar el alcance en 2-3 oraciones.
+        - Diferentes miembros del equipo dan estimaciones muy dispares.

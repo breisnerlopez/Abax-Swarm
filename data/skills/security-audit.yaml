@@ -1,0 +1,39 @@
+id: security-audit
+name: Auditoria de Seguridad
+description: >
+  Analisis sistematico de seguridad del codigo y arquitectura
+  basado en OWASP Top 10, incluyendo threat modeling,
+  revision de controles y recomendaciones de remediacion.
+used_by:
+  - security-architect
+content:
+  when_to_use: |
+    - Al revisar diseno tecnico antes de construccion.
+    - Al evaluar codigo antes de despliegue.
+    - Cuando se detecta una vulnerabilidad o incidente.
+    - En revisiones periodicas de seguridad.
+  instructions: |
+    ## Checklist OWASP Top 10
+    1. **Broken Access Control**: permisos, autorizacion, IDOR.
+    2. **Cryptographic Failures**: datos sensibles en transito/reposo.
+    3. **Injection**: SQL, NoSQL, OS, LDAP injection.
+    4. **Insecure Design**: threat modeling, principios seguros.
+    5. **Security Misconfiguration**: defaults, headers, CORS.
+    6. **Vulnerable Components**: dependencias con CVEs.
+    7. **Auth Failures**: passwords, MFA, session management.
+    8. **Data Integrity**: deserializacion, CI/CD tampering.
+    9. **Logging Failures**: audit trail, monitoreo, alertas.
+    10. **SSRF**: server-side request forgery.
+
+    ## Formato de reporte
+    | Hallazgo | Severidad | OWASP | Remediacion |
+  guides:
+    - name: threat-model
+      content: |
+        ## STRIDE Threat Modeling
+        - **S**poofing: puede alguien suplantar identidad?
+        - **T**ampering: pueden modificar datos en transito?
+        - **R**epudiation: hay audit trail suficiente?
+        - **I**nformation Disclosure: se exponen datos sensibles?
+        - **D**enial of Service: puede ser saturado?
+        - **E**levation of Privilege: puede escalar permisos?

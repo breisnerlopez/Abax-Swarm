@@ -1,0 +1,17 @@
+---
+name: {{id}}
+description: {{{description}}}
+---
+
+# {{name}}
+
+{{{content.instructions}}}
+
+## Cuando usar esta habilidad
+{{{content.when_to_use}}}
+
+{{#each content.guides}}
+## {{this.name}}
+{{{this.content}}}
+
+{{/each}}

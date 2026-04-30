@@ -1,0 +1,56 @@
+id: frontend-implementation
+name: Implementacion de Interfaces Frontend
+description: >
+  Desarrollo e implementacion de interfaces de usuario interactivas y accesibles,
+  incluyendo componentes, gestion de estado y consumo de APIs del backend.
+used_by:
+  - developer-frontend
+content:
+  when_to_use: |
+    - Cuando se debe implementar una nueva pantalla, vista o componente de interfaz.
+    - Cuando se necesita conectar la interfaz con endpoints del backend.
+    - Cuando se implementan formularios con validaciones del lado del cliente.
+    - Cuando se mejora la experiencia de usuario o se corrigen problemas de usabilidad.
+    - Cuando se adapta la interfaz para diferentes dispositivos (responsive design).
+  instructions: |
+    ## Proceso de Implementacion Frontend
+    1. Analizar los mockups, wireframes o disenos proporcionados por UX/UI.
+    2. Descomponer la interfaz en componentes reutilizables:
+       - Identificar componentes de presentacion (stateless) y contenedores (stateful).
+       - Definir la jerarquia de componentes (arbol de componentes).
+       - Establecer las props/inputs y eventos/outputs de cada componente.
+    3. Implementar los componentes siguiendo el orden:
+       a. **Estructura HTML semantica**: usar etiquetas apropiadas (header, main, nav, section, article).
+       b. **Estilos CSS/SCSS**: aplicar diseno responsive con mobile-first.
+       c. **Logica de componente**: estado local, manejo de eventos, ciclo de vida.
+       d. **Integracion con estado global**: conectar con store si es necesario.
+    4. Implementar el consumo de APIs:
+       - Crear servicios/clientes HTTP separados de los componentes.
+       - Manejar estados de carga (loading), exito y error en la interfaz.
+       - Implementar feedback visual para el usuario (spinners, mensajes, toasts).
+    5. Implementar validaciones de formulario:
+       - Validacion en tiempo real campo por campo.
+       - Validacion completa al enviar el formulario.
+       - Mensajes de error claros y posicionados junto al campo.
+    6. Verificar accesibilidad basica:
+       - Navegacion por teclado funcional.
+       - Atributos ARIA donde sea necesario.
+       - Contraste de colores adecuado.
+    7. Probar la interfaz en diferentes navegadores y resoluciones.
+  guides:
+    - name: buenas-practicas-componentes
+      content: |
+        - Un componente debe tener una sola responsabilidad clara.
+        - Mantener los componentes pequenos: si supera las 200 lineas, considerar dividirlo.
+        - Evitar logica de negocio en los componentes; delegar a servicios o stores.
+        - Usar nombres descriptivos para componentes, props y eventos.
+        - Implementar lazy loading para componentes y rutas que no son criticas en la carga inicial.
+        - Reutilizar componentes base (botones, inputs, modales) en toda la aplicacion.
+    - name: gestion-de-estado
+      content: |
+        - Usar estado local para datos que solo afectan a un componente.
+        - Usar estado global (store) para datos compartidos entre multiples componentes.
+        - Evitar duplicar datos entre estado local y global.
+        - Mantener el estado normalizado: evitar objetos profundamente anidados.
+        - Implementar acciones asincronas para llamadas a APIs en el store.
+        - Usar selectores o getters para derivar datos del estado sin duplicarlos.

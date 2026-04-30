@@ -1,0 +1,52 @@
+id: rust-axum
+name: Rust + Axum
+description: Backend de nivel sistema con Rust y Axum, enfocado en seguridad de memoria, rendimiento extremo y fiabilidad para servicios criticos de alto throughput
+
+backend:
+  framework: Axum
+  language: Rust
+  version: "1.82+"
+  build_tool: Cargo
+  test_framework: cargo test, tokio::test, tower::ServiceExt
+  orm: SQLx / SeaORM / Diesel
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - SQLite
+    - Redis
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions / GitLab CI
+  cloud: AWS / GCP
+
+role_context:
+  developer-backend: |
+    Usa Rust 1.82+ con Axum 0.8+ sobre Tokio runtime asincrono.
+    Estructura: router -> handler -> service -> repository con capas via traits.
+    Estado compartido con Arc<AppState>. Extractors tipados para request parsing.
+    Errores: IntoResponse implementado en tipos de error propios con thiserror.
+    Validacion con validator crate. Serializacion con serde.
+    Tests: cargo test + tokio::test para async. Integration tests con TestClient.
+    Migraciones: sqlx migrate. ORM: SQLx (compile-time checked queries) o SeaORM.
+  dba: |
+    PostgreSQL como BD principal con SQLx y queries verificadas en compilacion.
+    Migraciones versionadas con sqlx migrate o refinery.
+    Connection pool con SQLx PgPool (configurar max_connections, idle_timeout).
+    Tipos Rust mapeados a tipos SQL con FromRow y Type derives.
+    Prepared statements automaticos. Transacciones con begin/commit explicito.
+  devops: |
+    Dockerfile multi-stage: cargo build --release + debian-slim o distroless.
+    Compilacion lenta pero binario optimizado y seguro en memoria.
+    Cache de dependencias en Docker con cargo-chef para builds incrementales.
+    Pipeline: clippy -> fmt check -> test -> build release -> docker -> deploy.
+    Metricas con tower-http y tracing para observabilidad estructurada.
+  solution-architect: |
+    Arquitectura: Hexagonal o Clean Architecture adaptada a Rust con traits.
+    Patrones: Repository trait, Builder, TypeState, Tower middleware layers.
+    Integraciones: REST con utoipa para OpenAPI, gRPC con tonic, GraphQL con async-graphql.
+    Concurrencia: Tokio runtime, channels, task spawning con structured concurrency.
+    Seguridad: memoria segura por diseno, JWT con jsonwebtoken crate, tower-http CORS.

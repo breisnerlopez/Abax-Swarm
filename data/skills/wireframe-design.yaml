@@ -1,0 +1,55 @@
+id: wireframe-design
+name: Diseno de Wireframes e Interfaces
+description: >
+  Diseno de wireframes y prototipos de interfaces de usuario
+  aplicando principios de usabilidad y diseno centrado en el usuario.
+used_by:
+  - ux-designer
+content:
+  when_to_use: |
+    - Al iniciar el diseno de una nueva funcionalidad o producto.
+    - Cuando se necesita validar ideas de interfaz con stakeholders.
+    - Al iterar sobre feedback de pruebas de usabilidad.
+    - Cuando se requiere alinear al equipo sobre la estructura de la interfaz.
+  instructions: |
+    ## Proceso de Diseno de Wireframes
+
+    ### 1. Investigacion Previa
+    - Revisar requisitos funcionales y casos de uso.
+    - Analizar interfaces similares y mejores practicas del dominio.
+    - Identificar restricciones tecnicas y de plataforma.
+    - Definir los dispositivos y resoluciones objetivo.
+
+    ### 2. Niveles de Fidelidad
+    | Nivel | Uso | Detalle |
+    |---|---|---|
+    | Baja fidelidad | Exploracion inicial de ideas | Bocetos a mano o cajas simples |
+    | Media fidelidad | Validacion con stakeholders | Estructura definida, sin estilo visual |
+    | Alta fidelidad | Prototipo interactivo | Cercano al diseno final, con interacciones |
+
+    ### 3. Elementos del Wireframe
+    - Jerarquia visual: disposicion de elementos por importancia.
+    - Navegacion: ubicacion de menus, breadcrumbs y accesos directos.
+    - Contenido: placeholder de textos, imagenes y datos.
+    - Interacciones: estados de botones, formularios y mensajes.
+
+    ### 4. Revision y Validacion
+    - Presentar wireframes al equipo de producto y desarrollo.
+    - Recopilar feedback estructurado por seccion.
+    - Iterar rapidamente antes de avanzar a diseno visual.
+    - Documentar decisiones de diseno y alternativas descartadas.
+  guides:
+    - name: principios-layout
+      content: |
+        ## Guia de Principios de Layout
+        - Usar grillas de 8px o 12 columnas para consistencia.
+        - Respetar espaciado y margenes uniformes.
+        - Agrupar elementos relacionados visualmente.
+        - Priorizar el contenido principal sobre elementos secundarios.
+    - name: componentes-reutilizables
+      content: |
+        ## Guia de Componentes Reutilizables
+        - Definir una biblioteca de componentes base (botones, inputs, cards).
+        - Mantener consistencia en tamanos y estilos entre pantallas.
+        - Documentar variantes de cada componente y su uso correcto.
+        - Alinear componentes con el sistema de diseno del equipo.

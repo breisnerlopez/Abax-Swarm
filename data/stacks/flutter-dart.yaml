@@ -1,0 +1,65 @@
+id: flutter-dart
+name: Flutter + Dart
+description: Stack multiplataforma con Flutter para mobile, web y desktop, y Dart en backend con Shelf o Serverpod para aplicaciones full-stack con un unico lenguaje
+
+frontend:
+  framework: Flutter
+  language: Dart
+  version: "3.27+"
+  package_manager: pub
+  test_framework: flutter_test, integration_test, patrol
+  build_tool: Flutter CLI
+
+backend:
+  framework: Shelf / Serverpod
+  language: Dart
+  version: "3.6+"
+  build_tool: dart compile / Serverpod CLI
+  test_framework: test (dart), Serverpod test tools
+  orm: Serverpod ORM / Drift
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - SQLite
+    - Firebase Firestore
+    - Supabase
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes / Cloud Run
+  ci_cd: GitHub Actions / Codemagic
+  cloud: GCP / AWS / Firebase
+
+role_context:
+  developer-backend: |
+    Usa Dart 3.6+ con Serverpod 2.x o Shelf para APIs REST.
+    Serverpod: generacion de codigo para endpoints, serialization y ORM integrado.
+    Shelf: middleware composable, routing con shelf_router.
+    Validacion de datos con clases tipadas y Dart null-safety.
+    Tests: dart test con mocks usando mockito. Integration tests con test containers.
+    Migraciones: Serverpod migrations o SQL manual para Shelf.
+  developer-frontend: |
+    Usa Flutter 3.27+ con Material 3 y soporte multiplataforma (iOS, Android, Web, Desktop).
+    Gestion de estado: Riverpod 2.x o Bloc/Cubit segun complejidad.
+    Navegacion: GoRouter con rutas tipadas y deep linking.
+    Widgets reutilizables, temas centralizados, responsive con LayoutBuilder.
+    Tests: widget tests con flutter_test. Integration: integration_test + patrol.
+  dba: |
+    PostgreSQL como BD principal (Serverpod lo requiere por defecto).
+    Migraciones gestionadas por Serverpod CLI o manualmente con SQL.
+    Indices optimizados para queries generadas por el ORM.
+    SQLite con Drift para almacenamiento local en el cliente mobile.
+    Considerar sincronizacion offline-first con estrategia de conflictos.
+  devops: |
+    Docker multi-stage: dart compile exe + scratch para backend minimo.
+    Flutter build apk/ipa/web segun plataforma destino.
+    Codemagic o GitHub Actions para CI/CD mobile (signing, deploy stores).
+    Pipeline backend: analyze -> test -> compile -> docker -> deploy.
+    Firebase App Distribution o TestFlight para builds de prueba.
+  solution-architect: |
+    Arquitectura: Clean Architecture con capas domain, data, presentation.
+    Patrones: Repository, BLoC/Riverpod, Dependency Injection con get_it/riverpod.
+    Integraciones: REST o Serverpod protocol, WebSockets para tiempo real.
+    Compartir modelos Dart entre frontend y backend (monorepo con melos).
+    Seguridad: JWT, certificate pinning en mobile, secure storage para tokens.

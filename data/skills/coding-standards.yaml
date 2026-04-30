@@ -1,0 +1,66 @@
+id: coding-standards
+name: Estandares y Convenciones de Codigo
+description: >
+  Definicion y aplicacion de estandares de codificacion, convenciones
+  de nomenclatura, patrones de diseno y buenas practicas para garantizar
+  la calidad, legibilidad y mantenibilidad del codigo fuente.
+used_by:
+  - tech-lead
+content:
+  when_to_use: |
+    - Al iniciar un proyecto nuevo para definir las convenciones del equipo.
+    - Durante revisiones de codigo (code reviews) para validar cumplimiento.
+    - Al incorporar nuevos desarrolladores al equipo.
+    - Cuando se detectan inconsistencias o problemas de calidad en el codigo.
+    - Al definir o actualizar las reglas de linters y formateadores automaticos.
+  instructions: |
+    ## Categorias de Estandares
+
+    ### 1. Nomenclatura
+    - **Clases**: PascalCase (e.g., `OrdenCompra`, `UsuarioServicio`).
+    - **Metodos y funciones**: camelCase (e.g., `calcularTotal`, `obtenerUsuario`).
+    - **Variables**: camelCase, nombres descriptivos (e.g., `cantidadItems`, `fechaCreacion`).
+    - **Constantes**: UPPER_SNAKE_CASE (e.g., `MAX_INTENTOS`, `TIMEOUT_SEGUNDOS`).
+    - **Interfaces**: prefijo I o sufijo descriptivo segun convencion del lenguaje.
+    - **Archivos**: consistente con el lenguaje (PascalCase para clases, kebab-case para componentes).
+
+    ### 2. Estructura del Codigo
+    - Maximo de lineas por metodo: 30-50 lineas recomendado.
+    - Maximo de parametros por funcion: 3-4 parametros, usar objetos para mas.
+    - Niveles de anidamiento maximo: 3 niveles.
+    - Un archivo, una responsabilidad (Single Responsibility Principle).
+    - Separacion clara de capas: presentacion, logica de negocio, acceso a datos.
+
+    ### 3. Documentacion en Codigo
+    - Comentarios de cabecera en clases publicas y metodos complejos.
+    - JSDoc/Javadoc/XMLDoc segun el lenguaje utilizado.
+    - Evitar comentarios obvios; documentar el "por que", no el "que".
+    - README actualizado en cada modulo o microservicio.
+
+    ### 4. Patrones y Buenas Practicas
+    - Principios SOLID obligatorios en diseno de clases.
+    - DRY (Don't Repeat Yourself): extraer logica comun a funciones/clases reutilizables.
+    - KISS (Keep It Simple): preferir soluciones simples sobre complejas.
+    - Manejo de errores explicito: no capturar excepciones genericas sin tratamiento.
+    - Uso de inyeccion de dependencias para facilitar testeo.
+
+    ### 5. Control de Calidad Automatizado
+    - Configurar linters (ESLint, Pylint, SonarLint) con reglas del equipo.
+    - Formateadores automaticos (Prettier, Black, dotnet-format).
+    - Analisis estatico en pipeline CI/CD obligatorio.
+    - Cobertura minima de pruebas unitarias: 80%.
+
+    ## Checklist de Revision de Codigo
+    | Criterio | Cumple | Observacion |
+    |---|---|---|
+    | Nomenclatura consistente | Si/No | [Detalle] |
+    | Sin codigo duplicado | Si/No | [Detalle] |
+    | Manejo de errores adecuado | Si/No | [Detalle] |
+    | Pruebas unitarias incluidas | Si/No | [Detalle] |
+    | Sin dependencias innecesarias | Si/No | [Detalle] |
+    | Documentacion actualizada | Si/No | [Detalle] |
+  guides:
+    - name: configuracion-linters
+      content: |
+        Pasos para configurar herramientas de analisis estatico y
+        formateadores en los principales lenguajes y entornos de desarrollo.

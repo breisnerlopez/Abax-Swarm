@@ -1,0 +1,67 @@
+id: react-native-expo
+name: React Native Expo + Node.js
+description: Stack mobile con React Native y Expo para desarrollo multiplataforma rapido, con backend Node.js y Express o Fastify para APIs REST escalables
+
+frontend:
+  framework: React Native (Expo)
+  language: TypeScript
+  version: "52+"
+  package_manager: npm / pnpm
+  test_framework: Jest, React Native Testing Library, Detox
+  build_tool: Expo CLI / EAS Build
+
+backend:
+  framework: Express / Fastify
+  language: TypeScript
+  version: "22+"
+  build_tool: tsx / tsup / esbuild
+  test_framework: Vitest, Supertest
+  orm: Prisma / Drizzle ORM
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MongoDB
+    - SQLite
+    - Redis
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes / ECS
+  ci_cd: GitHub Actions / EAS Build
+  cloud: AWS / GCP / Vercel
+
+role_context:
+  developer-backend: |
+    Usa Node.js 22+ con TypeScript estricto y Fastify (o Express).
+    Estructura: routes -> controllers -> services -> repositories.
+    Validacion con Zod para schemas y type inference. Errores centralizados con middleware.
+    Tests: Vitest + Supertest para integration tests. Mocks con vi.mock.
+    Migraciones: Prisma Migrate o Drizzle Kit. ORM: Prisma o Drizzle con queries tipadas.
+    Autenticacion: JWT con refresh tokens, bcrypt para hashing.
+  developer-frontend: |
+    Usa React Native con Expo SDK 52+ y TypeScript estricto.
+    Navegacion: Expo Router (file-based routing) con layouts y deep linking.
+    Estado: Zustand o TanStack Query para server state.
+    Componentes reutilizables con StyleSheet o NativeWind (Tailwind para RN).
+    Expo Modules API para acceso nativo. EAS Build para compilaciones en la nube.
+    Tests: Jest + React Native Testing Library. E2E: Detox o Maestro.
+  dba: |
+    PostgreSQL como BD principal con Prisma o Drizzle como ORM.
+    Migraciones versionadas con Prisma Migrate o Drizzle Kit.
+    Indices basados en queries frecuentes del mobile (paginacion cursor-based).
+    SQLite con expo-sqlite para cache local en el dispositivo.
+    Considerar estrategia de sync offline con conflict resolution.
+  devops: |
+    Dockerfile multi-stage: node build + node:slim para backend.
+    EAS Build para compilaciones iOS/Android en la nube (sin Mac local).
+    EAS Submit para publicar en App Store y Google Play.
+    Pipeline backend: lint -> test -> build -> docker -> deploy.
+    Pipeline mobile: lint -> test -> eas build -> eas submit.
+    OTA updates con expo-updates para despliegues sin pasar por stores.
+  solution-architect: |
+    Arquitectura: Clean Architecture separando mobile y backend en monorepo.
+    Patrones: Repository, Adapter, API Gateway si multiples microservicios.
+    Integraciones: REST con OpenAPI, WebSockets con Socket.io para tiempo real.
+    Monorepo: Turborepo o pnpm workspaces para compartir tipos y validaciones.
+    Seguridad: JWT con refresh rotation, certificate pinning, expo-secure-store.

@@ -1,0 +1,22 @@
+id: db-migrate
+name: Migracion de Base de Datos
+description: Genera y ejecuta scripts de migracion de base de datos de forma versionada y con soporte de rollback.
+used_by:
+  - dba
+  - developer-backend
+  - devops
+implementation:
+  language: typescript
+  args:
+    action:
+      type: string
+      description: "Accion: generate, up, down, status"
+      default: status
+    name:
+      type: string
+      description: Nombre descriptivo de la migracion (solo para generate)
+      default: ""
+      required: false
+  returns: string
+  body: |
+    return "Ejecutando migracion: " + args.action + (args.name ? " (" + args.name + ")" : "");

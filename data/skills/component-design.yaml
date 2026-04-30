@@ -1,0 +1,88 @@
+id: component-design
+name: Diseno de Componentes UI
+description: >
+  Diseno y construccion de componentes de interfaz de usuario
+  reutilizables, mantenibles y consistentes, aplicando patrones
+  de composicion y sistemas de diseno escalables.
+used_by:
+  - developer-frontend
+content:
+  when_to_use: |
+    - Al crear un nuevo componente de interfaz que sera usado en multiples vistas.
+    - Al refactorizar componentes existentes para mejorar su reutilizacion.
+    - Al definir o extender un sistema de diseno (design system).
+    - Al evaluar si un componente debe dividirse en subcomponentes.
+  instructions: |
+    ## Principios de Diseno de Componentes
+
+    1. **Responsabilidad unica**: Cada componente debe resolver un problema especifico.
+       No mezclar logica de negocio con presentacion.
+    2. **Composicion sobre herencia**: Preferir componer componentes pequenos
+       en estructuras mas complejas en lugar de heredar comportamiento.
+    3. **Props claras y tipadas**: Definir una interfaz de props explicita con
+       tipos (TypeScript/PropTypes). Documentar props obligatorias y opcionales.
+    4. **Estado minimo**: Mantener el estado interno lo mas reducido posible.
+       Elevar el estado solo cuando sea necesario compartirlo.
+    5. **Estilos encapsulados**: Usar CSS Modules, Styled Components o
+       utilidades de Tailwind para evitar colisiones de estilos.
+
+    ## Estructura recomendada de un componente
+
+    ```
+    ComponentName/
+      index.ts           # Re-exporta el componente
+      ComponentName.tsx   # Implementacion principal
+      ComponentName.test.tsx  # Tests unitarios
+      ComponentName.stories.tsx  # Storybook stories
+      styles.module.css   # Estilos (si aplica)
+      types.ts            # Interfaces y tipos
+    ```
+
+    ## Checklist de calidad
+
+    - El componente funciona de forma aislada sin dependencias de contexto global?
+    - Tiene valores por defecto razonables para props opcionales?
+    - Soporta la prop `className` o `style` para personalizacion externa?
+    - Es accesible (roles ARIA, navegacion por teclado)?
+    - Tiene al menos un test unitario y una story de Storybook?
+    - Renderiza correctamente en distintos tamanios de pantalla?
+  guides:
+    - name: patrones-de-composicion
+      content: |
+        ## Patrones comunes
+
+        - **Compound Components**: Componentes que trabajan juntos compartiendo
+          estado implicito (ej: Tabs, TabList, TabPanel).
+        - **Render Props**: Pasar una funcion como prop para delegar el renderizado.
+        - **Higher-Order Components (HOC)**: Envolver un componente para inyectar
+          logica transversal (autenticacion, logging).
+        - **Hooks personalizados**: Extraer logica reutilizable en hooks
+          (useForm, usePagination, useDebounce).
+        - **Slots / Children**: Usar props.children o slots con nombre para
+          permitir insercion flexible de contenido.
+
+        ## Antipatrones a evitar
+
+        - Componentes con mas de 300 lineas (dividir en subcomponentes).
+        - Props drilling de mas de 3 niveles (usar Context o estado global).
+        - Logica de negocio dentro de componentes de presentacion.
+        - Componentes que dependen de la estructura del DOM padre.
+    - name: sistema-de-diseno
+      content: |
+        ## Tokens de diseno
+
+        Definir variables centralizadas para:
+        - Colores (primarios, secundarios, semanticos: error, warning, success).
+        - Tipografia (familias, tamanios, pesos, alturas de linea).
+        - Espaciado (escala de 4px u 8px: 4, 8, 12, 16, 24, 32, 48, 64).
+        - Bordes (radios, anchos, estilos).
+        - Sombras y elevaciones.
+        - Breakpoints responsivos.
+
+        ## Niveles de componentes
+
+        1. **Atomos**: Button, Input, Label, Icon, Badge.
+        2. **Moleculas**: FormField (Label + Input + Error), SearchBar, Card.
+        3. **Organismos**: Header, Sidebar, DataTable, FormularioCompleto.
+        4. **Templates**: Layouts de pagina que organizan organismos.
+        5. **Paginas**: Instancias concretas con datos reales.

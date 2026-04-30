@@ -1,0 +1,99 @@
+id: threat-modeling
+name: Modelado de Amenazas STRIDE
+description: >
+  Metodologia estructurada de modelado de amenazas basada en el framework
+  STRIDE de Microsoft, para identificar, clasificar y mitigar amenazas
+  de seguridad en sistemas y aplicaciones desde la fase de diseno.
+used_by:
+  - security-architect
+content:
+  when_to_use: |
+    - Al disenar una nueva arquitectura o componente del sistema.
+    - Antes de iniciar la fase de construccion de una funcionalidad critica.
+    - Cuando se introducen nuevos flujos de datos o integraciones externas.
+    - Al evaluar cambios significativos en la superficie de ataque.
+    - En revisiones periodicas de seguridad de sistemas existentes.
+  instructions: |
+    ## Proceso de Modelado de Amenazas STRIDE
+
+    ### Paso 1: Identificar activos y alcance
+    - Definir los activos criticos del sistema (datos, servicios, credenciales).
+    - Delimitar los limites de confianza (trust boundaries).
+    - Documentar los puntos de entrada y salida del sistema.
+
+    ### Paso 2: Crear diagrama de flujo de datos (DFD)
+    - Identificar procesos, almacenes de datos, flujos de datos y entidades externas.
+    - Marcar los limites de confianza en el diagrama.
+    - Documentar protocolos y mecanismos de transporte.
+
+    ### Paso 3: Aplicar categorias STRIDE
+    1. **Spoofing (Suplantacion)**: Puede un atacante hacerse pasar por otro usuario o sistema?
+       - Verificar autenticacion en cada punto de entrada.
+       - Validar tokens, certificados y credenciales.
+    2. **Tampering (Manipulacion)**: Pueden modificarse datos en transito o en reposo?
+       - Verificar integridad con firmas digitales o HMAC.
+       - Validar inputs en cada capa del sistema.
+    3. **Repudiation (Repudio)**: Existe evidencia suficiente de las acciones realizadas?
+       - Asegurar logs de auditoria inmutables.
+       - Implementar trazabilidad de transacciones criticas.
+    4. **Information Disclosure (Divulgacion de informacion)**: Se exponen datos sensibles?
+       - Verificar cifrado en transito (TLS) y en reposo (AES-256).
+       - Revisar mensajes de error y respuestas de API.
+    5. **Denial of Service (Denegacion de servicio)**: Puede el sistema ser saturado?
+       - Evaluar rate limiting y throttling.
+       - Verificar timeouts y manejo de recursos.
+    6. **Elevation of Privilege (Escalada de privilegios)**: Puede un usuario obtener permisos no autorizados?
+       - Verificar principio de menor privilegio.
+       - Revisar controles de autorizacion en cada operacion.
+
+    ### Paso 4: Evaluar riesgo y priorizar
+    - Clasificar cada amenaza por probabilidad e impacto (Alta/Media/Baja).
+    - Calcular el nivel de riesgo: Riesgo = Probabilidad x Impacto.
+    - Priorizar mitigaciones segun el nivel de riesgo.
+
+    ### Paso 5: Documentar mitigaciones
+    | Amenaza | Categoria STRIDE | Riesgo | Mitigacion propuesta | Estado |
+    |---------|-----------------|--------|---------------------|--------|
+
+  guides:
+    - name: dfd-trust-boundaries
+      content: |
+        ## Guia para Diagramas de Flujo de Datos y Limites de Confianza
+
+        ### Elementos del DFD
+        - **Entidad externa**: Usuarios, sistemas externos, APIs de terceros.
+        - **Proceso**: Componentes que transforman datos (servicios, funciones).
+        - **Almacen de datos**: Bases de datos, caches, colas de mensajes, archivos.
+        - **Flujo de datos**: Conexiones entre elementos con protocolo indicado.
+
+        ### Definicion de limites de confianza
+        - Frontera entre red publica e interna (DMZ).
+        - Frontera entre microservicios con diferente nivel de privilegio.
+        - Frontera entre el cliente (navegador/app) y el backend.
+        - Frontera entre el sistema y servicios de terceros.
+
+        ### Ejemplo de analisis por limite de confianza
+        Para cada limite de confianza, documentar:
+        1. Que datos cruzan el limite.
+        2. Como se autentican los participantes.
+        3. Como se protege la integridad y confidencialidad.
+        4. Que ocurre si el otro lado del limite es comprometido.
+    - name: stride-por-elemento
+      content: |
+        ## Aplicacion de STRIDE por tipo de elemento
+
+        ### Entidades externas
+        - Amenazas principales: Spoofing, Repudiation.
+        - Validar identidad con autenticacion fuerte (OAuth2, mTLS).
+
+        ### Procesos
+        - Amenazas principales: Todas las categorias STRIDE aplican.
+        - Verificar validacion de entrada, autorizacion y logging.
+
+        ### Almacenes de datos
+        - Amenazas principales: Tampering, Information Disclosure, Denial of Service.
+        - Verificar cifrado, control de acceso y respaldos.
+
+        ### Flujos de datos
+        - Amenazas principales: Tampering, Information Disclosure.
+        - Verificar TLS, firmas digitales y validacion de esquemas.

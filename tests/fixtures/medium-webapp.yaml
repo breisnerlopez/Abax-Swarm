@@ -1,0 +1,11 @@
+name: sistema-ventas
+description: Sistema web de ventas con integraciones a ERP y pasarelas de pago
+targetDir: /tmp/test-medium
+size: medium
+criteria:
+  - has_integrations
+  - has_user_facing_ui
+  - has_sensitive_data
+stackId: angular-springboot
+target: opencode
+teamScope: full

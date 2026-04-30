@@ -1,0 +1,105 @@
+activities:
+  define_scope:
+    product-owner: A
+    project-manager: R
+    business-analyst: R
+    solution-architect: C
+    tech-lead: C
+    ux-designer: C
+    change-manager: C
+
+  gather_requirements:
+    product-owner: A
+    business-analyst: R
+    project-manager: C
+    solution-architect: C
+    qa-lead: C
+    qa-functional: C
+
+  design_solution:
+    solution-architect: A
+    tech-lead: R
+    integration-architect: R
+    security-architect: R
+    dba: R
+    business-analyst: C
+    product-owner: C
+    qa-lead: C
+    devops: C
+    developer-backend: C
+
+  build_solution:
+    tech-lead: A
+    developer-backend: R
+    developer-frontend: R
+    dba: C
+    solution-architect: C
+    business-analyst: C
+    project-manager: I
+    devops: C
+    tech-writer: C
+
+  design_tests:
+    qa-lead: A
+    qa-functional: R
+    qa-automation: R
+    business-analyst: R
+    tech-lead: C
+    product-owner: C
+    project-manager: C
+
+  execute_qa:
+    qa-functional: R
+    qa-automation: R
+    qa-performance: R
+    qa-lead: A
+    tech-lead: C
+    developer-backend: C
+    developer-frontend: C
+    devops: C
+    dba: C
+    project-manager: C
+    business-analyst: C
+
+  execute_uat:
+    product-owner: A
+    business-analyst: R
+    qa-functional: C
+    project-manager: C
+    tech-lead: C
+
+  approve_deployment:
+    product-owner: A
+    project-manager: R
+    solution-architect: C
+    qa-lead: C
+    devops: C
+    security-architect: C
+    tech-lead: C
+    change-manager: C
+    business-analyst: C
+
+  deploy:
+    devops: R
+    project-manager: A
+    tech-lead: R
+    dba: C
+    qa-functional: C
+    developer-backend: C
+    change-manager: C
+
+  post_production_support:
+    tech-lead: R
+    project-manager: A
+    developer-backend: C
+    dba: C
+    devops: C
+    qa-functional: C
+    business-analyst: C
+    change-manager: C
+
+  close_project:
+    project-manager: R
+    product-owner: A
+    business-analyst: C
+    tech-writer: C

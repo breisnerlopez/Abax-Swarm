@@ -1,0 +1,42 @@
+id: requirement-traceability
+name: Trazabilidad de Requerimientos
+description: >
+  Seguimiento y rastreo de requerimientos a lo largo de todo el ciclo de vida
+  del proyecto, desde su origen hasta su implementacion y verificacion final.
+used_by:
+  - business-analyst
+content:
+  when_to_use: |
+    - Cuando se necesita verificar que todos los requerimientos tienen cobertura en diseno, desarrollo y pruebas.
+    - Cuando se realiza un analisis de impacto ante un cambio solicitado.
+    - Cuando se prepara una entrega y se requiere evidencia de cumplimiento.
+    - Cuando se detectan funcionalidades sin requerimiento asociado.
+    - Cuando se necesita identificar requerimientos huerfanos o sin implementacion.
+  instructions: |
+    ## Proceso de Trazabilidad de Requerimientos
+    1. Establecer una matriz de trazabilidad con las siguientes columnas:
+       | ID Req | Descripcion | Origen | Diseno | Componente | Caso de Prueba | Estado |
+    2. Asignar un identificador unico a cada requerimiento siguiendo la convencion del proyecto.
+    3. Vincular cada requerimiento con su fuente de origen (stakeholder, documento, normativa).
+    4. Mapear cada requerimiento hacia adelante (forward tracing):
+       - Requerimiento -> Diseno -> Codigo -> Prueba.
+    5. Mapear cada requerimiento hacia atras (backward tracing):
+       - Prueba -> Codigo -> Diseno -> Requerimiento.
+    6. Identificar brechas de cobertura: requerimientos sin prueba o sin implementacion.
+    7. Actualizar la matriz ante cada cambio aprobado en el alcance.
+    8. Generar reportes de cobertura para revisiones y auditorias.
+  guides:
+    - name: mejores-practicas-trazabilidad
+      content: |
+        - Mantener la matriz actualizada en cada iteracion o sprint.
+        - Usar identificadores consistentes y no reutilizar IDs eliminados.
+        - Documentar el estado de cada requerimiento: pendiente, en progreso, implementado, verificado.
+        - Incluir trazabilidad bidireccional para facilitar analisis de impacto.
+        - Automatizar la generacion de reportes de cobertura cuando sea posible.
+        - Revisar la matriz en cada reunion de seguimiento del proyecto.
+    - name: analisis-de-impacto
+      content: |
+        - Ante un cambio solicitado, identificar todos los artefactos afectados usando la matriz.
+        - Evaluar el esfuerzo de modificacion en diseno, codigo y pruebas.
+        - Documentar dependencias cruzadas entre requerimientos.
+        - Obtener aprobacion formal antes de modificar requerimientos trazados.

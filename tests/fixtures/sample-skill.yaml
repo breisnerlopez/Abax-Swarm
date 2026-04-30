@@ -1,0 +1,29 @@
+id: functional-analysis
+name: Analisis Funcional
+description: >
+  Levantamiento y documentacion de requerimientos funcionales a partir
+  de necesidades de negocio, incluyendo reglas, excepciones y alcance.
+
+used_by:
+  - business-analyst
+  - product-owner
+
+content:
+  when_to_use: |
+    - Cuando se inicia una nueva funcionalidad o modulo
+    - Cuando el usuario reporta una necesidad no documentada
+    - Cuando se requiere clarificar alcance ante ambiguedad
+  instructions: |
+    ## Proceso de Analisis Funcional
+    1. Identificar stakeholders y fuentes de informacion
+    2. Documentar proceso actual (AS IS) si existe
+    3. Levantar reglas de negocio
+    4. Definir alcance con limites claros
+    5. Escribir criterios de aceptacion
+    6. Validar con Product Owner
+  guides:
+    - name: best-practices
+      content: |
+        - Nunca asumir, siempre preguntar
+        - Un requerimiento = una necesidad verificable
+        - Separar funcionales de no funcionales

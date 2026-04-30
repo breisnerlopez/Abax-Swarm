@@ -1,0 +1,77 @@
+id: astro-hono
+name: Astro + Hono
+description: Stack ligero y edge-ready con Astro para el frontend y Hono como servidor backend ultrarapido optimizado para entornos edge y serverless
+
+frontend:
+  framework: Astro
+  language: TypeScript
+  version: "5+"
+  package_manager: pnpm
+  test_framework: Vitest, Playwright
+  build_tool: Astro CLI / Vite
+
+backend:
+  framework: Hono
+  language: TypeScript
+  version: "4+"
+  build_tool: Vite/esbuild
+  test_framework: Vitest
+  orm: Drizzle ORM
+
+database:
+  default: Turso (libSQL)
+  alternatives:
+    - PostgreSQL
+    - SQLite
+    - D1 (Cloudflare)
+    - PlanetScale
+
+devops:
+  containerization: Docker/Wrangler
+  orchestration: Cloudflare Workers/AWS Lambda
+  ci_cd: GitHub Actions
+  cloud: Cloudflare/Vercel/AWS
+
+role_context:
+  developer-backend: |
+    Usa Hono 4+ como framework HTTP ultraligero para edge y serverless.
+    Estructura: routes con app.route(), middleware encadenado, context tipado.
+    Validacion con zod y @hono/zod-validator middleware.
+    ORM: Drizzle ORM para queries tipadas y ligeras (sin runtime pesado).
+    Hono RPC para cliente tipado end-to-end (similar a tRPC).
+    Tests: Vitest con app.request() para testing sin servidor real.
+    Adapters: Cloudflare Workers, Bun, Deno, Node.js, AWS Lambda.
+  developer-frontend: |
+    Usa Astro 5+ con Content Collections y View Transitions.
+    Islands architecture: componentes interactivos solo donde se necesitan.
+    Soporte multi-framework: React, Vue, Svelte, Solid como islands.
+    Astro DB o fetch a API Hono para datos dinamicos.
+    Estilos: Tailwind CSS 4. Contenido: MDX con Content Collections.
+    Tests: Vitest para utilidades. E2E: Playwright.
+    Optimizacion automatica de imagenes con astro:assets.
+  dba: |
+    Turso (libSQL) como BD principal para edge, PostgreSQL para cargas pesadas.
+    Drizzle ORM con queries tipadas y migraciones con drizzle-kit.
+    Cloudflare D1 como alternativa para workers.
+    Bases de datos edge-friendly con replicas de lectura distribuidas.
+    Indices optimizados para patrones de lectura intensiva (sitios de contenido).
+    Considerar KV stores (Cloudflare KV, Upstash Redis) para cache y sesiones.
+  devops: |
+    Frontend Astro: build estatico o SSR segun adaptador (node, cloudflare, vercel).
+    Backend Hono: deploy directo en Cloudflare Workers con Wrangler.
+    Docker opcional para Node.js adapter. Minimal footprint en edge.
+    Pipeline: install -> lint -> typecheck -> test -> build -> deploy.
+    Wrangler para deploy y dev local de Workers.
+    Monorepo con pnpm workspaces para separar frontend y backend.
+  qa-automation: |
+    Backend: Vitest con app.request() para tests sin levantar servidor.
+    Frontend: Vitest para utilidades + Playwright para E2E.
+    CI: pnpm test + Playwright run. Lighthouse CI para Core Web Vitals.
+    Tests de integracion con Miniflare para simular entorno Workers.
+  solution-architect: |
+    Arquitectura: content-first con Astro, API ligera con Hono en el edge.
+    Patrones: Islands Architecture, edge computing, zero-JS por defecto.
+    Integraciones: REST via Hono RPC (tipado e2e), webhooks, APIs externas.
+    Seguridad: middleware Hono para auth, CORS, rate limiting.
+    Ideal para sitios de contenido, marketing, documentacion con APIs rapidas.
+    Latencia minima: edge-first con Cloudflare Workers o similar.

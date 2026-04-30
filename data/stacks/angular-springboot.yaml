@@ -1,0 +1,64 @@
+id: angular-springboot
+name: Angular + Spring Boot
+description: Frontend Angular con backend Java Spring Boot para aplicaciones enterprise corporativas
+
+frontend:
+  framework: Angular
+  language: TypeScript
+  version: "19+"
+  package_manager: npm
+  test_framework: Jasmine/Karma, Cypress
+  build_tool: Angular CLI
+
+backend:
+  framework: Spring Boot
+  language: Java
+  version: "21+"
+  build_tool: Maven/Gradle
+  test_framework: JUnit 5, Mockito
+  orm: JPA/Hibernate
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - Oracle
+    - MySQL
+    - SQL Server
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: Jenkins/GitHub Actions
+  cloud: Azure/AWS
+
+role_context:
+  developer-backend: |
+    Usa Spring Boot 3.x con Java 21+. Sigue Clean Architecture.
+    Estructura: controller -> service -> repository -> entity.
+    Records para DTOs. Jakarta Validation. @ControllerAdvice para errores.
+    Tests: JUnit 5 + Mockito + Spring Boot Test + Testcontainers.
+    Migraciones: Flyway. ORM: JPA/Hibernate.
+  developer-frontend: |
+    Usa Angular 19+ con standalone components y Signals.
+    Formularios tipados con ReactiveFormsModule. Lazy loading de rutas.
+    Servicios con inject(). Estado reactivo con Signals.
+    Tests: Jasmine + Angular Testing Library. E2E: Cypress.
+  dba: |
+    PostgreSQL como BD principal (o segun proyecto).
+    Scripts Flyway/Liquibase para migraciones versionadas.
+    Indices basados en patrones de consulta JPA.
+    Considerar N+1, batch fetching, connection pool (HikariCP).
+  devops: |
+    Dockerfile multi-stage: Maven build + JRE 21 (backend).
+    Dockerfile multi-stage: Node build + Nginx (frontend).
+    docker-compose para desarrollo local.
+    Pipeline: build -> test -> sonar -> docker -> push -> deploy.
+  qa-automation: |
+    Backend: JUnit 5 + Spring Boot Test + Testcontainers + REST Assured.
+    Frontend: Cypress + Angular Testing Library.
+    CI: Maven/Gradle test + Cypress run en pipeline.
+  solution-architect: |
+    Arquitectura: Clean Architecture con capas bien separadas.
+    Patrones: DTO, Repository, Domain Events, CQRS si aplica.
+    Integraciones: REST con OpenAPI 3.1, mensajeria Kafka/RabbitMQ.
+    Seguridad: Spring Security con OAuth2/OIDC.

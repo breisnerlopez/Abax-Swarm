@@ -1,0 +1,300 @@
+id: systematic-debugging
+name: Debugging Sistematico
+description: >
+  Investigacion sistematica de causa raiz antes de aplicar cualquier fix.
+  Esta skill establece un proceso riguroso de diagnostico que previene la
+  aplicacion de parches superficiales que ocultan problemas sin resolverlos.
+  Obliga a reproducir, diagnosticar, corregir y prevenir de forma ordenada
+  en lugar de recurrir al ensayo y error.
+used_by:
+  - developer-backend
+  - developer-frontend
+  - tech-lead
+  - dba
+content:
+  when_to_use: |
+    - Usar cuando un test falla.
+    - Usar cuando se reporta un bug.
+    - Usar cuando un comportamiento inesperado ocurre en produccion.
+    - Usar cuando ya se intentaron 2+ fixes sin exito.
+    - Usar cuando un error es intermitente y dificil de reproducir.
+    - Usar cuando se sospecha de una regresion despues de un cambio reciente.
+  instructions: |
+    ## Ley Inquebrantable
+
+    **"NO se aplica fix sin investigar causa raiz."**
+
+    Aplicar un fix sin entender la causa raiz es como poner cinta adhesiva en
+    una tuberia rota: puede detener la fuga temporalmente, pero el problema
+    subyacente persiste y se manifestara de nuevo, posiblemente de forma peor.
+
+    Antes de modificar cualquier linea de codigo para corregir un bug, debes
+    poder responder con precision:
+    - Que esta causando el comportamiento incorrecto (causa raiz, no sintoma).
+    - Por que el codigo actual produce ese resultado.
+    - Por que tu fix propuesto corrige la causa raiz y no solo el sintoma.
+
+    Si no puedes responder las tres preguntas, NO estas listo para aplicar un fix.
+
+    ---
+
+    ## Fase 1: Reproduccion
+
+    **Objetivo:** Reproducir el bug de forma consistente y predecible.
+
+    Un bug que no puedes reproducir es un bug que no puedes verificar como
+    corregido. La reproduccion es el paso mas critico y no se puede saltar.
+
+    ### Pasos:
+
+    1. **Recopilar informacion del reporte:**
+       - Que se esperaba que sucediera.
+       - Que sucedio en realidad.
+       - Pasos que siguio el usuario/reportador.
+       - Entorno donde ocurrio (version, SO, navegador, configuracion).
+       - Frecuencia: siempre, intermitente, una sola vez.
+
+    2. **Crear un caso de reproduccion minimo:**
+       - Reducir los pasos al minimo necesario para provocar el bug.
+       - Eliminar variables irrelevantes (datos extra, configuracion no relacionada).
+       - Documentar los pasos exactos en formato numerado.
+
+    3. **Verificar la reproduccion:**
+       - Ejecutar los pasos al menos 3 veces para confirmar consistencia.
+       - Si es intermitente, identificar las condiciones que aumentan la probabilidad.
+       - Si no se puede reproducir, NO avanzar a la siguiente fase. Recopilar
+         mas informacion o instrumentar el codigo con logging adicional.
+
+    4. **Escribir un test que falle:**
+       - Antes de cualquier fix, crear un test automatizado que reproduzca el bug.
+       - Este test debe fallar de forma consistente en el estado actual.
+       - Este test sera tu prueba de que el fix funciona cuando pase.
+
+    ### Alerta Roja:
+    Si despues de 30 minutos no puedes reproducir el bug, detente y solicita
+    mas informacion al reportador. No adivines, no asumas.
+
+    ---
+
+    ## Fase 2: Diagnostico
+
+    **Objetivo:** Identificar la causa raiz exacta del comportamiento incorrecto.
+
+    ### Paso 2.1: Leer Logs y Mensajes de Error
+
+    - Leer el mensaje de error COMPLETO, no solo la primera linea.
+    - Revisar el stack trace completo, identificando la linea de codigo origen.
+    - Buscar en los logs entradas anteriores al error que den contexto.
+    - Buscar patrones: el error ocurre siempre a la misma hora? Con los mismos datos?
+
+    ### Paso 2.2: Trazar el Flujo de Ejecucion
+
+    - Partir del punto donde el error se manifiesta.
+    - Trazar hacia atras: de donde vienen los datos? Que funciones los procesaron?
+    - Identificar el punto exacto donde el comportamiento diverge de lo esperado.
+    - Usar herramientas de depuracion (debugger, breakpoints) si es necesario.
+    - Agregar logs temporales en puntos clave si el debugger no es viable.
+
+    ### Paso 2.3: Formular Hipotesis
+
+    - Basandote en la evidencia recopilada, formular 1-3 hipotesis sobre la causa.
+    - Cada hipotesis debe ser especifica y verificable, por ejemplo:
+      - MAL: "Algo esta mal con la base de datos"
+      - BIEN: "La consulta SQL en `UserRepository.findByEmail()` no maneja el caso
+        donde email es null, causando un NullPointerException en la linea 45"
+    - Ordenar las hipotesis por probabilidad (basandote en la evidencia, no en intuicion).
+
+    ### Paso 2.4: Verificar Hipotesis
+
+    - Para cada hipotesis, disenar un experimento que la confirme o descarte.
+    - Ejecutar los experimentos en orden de probabilidad.
+    - Documentar el resultado de cada experimento.
+    - Si todas las hipotesis se descartan, volver al paso 2.1 con nueva perspectiva.
+
+    ### Tecnicas de Diagnostico Recomendadas
+
+    | Tecnica                  | Cuando Usar                                      |
+    |--------------------------|--------------------------------------------------|
+    | Biseccion (git bisect)   | Cuando funciono antes y dejo de funcionar        |
+    | Logging temporal         | Cuando necesitas ver el flujo en runtime          |
+    | Debugger interactivo     | Cuando necesitas inspeccionar estado en un punto  |
+    | Reduccion de caso        | Cuando el escenario es complejo                   |
+    | Comparacion A/B          | Cuando tienes un caso que funciona y otro que no  |
+    | Lectura de codigo        | Cuando sospechas de logica incorrecta             |
+    | Inspeccion de datos      | Cuando sospechas de datos corruptos o inesperados |
+
+    ---
+
+    ## Fase 3: Correccion
+
+    **Objetivo:** Aplicar el fix minimo que corrige la causa raiz.
+
+    ### Reglas de Correccion:
+
+    1. **Fix minimo:** Modificar solo lo necesario para corregir la causa raiz.
+       No aprovechar para refactorizar, no agregar features, no "limpiar" codigo
+       adyacente. Eso se hace en commits separados.
+
+    2. **Test que reproduce el bug:** Antes de aplicar el fix, confirmar que el
+       test creado en la Fase 1 sigue fallando. Despues del fix, confirmar que pasa.
+
+    3. **Verificacion completa:**
+       - El test del bug ahora pasa.
+       - Todos los demas tests siguen pasando (sin regresion).
+       - El build compila sin errores ni warnings nuevos.
+       - La funcionalidad se puede verificar manualmente.
+
+    4. **Revisar efectos colaterales:**
+       - Que otros componentes usan la funcion/modulo modificado?
+       - Podria el fix cambiar el comportamiento en otros flujos?
+       - Si hay riesgo de efectos colaterales, agregar tests para esos flujos.
+
+    ### Formato del Commit de Fix:
+
+    ```
+    fix(modulo): descripcion concisa del fix
+
+    Causa raiz: [explicacion de la causa raiz]
+    Solucion: [explicacion de lo que se corrigio y por que]
+    Test: [descripcion del test que verifica el fix]
+    Ref: [ticket/issue asociado]
+    ```
+
+    ---
+
+    ## Fase 4: Prevencion
+
+    **Objetivo:** Evitar que el mismo tipo de error ocurra en el futuro.
+
+    ### Acciones de Prevencion:
+
+    1. **Documentar la causa raiz** en el ticket/issue con detalle suficiente
+       para que alguien que no estuvo involucrado entienda que paso.
+
+    2. **Agregar test de regresion** que cubra especificamente el escenario del bug.
+       Este test debe ser parte permanente de la suite.
+
+    3. **Evaluar si hay variantes del mismo bug** en otros lugares del codigo.
+       Si la causa raiz es un patron repetido, buscar todas las instancias.
+
+    4. **Considerar mejoras estructurales** que hagan imposible este tipo de error:
+       - Mejor tipado (types mas estrictos).
+       - Validacion de entrada mas robusta.
+       - Mejor manejo de errores.
+       - Documentacion de contratos/interfaces.
+
+    5. **Compartir el aprendizaje** con el equipo si el bug revela un patron
+       de error comun o una trampa no obvia.
+
+    ---
+
+    ## Tabla de Senales de Alerta
+
+    Estas senales indican que el enfoque actual de debugging no esta funcionando
+    y se necesita cambiar de estrategia:
+
+    | Senal de Alerta                         | Accion Requerida                                         |
+    |-----------------------------------------|----------------------------------------------------------|
+    | 3+ intentos de fix fallidos             | DETENERSE. Revisar si se entiende la arquitectura.       |
+    | El fix corrige un caso pero rompe otro  | La causa raiz no se identifico correctamente.            |
+    | El bug reaparece despues del fix        | Se corrigio un sintoma, no la causa raiz.                |
+    | No se puede reproducir de forma fiable  | Agregar instrumentacion/logging antes de intentar fix.   |
+    | El fix requiere cambios en 5+ archivos  | Posible problema de diseno. Consultar con tech-lead.     |
+    | El bug solo ocurre en un entorno        | Diferencia de configuracion. Comparar entornos en detalle.|
+    | Llevas mas de 2 horas sin progreso      | Pedir una segunda opinion. Explicar el problema a alguien.|
+
+    ### Regla de los 3 intentos:
+
+    Si despues de 3 intentos de fix el bug persiste, se activa el protocolo
+    de escalacion:
+    1. Documentar todo lo intentado y los resultados.
+    2. Revisar si la arquitectura del componente es adecuada.
+    3. Involucrar a un segundo par de ojos (tech-lead o senior).
+    4. Considerar si el problema real es de diseno y no de implementacion.
+  guides:
+    - name: tecnicas-diagnostico
+      content: |
+        ## Guia de Tecnicas de Diagnostico
+
+        ### 1. Biseccion con Git (git bisect)
+        Util cuando sabes que algo funciono antes y dejo de funcionar.
+
+        ```bash
+        git bisect start
+        git bisect bad              # commit actual (roto)
+        git bisect good <commit>    # ultimo commit conocido donde funcionaba
+        # Git te presenta commits intermedios, marcas cada uno como good/bad
+        # hasta encontrar el commit exacto que introdujo el bug
+        git bisect reset            # cuando termines
+        ```
+
+        ### 2. Logging Estrategico Temporal
+        Agregar logs en puntos clave para entender el flujo en runtime.
+
+        - Loguear entradas y salidas de funciones sospechosas.
+        - Incluir valores de variables criticas.
+        - Usar niveles de log apropiados (DEBUG para diagnostico temporal).
+        - Marcar los logs temporales con un prefijo como `[DEBUG-TEMP]` para
+          facilitar su eliminacion posterior.
+        - NUNCA dejar logs de diagnostico temporal en el codigo final.
+
+        ### 3. Debugger Interactivo
+        Cuando necesitas inspeccionar el estado del programa en un punto especifico.
+
+        - Colocar breakpoints en las lineas sospechosas.
+        - Inspeccionar variables locales y estado del objeto.
+        - Usar step-over para avanzar linea por linea.
+        - Usar step-into para entrar en funciones llamadas.
+        - Evaluar expresiones en el contexto del breakpoint.
+
+        ### 4. Reduccion del Caso de Prueba
+        Simplificar el escenario hasta tener el caso minimo que reproduce el bug.
+
+        - Eliminar datos innecesarios del input.
+        - Eliminar pasos intermedios que no afectan la reproduccion.
+        - Aislar el componente: probar sin dependencias externas si es posible.
+        - El caso reducido es mas facil de analizar y se convierte en el test.
+
+        ### 5. Analisis de Diferencias (Diff)
+        Comparar el estado que funciona con el estado roto.
+
+        - Comparar configuraciones entre entornos.
+        - Comparar versiones de dependencias.
+        - Comparar datos de entrada en caso exitoso vs caso fallido.
+        - Buscar la diferencia minima que causa el cambio de comportamiento.
+    - name: prevencion-regresion
+      content: |
+        ## Guia de Prevencion de Regresiones
+
+        ### Que es una Regresion
+        Una regresion es un defecto introducido por un cambio que rompe funcionalidad
+        que antes funcionaba correctamente. Es uno de los tipos de bug mas frustrantes
+        y evitables.
+
+        ### Estrategia de Tests de Regresion
+
+        1. **Por cada bug corregido, un test permanente:**
+           Cada bug que se corrige debe tener al menos un test automatizado que
+           lo reproduzca. Este test se agrega a la suite permanente y nunca se elimina.
+
+        2. **Nombrar tests de regresion de forma descriptiva:**
+           El nombre del test debe indicar que escenario cubre y referenciar el ticket.
+           Ejemplo: `test_user_login_fails_gracefully_when_email_is_null_BUG_1234`
+
+        3. **Cubrir el caso exacto y las variantes:**
+           No solo el caso reportado, sino variantes cercanas que podrian tener
+           el mismo problema (ej: null, vacio, espacios en blanco).
+
+        4. **Ejecutar tests de regresion en cada build:**
+           Los tests de regresion deben ser parte de la suite que se ejecuta
+           en cada CI build, no en una suite separada que se corre esporadicamente.
+
+        ### Patrones Comunes de Regresion y Como Prevenirlos
+
+        | Patron                        | Prevencion                                          |
+        |-------------------------------|-----------------------------------------------------|
+        | Cambio en funcion compartida  | Tests de integracion para todos los consumidores.   |
+        | Actualizacion de dependencia  | Tests end-to-end y lock de versiones.               |
+        | Cambio de configuracion       | Tests que validan configuracion en cada entorno.    |
+        | Refactorizacion               | Suite completa de tests antes de refactorizar.      |
+        | Merge conflictivo             | Ejecutar tests completos despues de cada merge.     |

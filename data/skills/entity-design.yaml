@@ -1,0 +1,151 @@
+id: entity-design
+name: Diseno y Creacion de Entidades del Sistema
+description: >
+  Metodologia para disenar, crear y modificar roles, skills, tools y
+  rules del sistema Abax Swarm, siguiendo convenciones, schemas y
+  validaciones de consistencia establecidas.
+used_by:
+  - system-designer
+content:
+  when_to_use: |
+    - Usar cuando se necesita crear un nuevo rol, skill, tool o rule.
+    - Usar cuando se modifica un rol existente (agregar skill, cambiar permisos, ajustar system_prompt).
+    - Usar cuando se identifica una brecha funcional que requiere nueva entidad.
+    - Usar cuando se recibe feedback de que un agente carece de contexto o capacidad.
+    - Usar cuando se incorporan patrones de otras metodologias al sistema.
+  instructions: |
+    ## Proceso de Diseno de Entidades
+
+    ### Paso 1: Analisis de Necesidad
+    Antes de crear cualquier entidad, responder:
+    1. ¿Que problema resuelve que no se resuelve actualmente?
+    2. ¿Existe un rol/skill/tool existente que pueda extenderse?
+    3. ¿En que fase(s) del cascada se usa?
+    4. ¿Que roles interactuan con esta entidad?
+    5. ¿Rompe o altera algun flujo existente?
+
+    Si la respuesta a (2) es si → extender, no crear nuevo.
+    Si la respuesta a (5) es si → documentar impacto antes de proceder.
+
+    ### Paso 2: Decision de Tipo de Entidad
+
+    | Necesidad | Entidad | Ejemplo |
+    |---|---|---|
+    | Nueva responsabilidad autonoma | Rol | Agregar qa-security |
+    | Nuevo conocimiento/metodologia para rol existente | Skill | Agregar api-versioning a integration-architect |
+    | Nueva capacidad ejecutable | Tool | Agregar run-migration |
+    | Nueva regla de gobernanza | Rule | Agregar compliance-checklist |
+    | Nuevo stack tecnologico | Stack | Agregar svelte-sveltekit |
+
+    ### Paso 3: Diseno del Rol (si aplica)
+
+    Checklist obligatorio para nuevo rol:
+    - [ ] ID unico en kebab-case, no colisiona con existentes.
+    - [ ] Categoria valida (governance, business, management, etc.).
+    - [ ] Tier asignado: 1 (agente completo), 2 (asistido), 3 (contextual).
+    - [ ] size_classification coherente (¿es indispensable en proyectos grandes?).
+    - [ ] system_prompt con: Principios, Leyes Inquebrantables, Senales de Alerta, Formato de salida, Restricciones.
+    - [ ] skills[] con IDs de skills que existen o se crean simultaneamente.
+    - [ ] tools[] con IDs de tools que existen o se crean simultaneamente.
+    - [ ] stack_overrides para los 13 stacks (si es rol tecnico).
+    - [ ] dependencies.receives_from y delivers_to coherentes con el flujo.
+    - [ ] phases[] donde participa.
+    - [ ] Entradas RACI para actividades donde participa.
+    - [ ] Verificar que no duplica responsabilidades de otro rol.
+
+    ### Paso 4: Diseno del Skill (si aplica)
+
+    Checklist obligatorio para nuevo skill:
+    - [ ] ID unico en kebab-case.
+    - [ ] used_by[] lista roles que realmente lo usan.
+    - [ ] Cada rol en used_by[] tiene este skill en su skills[].
+    - [ ] when_to_use con triggers especificos ("Usar cuando...").
+    - [ ] instructions con minimo 50 lineas de contenido accionable.
+    - [ ] Al menos 1 guide con contenido util.
+    - [ ] No solapa con skill existente (verificar por nombre Y por contenido).
+
+    ### Paso 5: Diseno del Tool (si aplica)
+
+    Checklist obligatorio para nuevo tool:
+    - [ ] ID unico en kebab-case.
+    - [ ] used_by[] lista roles que realmente lo usan.
+    - [ ] Cada rol en used_by[] tiene este tool en su tools[].
+    - [ ] args con tipos validos (string, number, boolean).
+    - [ ] body con implementacion funcional (no placeholder).
+
+    ### Paso 6: Informe de Impacto
+
+    Antes de aplicar CUALQUIER cambio, generar:
+
+    ```markdown
+    ## Informe de Impacto - [Cambio Propuesto]
+
+    ### Entidades Nuevas
+    | Tipo | ID | Descripcion |
+    |---|---|---|
+    | [Role/Skill/Tool/Rule] | [id] | [Descripcion corta] |
+
+    ### Entidades Modificadas
+    | Tipo | ID | Cambio | Motivo |
+    |---|---|---|---|
+    | [Tipo] | [id] | [Que cambia] | [Por que] |
+
+    ### Consistencia Bidireccional
+    - [ ] Todo skill.used_by ↔ role.skills sincronizado.
+    - [ ] Todo tool.used_by ↔ role.tools sincronizado.
+    - [ ] dependency-graph actualizado si hay nuevas dependencias.
+    - [ ] RACI matrix actualizada si nuevo rol participa en actividades.
+    - [ ] size-matrix actualizada si nuevo rol tiene clasificacion por tamano.
+
+    ### Riesgo
+    - [ ] No rompe tests existentes.
+    - [ ] No duplica funcionalidad existente.
+    - [ ] No altera flujo cascada.
+    ```
+
+    ### Paso 7: Aplicacion y Verificacion
+
+    1. Crear/modificar archivos YAML.
+    2. Ejecutar `npx vitest run tests/integration/data-consistency.test.ts`.
+    3. Si falla → corregir inconsistencias antes de continuar.
+    4. Ejecutar `npx vitest run` (suite completa).
+    5. Documentar cambio en registro.
+
+    ## Anti-patrones de Diseno
+
+    | Anti-patron | Problema | Solucion |
+    |---|---|---|
+    | Rol para una sola tarea | Over-engineering, fragmentacion | Agregar skill a rol existente |
+    | Skill con 1 linea de instrucciones | No aporta valor, mejor inline | Minimo 50 lineas o no crear |
+    | Tool sin implementacion real | Placeholder inutil | body funcional o no crear |
+    | Duplicar skill con nombre distinto | Confusion, inconsistencia | Buscar por contenido, no solo nombre |
+    | Rol sin RACI | Responsabilidad ambigua | Definir RACI antes de crear |
+    | Skill sin when_to_use especifico | Nunca se activa correctamente | Triggers concretos: "Usar cuando..." |
+    | Modificar sin informe de impacto | Rompe consistencia silenciosamente | Siempre generar informe primero |
+
+    ## Registro de Cambios
+
+    Todo cambio al sistema debe quedar registrado:
+
+    | Fecha | Tipo | Entidad | Accion | Motivo | Impacto |
+    |---|---|---|---|---|---|
+    | [Fecha] | Role/Skill/Tool/Rule | [ID] | Crear/Modificar/Eliminar | [Razon] | [Entidades afectadas] |
+
+  guides:
+    - name: catalogo-entidades-existentes
+      content: |
+        Referencia rapida del inventario actual del sistema:
+        19 roles (10 Tier 1, 8 Tier 2, 0 Tier 3 con agente), 68+ skills,
+        7 tools (create-document, create-presentation, create-dashboard,
+        generate-diagram, run-tests, lint-code, db-migrate), 7 rules,
+        13 stacks. Usar este catalogo como punto de partida para verificar
+        duplicidad antes de crear nuevas entidades.
+    - name: convenciones-y-schemas
+      content: |
+        Referencia de convenciones: IDs en kebab-case, contenido en espanol,
+        sin emojis. Schemas Zod en src/loader/schemas.ts definen la
+        estructura exacta de cada entidad. Categorias de rol validas:
+        governance, business, management, analysis, architecture, security,
+        technology, construction, data, quality, validation, deployment,
+        operations, change, documentation, platform, control, experience.
+        Tiers: 1 (agente completo), 2 (asistido), 3 (contextual).

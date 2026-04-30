@@ -1,0 +1,275 @@
+id: multi-stage-review
+name: Revision en Multiples Etapas
+description: >
+  Revision en multiples etapas separando cumplimiento de especificacion de calidad
+  de codigo. Esta skill estructura el proceso de revision para que cada aspecto
+  reciba atencion dedicada sin mezclar preocupaciones. Primero se verifica que
+  lo construido cumple con lo solicitado, luego se evalua la calidad tecnica
+  de la implementacion, y finalmente se clasifican los hallazgos por severidad.
+used_by:
+  - tech-lead
+  - qa-lead
+content:
+  when_to_use: |
+    - Usar cuando se recibe un PR para revision.
+    - Usar cuando se evalua entregable de un subagente.
+    - Usar cuando se hace code review de funcionalidad compleja.
+    - Usar cuando se revisa una entrega antes de pasarla a QA.
+    - Usar cuando se audita codigo existente para mejora continua.
+  instructions: |
+    ## Principio Fundamental
+
+    **"Separar preocupaciones: cumplimiento funcional PRIMERO, calidad de codigo SEGUNDO."**
+
+    La revision de codigo efectiva requiere separar dos preguntas fundamentales
+    que son independientes entre si:
+
+    1. **Hace lo que se pidio?** (Cumplimiento de requisitos)
+    2. **Lo hace bien?** (Calidad tecnica)
+
+    Mezclar estas dos evaluaciones en una sola pasada lleva a:
+    - Aprobar codigo elegante que no cumple los requisitos.
+    - Rechazar codigo funcional por cuestiones esteticas menores.
+    - Perder de vista lo importante entre comentarios de estilo.
+
+    La revision siempre sigue tres etapas en orden estricto. No se avanza
+    a la siguiente etapa hasta completar la anterior.
+
+    ---
+
+    ## Etapa 1: Revision de Cumplimiento
+
+    **Pregunta central:** "Hace exactamente lo que se pidio?"
+
+    Esta etapa evalua si la implementacion satisface todos los requisitos
+    funcionales especificados. NO se evalua calidad de codigo aqui.
+
+    ### Proceso:
+
+    1. **Leer los requisitos/especificacion** completos antes de mirar el codigo.
+    2. **Crear una lista de cada requisito** funcional individual.
+    3. **Para cada requisito, verificar:**
+       - Esta implementado? (si/no)
+       - Funciona correctamente? (verificar con test o prueba manual)
+       - Cubre los casos borde mencionados en la especificacion?
+
+    ### Checklist de Cumplimiento:
+
+    - [ ] Todos los requisitos funcionales estan implementados.
+    - [ ] No falta ninguna funcionalidad especificada.
+    - [ ] No hay funcionalidad extra no solicitada (scope creep).
+    - [ ] Los criterios de aceptacion se cumplen tal como estan escritos.
+    - [ ] Los casos borde especificados estan cubiertos.
+    - [ ] Los mensajes de error/validacion coinciden con lo especificado.
+    - [ ] Los flujos alternativos (si se especificaron) funcionan correctamente.
+    - [ ] La integracion con otros componentes (si aplica) funciona segun spec.
+
+    ### Resultados Posibles de Etapa 1:
+
+    - **Cumple completamente:** Avanzar a Etapa 2.
+    - **Cumple parcialmente:** Listar lo faltante. NO avanzar a Etapa 2.
+      Devolver para completar la implementacion.
+    - **No cumple:** Rechazar con explicacion detallada de las discrepancias.
+
+    **Regla critica:** Si la Etapa 1 no se aprueba, NO tiene sentido evaluar
+    la calidad del codigo. Primero que funcione, despues que funcione bien.
+
+    ---
+
+    ## Etapa 2: Revision de Calidad
+
+    **Pregunta central:** "El codigo esta bien escrito?"
+
+    Esta etapa solo se inicia despues de confirmar que la implementacion
+    cumple funcionalmente. Aqui se evalua la calidad tecnica.
+
+    ### Checklist de Calidad:
+
+    #### Patrones y Arquitectura
+    - [ ] Sigue los patrones establecidos en el proyecto.
+    - [ ] Respeta la arquitectura definida (capas, modulos, responsabilidades).
+    - [ ] No introduce acoplamiento innecesario entre componentes.
+    - [ ] Usa las abstracciones existentes en lugar de crear nuevas sin justificacion.
+    - [ ] No duplica logica que ya existe en otro lugar del codigo.
+
+    #### Legibilidad
+    - [ ] Los nombres de variables, funciones y clases son descriptivos.
+    - [ ] El codigo se puede entender sin necesidad de comentarios explicativos.
+    - [ ] Las funciones tienen una unica responsabilidad clara.
+    - [ ] No hay funciones excesivamente largas (> 50 lineas es sospechoso).
+    - [ ] El flujo de control es claro y facil de seguir.
+    - [ ] Los comentarios explican el "por que", no el "que".
+
+    #### Seguridad
+    - [ ] Las entradas del usuario se validan y sanitizan.
+    - [ ] No hay credenciales o secretos hardcodeados.
+    - [ ] Las consultas a base de datos usan parametros (no concatenacion).
+    - [ ] Los permisos y autorizacion se verifican correctamente.
+    - [ ] No hay informacion sensible en logs o mensajes de error.
+    - [ ] Las dependencias nuevas no tienen vulnerabilidades conocidas.
+
+    #### Performance
+    - [ ] No hay consultas N+1 a base de datos.
+    - [ ] No hay operaciones costosas dentro de bucles innecesariamente.
+    - [ ] Los indices de base de datos son adecuados para las consultas nuevas.
+    - [ ] No hay memory leaks evidentes (listeners no removidos, referencias circulares).
+    - [ ] El uso de cache es apropiado donde se necesita.
+
+    #### Tests
+    - [ ] Los tests cubren el comportamiento principal.
+    - [ ] Los tests cubren los casos borde relevantes.
+    - [ ] Los tests son independientes entre si (no dependen de orden de ejecucion).
+    - [ ] Los tests verifican comportamiento, no implementacion.
+    - [ ] Los tests tienen nombres descriptivos que indican que escenario cubren.
+    - [ ] No hay tests fragiles que puedan romperse por cambios no relacionados.
+
+    ---
+
+    ## Etapa 3: Clasificacion de Issues
+
+    **Objetivo:** Categorizar cada hallazgo por severidad para dar feedback
+    accionable y priorizado.
+
+    Cada issue encontrado en las Etapas 1 y 2 se clasifica en una de tres
+    categorias:
+
+    ### Critico (Bloquea merge)
+    Issues que DEBEN corregirse antes de aprobar el merge.
+
+    Ejemplos:
+    - Requisito funcional no implementado o implementado incorrectamente.
+    - Vulnerabilidad de seguridad.
+    - Bug que causa perdida de datos o corrupcion.
+    - Regresion en funcionalidad existente.
+    - Test que no verifica lo que dice verificar.
+    - Violacion grave de arquitectura que crea deuda tecnica significativa.
+
+    ### Importante (Corregir antes de merge)
+    Issues que deben corregirse pero no representan un riesgo inmediato.
+
+    Ejemplos:
+    - Falta cobertura de tests para un caso borde relevante.
+    - Nombre de variable o funcion confuso que dificulta mantenimiento.
+    - Duplicacion de logica que deberia extraerse.
+    - Query potencialmente lento sin indice adecuado.
+    - Manejo de errores incompleto.
+
+    ### Menor (Nota para futuro)
+    Observaciones y sugerencias que no bloquean el merge actual.
+
+    Ejemplos:
+    - Sugerencia de refactorizacion estetica.
+    - Oportunidad de optimizacion no critica.
+    - Posible mejora de documentacion.
+    - Consistencia de estilo menor.
+    - Ideas para mejoras futuras relacionadas.
+
+    ### Formato de Feedback:
+
+    Cada issue se comunica con el siguiente formato:
+
+    ```
+    [CRITICO/IMPORTANTE/MENOR] Archivo:Linea - Descripcion
+    Que: Descripcion del problema encontrado.
+    Por que: Explicacion del impacto o riesgo.
+    Sugerencia: Propuesta concreta de solucion (si aplica).
+    ```
+
+    ---
+
+    ## Reglas Generales de Revision
+
+    1. **No aprobar performativamente.** Comentarios como "Buen trabajo!",
+       "Se ve bien!", "LGTM" sin detalle son aprobaciones vacias. Cada aprobacion
+       debe indicar que se verifico y como.
+
+    2. **Evaluar con rigor independiente del autor.** El mismo estandar aplica
+       si el codigo lo escribio un junior, un senior, un subagente o el tech-lead.
+       No hay excepciones por jerarquia.
+
+    3. **No mezclar etapas.** Si estas en Etapa 1 y ves un problema de calidad,
+       anotalo para la Etapa 2 pero no te desvies. Mantener el foco.
+
+    4. **Ser especifico y accionable.** "Esto podria mejorar" no es feedback util.
+       "La funcion `processOrder` en la linea 45 deberia validar que `items`
+       no este vacio antes de iterar" es feedback util.
+
+    5. **Ofrecer alternativas, no solo criticas.** Cuando senales un problema,
+       incluye una sugerencia concreta de como resolverlo.
+
+    6. **Revisar el diff completo, no solo los archivos que "parecen importantes".**
+       Los bugs se esconden en archivos de configuracion, migraciones y tests
+       tanto como en codigo de negocio.
+
+    7. **Limitar el tiempo pero no la profundidad.** Si la revision toma mas de
+       1 hora, el PR es demasiado grande. Solicitar que se divida.
+  guides:
+    - name: checklist-cumplimiento
+      content: |
+        ## Checklist Detallado de Cumplimiento Funcional
+
+        ### Preparacion
+        1. Obtener la especificacion/requisitos completos del ticket o historia.
+        2. Leer la especificacion completa antes de abrir el codigo.
+        3. Listar cada requisito funcional como item individual.
+        4. Identificar requisitos implicitos (manejo de errores, validaciones).
+
+        ### Verificacion por Requisito
+        Para cada requisito, completar:
+
+        | # | Requisito                    | Implementado | Funciona | Evidencia        |
+        |---|------------------------------|-------------|----------|------------------|
+        | 1 | [Descripcion del requisito]  | Si/No       | Si/No    | [Test o prueba]  |
+        | 2 | ...                          | ...         | ...      | ...              |
+
+        ### Verificacion de Alcance
+        - Revisar que no se implemento funcionalidad no solicitada.
+        - Verificar que los cambios se limitan a los archivos necesarios.
+        - Confirmar que no se modificaron comportamientos existentes sin justificacion.
+
+        ### Verificacion de Integracion
+        - Los endpoints nuevos siguen la convencion existente de la API.
+        - Los cambios en modelos de datos son compatibles con el esquema existente.
+        - Las migraciones (si las hay) son reversibles.
+        - Los cambios en interfaces publicas son backward-compatible (o se documento el breaking change).
+    - name: checklist-calidad
+      content: |
+        ## Checklist Detallado de Calidad Tecnica
+
+        ### Codigo Limpio
+        - Funciones cortas con responsabilidad unica (idealmente < 30 lineas).
+        - Maximo 3 niveles de indentacion (evitar arrow code).
+        - Sin codigo comentado (el control de versiones es para eso).
+        - Sin variables no utilizadas.
+        - Sin imports no utilizados.
+        - Constantes con nombres descriptivos en lugar de numeros magicos.
+
+        ### Manejo de Errores
+        - Cada operacion que puede fallar tiene manejo de error.
+        - Los errores se propagan de forma consistente (excepciones, Result types, etc.).
+        - Los mensajes de error son utiles para diagnostico (incluyen contexto).
+        - No se atrapan excepciones genericas sin razon (catch Exception/catch all).
+        - Los recursos se liberan correctamente en caso de error (finally, using, defer).
+
+        ### Tests
+        - Cada funcion publica tiene al menos un test.
+        - Tests para casos exitosos y casos de error.
+        - Tests para validaciones de entrada.
+        - Mocks y stubs son minimos y justificados.
+        - No hay logica compleja dentro de los tests.
+        - Los tests fallan por la razon correcta cuando fallan.
+
+        ### Seguridad (Checklist Rapido)
+        - Input validation en todo dato que viene del exterior.
+        - Parametros en queries SQL (nunca concatenacion de strings).
+        - Autenticacion verificada en endpoints protegidos.
+        - Autorizacion verificada (el usuario tiene permiso para esta accion?).
+        - No hay logging de datos sensibles (passwords, tokens, PII).
+        - Las dependencias nuevas se verificaron contra bases de vulnerabilidades.
+
+        ### Performance (Checklist Rapido)
+        - No hay queries dentro de loops (N+1).
+        - Las colecciones grandes se procesan con paginacion.
+        - Las operaciones costosas tienen cache si se ejecutan frecuentemente.
+        - Los indices de BD cubren las consultas nuevas.
+        - No hay lecturas de archivos grandes en memoria completa sin necesidad.

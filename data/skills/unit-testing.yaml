@@ -1,0 +1,52 @@
+id: unit-testing
+name: Pruebas Unitarias
+description: >
+  Diseno, implementacion y mantenimiento de pruebas unitarias para verificar
+  el comportamiento correcto de componentes individuales de software.
+used_by:
+  - developer-backend
+  - developer-frontend
+content:
+  when_to_use: |
+    - Cuando se implementa nueva logica de negocio o funcionalidad.
+    - Cuando se corrige un defecto y se necesita evitar regresiones.
+    - Cuando se refactoriza codigo existente y se debe garantizar que el comportamiento no cambia.
+    - Cuando se revisa codigo y se detectan componentes sin cobertura de pruebas.
+    - Cuando se trabaja con logica compleja que tiene multiples caminos de ejecucion.
+  instructions: |
+    ## Proceso de Pruebas Unitarias
+    1. Identificar la unidad a probar: funcion, metodo o componente aislado.
+    2. Definir los escenarios de prueba usando la tecnica de particion de equivalencias:
+       - Caso exitoso (happy path).
+       - Casos limite (boundary values).
+       - Casos de error y excepciones.
+       - Valores nulos o vacios.
+    3. Estructurar cada prueba con el patron AAA:
+       - **Arrange**: preparar los datos de entrada y configurar mocks/stubs.
+       - **Act**: ejecutar la unidad bajo prueba.
+       - **Assert**: verificar que el resultado es el esperado.
+    4. Aislar la unidad bajo prueba:
+       - Usar mocks para dependencias externas (servicios, repositorios, APIs).
+       - Usar stubs para retornar datos controlados.
+       - No acceder a bases de datos, archivos ni red en pruebas unitarias.
+    5. Nombrar las pruebas de forma descriptiva:
+       - Formato: `metodo_escenario_resultadoEsperado`
+       - Ejemplo: `calcularDescuento_montoMayorA1000_retorna10Porciento`
+    6. Ejecutar las pruebas y verificar que todas pasan antes de hacer commit.
+    7. Revisar la cobertura de codigo y cubrir ramas no alcanzadas.
+  guides:
+    - name: buenas-practicas-testing
+      content: |
+        - Cada prueba debe ser independiente y no depender del orden de ejecucion.
+        - Una prueba debe verificar un solo comportamiento o escenario.
+        - Las pruebas deben ser rapidas: si tardan mas de un segundo, revisar el aislamiento.
+        - No probar getters/setters triviales ni codigo de frameworks.
+        - Mantener las pruebas tan simples como el codigo de produccion.
+        - Tratar el codigo de pruebas con la misma calidad que el codigo de produccion.
+    - name: cobertura-y-metricas
+      content: |
+        - Apuntar a una cobertura minima del 80% en logica de negocio critica.
+        - La cobertura de lineas no es suficiente; verificar cobertura de ramas y condiciones.
+        - No perseguir 100% de cobertura a costa de pruebas fragiles o sin valor.
+        - Integrar la ejecucion de pruebas en el pipeline de CI/CD.
+        - Monitorear la tendencia de cobertura para detectar degradacion temprana.

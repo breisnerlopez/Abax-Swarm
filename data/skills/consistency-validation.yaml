@@ -1,0 +1,142 @@
+id: consistency-validation
+name: Validacion de Consistencia del Sistema
+description: >
+  Verificacion sistematica de la integridad del sistema Abax Swarm,
+  incluyendo consistencia bidireccional entre entidades, completitud
+  de schemas, coherencia del flujo cascada y deteccion de duplicidad
+  o brechas funcionales.
+used_by:
+  - system-designer
+content:
+  when_to_use: |
+    - Usar despues de crear o modificar cualquier entidad (rol, skill, tool, rule).
+    - Usar cuando se sospecha inconsistencia entre entidades.
+    - Usar periodicamente como auditoria preventiva del sistema.
+    - Usar antes de generar configuracion para un proyecto nuevo.
+    - Usar cuando tests de consistencia fallan.
+  instructions: |
+    ## Proceso de Validacion
+
+    ### 1. Validacion Automatizada
+    Ejecutar los tests de consistencia existentes:
+    ```bash
+    npx vitest run tests/integration/data-consistency.test.ts
+    ```
+
+    Este test suite verifica:
+    - Todos los skill IDs en role.skills[] tienen archivo YAML.
+    - Todos los archivos de skill son referenciados por al menos un rol.
+    - skill.used_by[] ↔ role.skills[] son bidireccionales.
+    - Todos los tool IDs en role.tools[] tienen archivo YAML.
+    - Todos los archivos de tool son referenciados por al menos un rol.
+    - tool.used_by[] ↔ role.tools[] son bidireccionales.
+    - size-matrix es coherente con role.size_classification.
+    - dependency-graph es coherente con role.dependencies.
+    - criteria-rules referencia roles validos.
+    - RACI matrix referencia roles validos con un solo A por actividad.
+    - Stack overrides referencian stacks existentes.
+
+    ### 2. Validacion Manual Complementaria
+
+    La validacion automatizada no cubre todo. Verificar manualmente:
+
+    #### 2.1 Coherencia de Flujo Cascada
+    | Verificacion | Como | Criterio |
+    |---|---|---|
+    | Rol tiene phases[] logicas | Comparar con su categoria | Rol construction no participa en inception |
+    | Dependencies son ciclicas | Trazar grafo receives_from/delivers_to | No debe haber ciclos A→B→C→A |
+    | RACI tiene sentido | Verificar que R/A coinciden con la categoria del rol | Un BA no deberia ser R en deploy |
+    | Gates de fase respetados | Revisar phase-deliverables.yaml | Rol responsable existe y tiene la fase |
+
+    #### 2.2 Deteccion de Duplicidad
+    | Tipo | Verificacion |
+    |---|---|
+    | Roles | Comparar descriptions y system_prompts. Dos roles no deben cubrir la misma responsabilidad |
+    | Skills | Comparar instructions. Dos skills no deben ensenar lo mismo con diferente nombre |
+    | Tools | Comparar args y body. Dos tools no deben hacer lo mismo |
+
+    Para detectar duplicidad de skills, buscar por contenido:
+    ```bash
+    # Buscar skills con instrucciones similares
+    grep -l "pattern" data/skills/*.yaml
+    ```
+
+    #### 2.3 Completitud de Roles
+    Todo rol activo debe tener:
+    - [ ] system_prompt con: Principios, Leyes Inquebrantables, Senales de Alerta, Formato de salida, Restricciones.
+    - [ ] Al menos 2 skills asignados.
+    - [ ] Al menos 1 tool asignado.
+    - [ ] phases[] no vacio.
+    - [ ] raci{} no vacio.
+    - [ ] dependencies con al menos receives_from o delivers_to.
+    - [ ] stack_overrides para roles tecnicos (13 stacks).
+
+    #### 2.4 Cobertura del Flujo
+    Verificar que cada fase tiene al menos:
+    - Un rol con RACI "R" (ejecuta).
+    - Un rol con RACI "A" (aprueba).
+    - Entregables definidos en phase-deliverables.yaml.
+    - Presentacion de gate si es fase obligatoria.
+
+    ### 3. Informe de Validacion
+
+    Generar informe con este formato:
+
+    ```markdown
+    ## Informe de Validacion - [Fecha]
+
+    ### Tests Automatizados
+    - Resultado: [PASS/FAIL]
+    - Tests: [N/N] pasaron
+    - Fallos: [Detalle si hay]
+
+    ### Consistencia Bidireccional
+    - Skills: [OK / N inconsistencias]
+    - Tools: [OK / N inconsistencias]
+    - Dependencies: [OK / N inconsistencias]
+
+    ### Completitud
+    - Roles sin Leyes Inquebrantables: [lista]
+    - Roles sin stack_overrides (tecnicos): [lista]
+    - Roles sin RACI: [lista]
+    - Fases sin RACI "A": [lista]
+
+    ### Duplicidad
+    - Skills potencialmente duplicados: [lista de pares]
+    - Roles con solapamiento: [lista de pares]
+
+    ### Brechas
+    - Fases sin entregables obligatorios: [lista]
+    - Skills referenciados pero sin archivo: [lista]
+    - Tools referenciados pero sin archivo: [lista]
+
+    ### Acciones Recomendadas
+    | Prioridad | Accion | Entidad | Detalle |
+    |---|---|---|---|
+    | Alta | [Accion] | [ID] | [Detalle] |
+    ```
+
+    ### 4. Frecuencia de Validacion
+    - **Despues de cada cambio**: Tests automatizados (obligatorio).
+    - **Semanal**: Validacion manual completa (recomendado).
+    - **Por fase del proyecto**: Auditoria de completitud antes de generar configuracion.
+
+  guides:
+    - name: checklist-validacion-rapida
+      content: |
+        Checklist express para validar despues de un cambio puntual:
+        1. npx vitest run tests/integration/data-consistency.test.ts
+        2. Verificar que entidad nueva/modificada tiene bidireccionalidad.
+        3. Verificar que no se creo duplicidad con entidad existente.
+        4. Verificar que el cambio no rompe un gate de fase.
+        5. npx vitest run (suite completa).
+    - name: procedimiento-auditoria-completa
+      content: |
+        Procedimiento para auditoria completa del sistema:
+        1. Ejecutar todos los tests automatizados con coverage.
+        2. Recorrer cada rol verificando completitud del system_prompt.
+        3. Verificar coherencia de phases[] y raci{} por rol.
+        4. Verificar cobertura de stack_overrides en roles tecnicos.
+        5. Buscar skills con contenido similar (potencial duplicidad).
+        6. Verificar que phase-deliverables cubre todas las fases.
+        7. Generar informe de validacion y registrar acciones.

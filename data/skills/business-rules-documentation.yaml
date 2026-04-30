@@ -1,0 +1,45 @@
+id: business-rules-documentation
+name: Documentacion de Reglas de Negocio
+description: >
+  Identificacion, formalizacion y documentacion estructurada de las reglas
+  de negocio que gobiernan los procesos y decisiones de la organizacion.
+used_by:
+  - business-analyst
+content:
+  when_to_use: |
+    - Cuando se levantan requerimientos y se detectan condiciones o restricciones del negocio.
+    - Cuando existen reglas implicitas que no estan formalizadas en ningun documento.
+    - Cuando se necesita validar la logica de negocio con los stakeholders.
+    - Cuando se migra o moderniza un sistema y se deben preservar las reglas existentes.
+    - Cuando hay inconsistencias entre lo que el sistema hace y lo que el negocio espera.
+  instructions: |
+    ## Proceso de Documentacion de Reglas de Negocio
+    1. Identificar las fuentes de reglas: entrevistas, documentos normativos, sistemas legados, manuales operativos.
+    2. Clasificar cada regla segun su tipo:
+       - **Restriccion**: limita valores o acciones permitidas.
+       - **Derivacion**: calcula o determina un valor a partir de otros.
+       - **Inferencia**: deduce hechos a partir de condiciones.
+       - **Accion habilitadora**: desencadena un proceso o evento.
+    3. Documentar cada regla en formato estructurado:
+       | ID | Nombre | Tipo | Condicion | Accion/Resultado | Excepciones | Fuente | Vigencia |
+    4. Expresar reglas complejas usando tablas de decision:
+       | Condicion A | Condicion B | Condicion C | Resultado |
+       | Si          | Si          | No          | Accion X  |
+    5. Validar cada regla con el experto de negocio correspondiente.
+    6. Priorizar reglas por criticidad: alta (bloquea operacion), media (afecta calidad), baja (informativa).
+    7. Versionar las reglas y registrar cambios historicos.
+  guides:
+    - name: formato-y-redaccion
+      content: |
+        - Redactar reglas en lenguaje de negocio, evitando terminologia tecnica.
+        - Cada regla debe ser atomica: una condicion, un resultado.
+        - Evitar ambiguedades: no usar "puede", "deberia"; usar "debe", "siempre", "nunca".
+        - Incluir ejemplos concretos para reglas complejas.
+        - Documentar explicitamente las excepciones y casos limite.
+    - name: gobierno-de-reglas
+      content: |
+        - Asignar un responsable de negocio (owner) a cada regla.
+        - Establecer un proceso de revision periodica de reglas vigentes.
+        - Registrar la fecha de creacion, ultima modificacion y responsable del cambio.
+        - Mantener un catalogo centralizado y accesible para todo el equipo.
+        - Vincular cada regla con los requerimientos y casos de uso que la implementan.

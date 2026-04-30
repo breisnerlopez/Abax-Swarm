@@ -1,0 +1,39 @@
+id: acceptance-criteria
+name: Criterios de Aceptacion
+description: >
+  Definicion de criterios de aceptacion claros, medibles y verificables
+  en formato Given/When/Then para validar que una funcionalidad cumple
+  con lo esperado por el negocio.
+used_by:
+  - business-analyst
+  - product-owner
+  - qa-functional
+content:
+  when_to_use: |
+    - Al documentar cada requerimiento funcional.
+    - Al preparar pruebas de aceptacion (UAT).
+    - Cuando QA necesita criterios claros para disenar casos de prueba.
+  instructions: |
+    ## Formato de Criterios de Aceptacion
+    Para cada requerimiento, escribir al menos un criterio:
+
+    **Given** [contexto o precondicion]
+    **When** [accion del usuario o evento]
+    **Then** [resultado esperado observable]
+
+    ## Reglas
+    - Cada criterio debe ser verificable independientemente.
+    - Incluir escenarios positivos, negativos y de borde.
+    - No mezclar multiples comportamientos en un solo criterio.
+    - Usar datos concretos en ejemplos, no genericos.
+  guides:
+    - name: examples
+      content: |
+        ## Ejemplo: Login de usuario
+        **Given** un usuario registrado con credenciales validas
+        **When** ingresa su email y contrasena y presiona "Ingresar"
+        **Then** el sistema lo redirige al dashboard principal
+
+        **Given** un usuario con contrasena incorrecta
+        **When** ingresa email valido y contrasena incorrecta
+        **Then** el sistema muestra "Credenciales invalidas" y no permite acceso

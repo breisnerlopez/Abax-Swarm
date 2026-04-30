@@ -1,0 +1,74 @@
+id: vue-nuxt
+name: Vue 3 + Nuxt 4
+description: Framework full-stack basado en Vue 3 y Nuxt 4 con renderizado hibrido SSR y SSG para aplicaciones web de alto rendimiento
+
+frontend:
+  framework: Vue 3 / Nuxt 4
+  language: TypeScript
+  version: "3.5+ / 4+"
+  package_manager: pnpm
+  test_framework: Vitest, Vue Test Utils, Playwright
+  build_tool: Nuxi CLI / Vite
+
+backend:
+  framework: Nitro (integrado en Nuxt)
+  language: TypeScript
+  version: "2+"
+  build_tool: Nuxi CLI
+  test_framework: Vitest
+  orm: Drizzle ORM/Prisma
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - SQLite
+    - MySQL
+    - Turso (libSQL)
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes/Cloudflare Workers
+  ci_cd: GitHub Actions
+  cloud: Vercel/Cloudflare/AWS
+
+role_context:
+  developer-backend: |
+    Usa Nitro server routes integradas en Nuxt 4 para la API backend.
+    Estructura: server/api/ para endpoints, server/utils/ para logica compartida.
+    Validacion con zod y H3 event handlers. defineEventHandler para cada ruta.
+    ORM: Drizzle ORM para queries tipadas o Prisma para schema-first.
+    Migraciones con drizzle-kit o prisma migrate.
+    Tests: Vitest para unit tests de server routes. $fetch para integracion.
+    Cacheo con Nitro cache layer (defineCachedEventHandler).
+  developer-frontend: |
+    Usa Vue 3.5+ con Composition API y script setup exclusivamente.
+    Nuxt 4 con auto-imports, file-based routing y layouts.
+    Estado con useState composable o Pinia para estado complejo.
+    useFetch y useAsyncData para data fetching con SSR.
+    Componentes: NuxtUI o Radix Vue + Tailwind CSS 4.
+    Tests: Vitest + Vue Test Utils + @nuxt/test-utils. E2E: Playwright.
+  dba: |
+    PostgreSQL como BD principal, SQLite para desarrollo local.
+    Drizzle ORM genera SQL tipado y predecible; revisar queries generadas.
+    Migraciones versionadas con drizzle-kit generate y migrate.
+    Indices segun patrones de acceso de la aplicacion.
+    Considerar connection pooling para entornos serverless (Neon, Supabase).
+  devops: |
+    Dockerfile multi-stage: Node build + Node slim con output .output/.
+    Nuxt genera output standalone optimizado para produccion.
+    Soporte nativo para deploy en edge: Cloudflare Workers, Vercel Edge.
+    docker-compose para desarrollo local. Preset de build segun target.
+    Pipeline: install -> lint -> typecheck -> test -> build -> deploy.
+    Prerender rutas estaticas con routeRules para ISR hibrido.
+  qa-automation: |
+    Unit: Vitest + Vue Test Utils + @nuxt/test-utils para componentes.
+    API: Vitest con $fetch para server routes.
+    E2E: Playwright con fixtures de Nuxt.
+    CI: pnpm test + Playwright run. Lighthouse CI para performance.
+  solution-architect: |
+    Arquitectura: full-stack con renderizado hibrido (SSR, SSG, ISR, SPA por ruta).
+    Patrones: composables reutilizables, server middleware, route rules para cacheo.
+    Integraciones: API REST via server routes, tRPC opcional con trpc-nuxt.
+    Seguridad: nuxt-auth-utils, sesiones seguras, CSRF protection.
+    Ideal para sitios con alto SEO, contenido dinamico y APIs integradas.
+    Edge-ready: deploy en Cloudflare Workers o Vercel Edge Functions.

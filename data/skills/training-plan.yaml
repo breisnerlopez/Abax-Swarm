@@ -1,0 +1,67 @@
+id: training-plan
+name: Plan de Capacitacion para Usuarios
+description: >
+  Diseno, planificacion y ejecucion de programas de capacitacion
+  para asegurar que los usuarios finales adquieran las competencias
+  necesarias para operar eficazmente los nuevos sistemas o procesos.
+used_by:
+  - change-manager
+content:
+  when_to_use: |
+    - Cuando se implementa un nuevo sistema o herramienta tecnologica.
+    - Al modificar procesos de negocio que afectan la operacion diaria.
+    - Al incorporar personal nuevo que requiere formacion en sistemas existentes.
+    - Antes del go-live de un proyecto para preparar a los usuarios finales.
+    - Cuando se detectan brechas de competencias en el equipo operativo.
+  instructions: |
+    ## Estructura del Plan de Capacitacion
+
+    ### 1. Analisis de Necesidades de Capacitacion
+    - Identificar competencias actuales vs competencias requeridas (gap analysis).
+    - Clasificar usuarios por perfil y nivel de conocimiento previo.
+    - Determinar la criticidad de cada tema para la operacion.
+    - Evaluar restricciones de tiempo, disponibilidad y logistica.
+
+    ### 2. Diseno del Programa
+    - **Modulos**: Agrupar contenidos por temas logicos y progresivos.
+    - **Duracion**: Sesiones de 1-2 horas maximo para mantener la atencion.
+    - **Metodologia**: Combinar teoria (30%) con practica (70%).
+    - **Materiales**: Manuales de usuario, guias rapidas, videos tutoriales, ejercicios practicos.
+
+    ### 3. Matriz de Capacitacion
+    | Modulo | Audiencia | Contenido | Duracion | Modalidad | Facilitador | Fecha | Estado |
+    |---|---|---|---|---|---|---|---|
+    | [Nombre] | [Perfil/Area] | [Temas] | [Horas] | Presencial/Virtual/E-learning | [Nombre] | [Fecha] | Pendiente |
+
+    ### 4. Modalidades de Capacitacion
+    - **Presencial**: Para temas complejos que requieren interaccion directa.
+    - **Virtual sincrona**: Sesiones en vivo por videoconferencia con ejercicios guiados.
+    - **E-learning**: Modulos autoguiados para temas conceptuales o de repaso.
+    - **Capacitacion en el puesto (OJT)**: Acompanamiento durante la operacion real.
+    - **Train the Trainer**: Formar capacitadores internos que repliquen el conocimiento.
+
+    ### 5. Materiales de Soporte
+    - Manuales de usuario paso a paso con capturas de pantalla.
+    - Guias rapidas de referencia (quick reference cards).
+    - Videos cortos demostrativos de procesos clave.
+    - Preguntas frecuentes (FAQ) basadas en dudas reales.
+    - Ambiente de practica (sandbox) para ejercicios sin riesgo.
+
+    ### 6. Evaluacion y Seguimiento
+    - **Evaluacion de conocimiento**: Cuestionarios antes y despues de la capacitacion.
+    - **Evaluacion practica**: Ejercicios simulados en ambiente de prueba.
+    - **Evaluacion de satisfaccion**: Encuesta de calidad de la capacitacion.
+    - **Seguimiento post-capacitacion**: Soporte reforzado durante las primeras semanas.
+
+    ## Indicadores del Plan de Capacitacion
+    - Porcentaje de usuarios capacitados vs universo total.
+    - Tasa de aprobacion de evaluaciones de conocimiento.
+    - Nivel de satisfaccion promedio de los participantes.
+    - Reduccion de errores operativos post-capacitacion.
+    - Cantidad de tickets de soporte en las primeras semanas de operacion.
+  guides:
+    - name: diseno-materiales-capacitacion
+      content: |
+        Mejores practicas para crear manuales de usuario, guias rapidas
+        y videos tutoriales efectivos, incluyendo plantillas reutilizables
+        y criterios de accesibilidad para diferentes perfiles de usuario.

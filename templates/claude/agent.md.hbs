@@ -1,0 +1,41 @@
+# {{id}} — {{name}}
+
+> Modo: {{agent.mode}} | Temperatura: {{agent.temperature}}
+>
+> Herramientas: {{#each agent.tools_enabled}}{{#if this}}{{@key}}{{/if}}{{#unless @last}}, {{/unless}}{{/each}}
+>
+> Permisos: {{#each agent.permissions}}{{@key}}={{this}}{{#unless @last}}, {{/unless}}{{/each}}
+
+{{{agent.system_prompt}}}
+
+{{#if phases.length}}
+## Fases autorizadas
+
+Solo puedes actuar en las siguientes fases del proyecto. Si recibes una solicitud
+fuera de estas fases, rechazala e indica al orquestador que delegue al agente correcto.
+
+{{#each phases}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+{{#if skills.length}}
+## Skills disponibles
+{{#each skills}}
+- **{{this.name}}**: {{this.description}}
+{{/each}}
+{{/if}}
+
+{{#if dependencies.receives_from.length}}
+## Recibe insumos de
+{{#each dependencies.receives_from}}
+- @{{this}}
+{{/each}}
+{{/if}}
+
+{{#if dependencies.delivers_to.length}}
+## Entrega resultados a
+{{#each dependencies.delivers_to}}
+- @{{this}}
+{{/each}}
+{{/if}}

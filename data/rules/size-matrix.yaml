@@ -1,0 +1,69 @@
+roles_by_size:
+  small:
+    indispensable:
+      - project-manager
+      - business-analyst
+      - tech-lead
+      - developer-backend
+      - qa-functional
+    recommended:
+      - solution-architect
+      - devops
+      - developer-frontend
+    optional:
+      - product-owner
+      - security-architect
+      - dba
+      - qa-lead
+      - qa-automation
+      - integration-architect
+      - qa-performance
+      - change-manager
+      - tech-writer
+      - ux-designer
+
+  medium:
+    indispensable:
+      - product-owner
+      - project-manager
+      - business-analyst
+      - tech-lead
+      - developer-backend
+      - dba
+      - qa-functional
+    recommended:
+      - solution-architect
+      - integration-architect
+      - security-architect
+      - devops
+      - qa-lead
+      - qa-automation
+      - developer-frontend
+      - change-manager
+      - tech-writer
+      - ux-designer
+    optional:
+      - qa-performance
+
+  large:
+    indispensable:
+      - product-owner
+      - project-manager
+      - business-analyst
+      - solution-architect
+      - integration-architect
+      - security-architect
+      - tech-lead
+      - developer-backend
+      - developer-frontend
+      - dba
+      - devops
+      - qa-lead
+      - qa-functional
+      - change-manager
+    recommended:
+      - qa-automation
+      - qa-performance
+      - tech-writer
+      - ux-designer
+    optional: []

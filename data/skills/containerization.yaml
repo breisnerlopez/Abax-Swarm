@@ -1,0 +1,125 @@
+id: containerization
+name: Contenedorizacion y Orquestacion
+description: >
+  Contenedorizacion de aplicaciones con Docker y orquestacion
+  con Kubernetes, incluyendo construccion de imagenes optimizadas,
+  despliegue, escalado y gestion del ciclo de vida de contenedores.
+used_by:
+  - devops
+content:
+  when_to_use: |
+    - Al empaquetar aplicaciones en contenedores Docker para garantizar portabilidad.
+    - Al disenar pipelines de construccion de imagenes (CI/CD).
+    - Al configurar despliegues en Kubernetes (manifiestos, Helm charts).
+    - Al definir estrategias de escalado, health checks y gestion de recursos.
+    - Al diagnosticar problemas en contenedores o pods en ejecucion.
+  instructions: |
+    ## Construccion de imagenes Docker
+
+    ### Buenas practicas para Dockerfiles
+
+    1. **Imagen base ligera**: Usar imagenes slim o Alpine cuando sea posible.
+       Preferir imagenes oficiales y con tags de version especificos.
+    2. **Multi-stage builds**: Separar la etapa de compilacion de la etapa
+       de ejecucion para reducir el tamanio final de la imagen.
+    3. **Orden de capas**: Colocar instrucciones que cambian poco (instalacion
+       de dependencias del SO) antes de las que cambian frecuentemente
+       (copia del codigo fuente) para aprovechar la cache de Docker.
+    4. **Usuario no root**: Crear y usar un usuario sin privilegios para
+       ejecutar la aplicacion dentro del contenedor.
+    5. **.dockerignore**: Excluir archivos innecesarios (node_modules, .git,
+       archivos de test, documentacion) para reducir el contexto de build.
+    6. **Health checks**: Definir HEALTHCHECK en el Dockerfile para que
+       el orquestador detecte contenedores no saludables.
+
+    ### Seguridad de imagenes
+
+    - Escanear imagenes con herramientas como Trivy, Snyk o Grype.
+    - No almacenar secretos en la imagen (usar secrets de Docker o del orquestador).
+    - Mantener imagenes actualizadas para incluir parches de seguridad.
+    - Firmar imagenes con Docker Content Trust o Cosign.
+
+    ## Orquestacion con Kubernetes
+
+    ### Recursos fundamentales
+
+    - **Deployment**: Gestiona replicas de pods con actualizaciones declarativas.
+    - **Service**: Expone pods internamente (ClusterIP) o externamente
+      (LoadBalancer, NodePort).
+    - **ConfigMap**: Almacena configuracion no sensible como pares clave-valor.
+    - **Secret**: Almacena datos sensibles (codificados en base64, cifrados en reposo).
+    - **Ingress**: Punto de entrada HTTP/HTTPS con reglas de enrutamiento.
+    - **HPA (Horizontal Pod Autoscaler)**: Escala pods basado en metricas
+      (CPU, memoria, metricas personalizadas).
+
+    ### Estrategias de despliegue
+
+    - **Rolling Update**: Actualiza pods gradualmente sin downtime (por defecto).
+    - **Blue/Green**: Despliega la nueva version en paralelo y cambia el trafico.
+    - **Canary**: Envia un porcentaje del trafico a la nueva version.
+    - **Recreate**: Detiene todos los pods antes de crear los nuevos (con downtime).
+
+    ### Gestion de recursos
+
+    - Siempre definir requests y limits de CPU y memoria.
+    - requests: lo minimo que el pod necesita para funcionar.
+    - limits: lo maximo que puede consumir antes de ser restringido/eliminado.
+    - Usar LimitRange y ResourceQuota a nivel de namespace.
+  guides:
+    - name: dockerfile-optimizado
+      content: |
+        ## Ejemplo de multi-stage build (Node.js)
+
+        ```dockerfile
+        # Etapa de build
+        FROM node:20-alpine AS builder
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci --only=production && npm cache clean --force
+        COPY . .
+        RUN npm run build
+
+        # Etapa de ejecucion
+        FROM node:20-alpine AS runtime
+        RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+        WORKDIR /app
+        COPY --from=builder /app/dist ./dist
+        COPY --from=builder /app/node_modules ./node_modules
+        USER appuser
+        EXPOSE 3000
+        HEALTHCHECK --interval=30s --timeout=3s \
+          CMD wget -qO- http://localhost:3000/health || exit 1
+        CMD ["node", "dist/main.js"]
+        ```
+
+        ## Puntos clave
+
+        - La imagen final no contiene el codigo fuente ni herramientas de build.
+        - El usuario no es root.
+        - El HEALTHCHECK permite al orquestador detectar fallos.
+        - Se usa npm ci (instalacion limpia) en lugar de npm install.
+    - name: troubleshooting-kubernetes
+      content: |
+        ## Comandos de diagnostico esenciales
+
+        - `kubectl get pods -o wide`: Ver estado de pods con nodo asignado.
+        - `kubectl describe pod <nombre>`: Detalles del pod, eventos y errores.
+        - `kubectl logs <pod> -c <container> --previous`: Logs del contenedor
+          anterior (util si el pod reinicio).
+        - `kubectl exec -it <pod> -- /bin/sh`: Acceder al contenedor en ejecucion.
+        - `kubectl top pods`: Ver consumo de CPU y memoria.
+        - `kubectl get events --sort-by=.metadata.creationTimestamp`: Eventos
+          recientes del cluster.
+
+        ## Problemas comunes
+
+        - **CrashLoopBackOff**: La aplicacion falla al iniciar. Revisar logs
+          y verificar configuracion/secrets.
+        - **ImagePullBackOff**: No se puede descargar la imagen. Verificar
+          nombre, tag y credenciales del registry.
+        - **Pending**: No hay nodos con recursos suficientes. Revisar requests
+          y la capacidad del cluster.
+        - **OOMKilled**: El contenedor excedio el limite de memoria. Aumentar
+          limits o investigar memory leaks.
+        - **Readiness probe failed**: El endpoint de health no responde.
+          Verificar que la aplicacion inicie correctamente.

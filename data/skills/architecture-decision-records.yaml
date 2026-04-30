@@ -1,0 +1,127 @@
+id: architecture-decision-records
+name: ADR para Decisiones Arquitectonicas
+description: >
+  Documentacion estructurada de decisiones arquitectonicas mediante
+  Architecture Decision Records (ADR), incluyendo contexto, alternativas
+  evaluadas, justificacion y consecuencias de cada decision.
+used_by:
+  - solution-architect
+content:
+  when_to_use: |
+    - Al tomar una decision arquitectonica significativa o dificil de revertir.
+    - Cuando se elige entre multiples tecnologias, patrones o enfoques.
+    - Al definir estandares tecnicos que afectan a multiples equipos.
+    - Cuando se decide cambiar o deprecar una tecnologia existente.
+    - Al documentar decisiones heredadas que necesitan contexto explicito.
+  instructions: |
+    ## Proceso de Creacion de ADR
+
+    ### Estructura estandar de un ADR
+    Cada ADR debe seguir este formato:
+
+    ```
+    # ADR-[NUMERO]: [TITULO DESCRIPTIVO]
+
+    ## Estado
+    [Propuesto | Aceptado | Deprecado | Reemplazado por ADR-XXX]
+
+    ## Fecha
+    [YYYY-MM-DD]
+
+    ## Contexto
+    Descripcion del problema o necesidad que motiva la decision.
+    Incluir restricciones tecnicas, de negocio y organizacionales.
+
+    ## Decision
+    La decision tomada, expresada de forma clara y directa.
+
+    ## Alternativas consideradas
+
+    ### Alternativa 1: [Nombre]
+    - Ventajas: ...
+    - Desventajas: ...
+
+    ### Alternativa 2: [Nombre]
+    - Ventajas: ...
+    - Desventajas: ...
+
+    ## Consecuencias
+    - Positivas: beneficios esperados.
+    - Negativas: trade-offs aceptados.
+    - Riesgos: posibles problemas futuros.
+
+    ## Participantes
+    Personas involucradas en la decision.
+    ```
+
+    ### Criterios para crear un ADR
+    Una decision merece un ADR cuando cumple al menos uno de estos criterios:
+    - Afecta la estructura del sistema o sus componentes principales.
+    - Es costosa o dificil de revertir.
+    - Impacta a multiples equipos o servicios.
+    - Implica un trade-off significativo entre atributos de calidad.
+    - Define un estandar o convencion tecnica.
+
+    ### Proceso de aprobacion
+    1. El arquitecto redacta el ADR con estado "Propuesto".
+    2. Se comparte con los stakeholders tecnicos para revision.
+    3. Se discuten las alternativas y se recoge feedback.
+    4. Se actualiza el estado a "Aceptado" tras el consenso.
+    5. Se registra en el repositorio de ADRs del proyecto.
+
+    ### Mantenimiento de ADRs
+    - Los ADR nunca se eliminan, solo se marcan como deprecados.
+    - Si una decision se reemplaza, el ADR original referencia al nuevo.
+    - Revisar ADRs periodicamente para validar que siguen vigentes.
+
+  guides:
+    - name: matriz-evaluacion-alternativas
+      content: |
+        ## Guia para Evaluar Alternativas Arquitectonicas
+
+        ### Definir criterios de evaluacion
+        Seleccionar los atributos de calidad relevantes:
+        - **Rendimiento**: latencia, throughput, uso de recursos.
+        - **Escalabilidad**: horizontal, vertical, elastica.
+        - **Disponibilidad**: SLA objetivo, tolerancia a fallos.
+        - **Mantenibilidad**: complejidad, curva de aprendizaje, documentacion.
+        - **Seguridad**: autenticacion, cifrado, cumplimiento normativo.
+        - **Costo**: licencias, infraestructura, esfuerzo de desarrollo.
+        - **Madurez**: comunidad, soporte, adopcion en la industria.
+
+        ### Matriz de decision ponderada
+        | Criterio | Peso | Alternativa A | Alternativa B | Alternativa C |
+        |----------|------|--------------|--------------|--------------|
+        | Rendimiento | 25% | 8 (2.0) | 6 (1.5) | 9 (2.25) |
+        | Escalabilidad | 20% | 7 (1.4) | 9 (1.8) | 7 (1.4) |
+        | Costo | 20% | 9 (1.8) | 5 (1.0) | 6 (1.2) |
+        | Mantenibilidad | 15% | 7 (1.05) | 8 (1.2) | 5 (0.75) |
+        | **Total** | | **6.25** | **5.50** | **5.60** |
+
+        ### Documentar supuestos y restricciones
+        - Indicar el horizonte temporal de la decision (corto, mediano, largo plazo).
+        - Registrar las restricciones que condicionan la eleccion.
+        - Documentar los supuestos sobre carga, crecimiento y evolucion.
+    - name: catalogo-decisiones-comunes
+      content: |
+        ## Catalogo de Decisiones Arquitectonicas Frecuentes
+
+        ### Infraestructura y despliegue
+        - Eleccion de proveedor cloud (AWS, Azure, GCP).
+        - Estrategia de contenedores vs serverless vs VMs.
+        - Modelo de despliegue (multi-region, multi-AZ, single-region).
+
+        ### Comunicacion entre servicios
+        - Sincrona (REST, gRPC) vs asincrona (eventos, colas).
+        - Eleccion de message broker (RabbitMQ, Kafka, SQS).
+        - Estrategia de API Gateway y service mesh.
+
+        ### Persistencia de datos
+        - Tipo de base de datos (relacional, documental, grafos, time-series).
+        - Estrategia de cache (Redis, Memcached, cache local).
+        - Patron de acceso a datos (CQRS, Event Sourcing, CRUD).
+
+        ### Seguridad y autenticacion
+        - Proveedor de identidad (Keycloak, Auth0, Azure AD).
+        - Estrategia de autorizacion (RBAC, ABAC, policy-based).
+        - Gestion de secretos (Vault, AWS Secrets Manager, Azure Key Vault).

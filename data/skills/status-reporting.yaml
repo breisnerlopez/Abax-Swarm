@@ -1,0 +1,47 @@
+id: status-reporting
+name: Reportes de Estado del Proyecto
+description: >
+  Elaboracion y comunicacion de reportes de estado que
+  reflejen el avance, riesgos, impedimentos y metricas
+  clave del proyecto de forma clara y oportuna.
+used_by:
+  - project-manager
+content:
+  when_to_use: |
+    - Al finalizar cada sprint o iteracion.
+    - Al preparar reuniones de seguimiento con la direccion.
+    - Al detectar desviaciones significativas en el plan.
+    - Al comunicar hitos alcanzados o riesgos materializados.
+  instructions: |
+    ## Estructura del Reporte de Estado
+    | Seccion | Contenido |
+    |---|---|
+    | Resumen ejecutivo | Vision general del estado (verde/amarillo/rojo) |
+    | Avance | Porcentaje completado vs planificado |
+    | Hitos | Estado de entregables clave con fechas |
+    | Riesgos | Riesgos activos con probabilidad e impacto |
+    | Impedimentos | Bloqueos actuales y acciones para resolverlos |
+    | Metricas | Velocidad, burndown, SPI, CPI segun aplique |
+    | Proximos pasos | Actividades planificadas para el siguiente periodo |
+
+    ## Buenas Practicas
+    1. Mantener un formato consistente entre reportes.
+    2. Usar semaforos (RAG) para facilitar la lectura rapida.
+    3. Incluir datos cuantitativos, no solo opiniones.
+    4. Destacar cambios respecto al reporte anterior.
+    5. Distribuir el reporte dentro de las primeras 24 horas del cierre del periodo.
+  guides:
+    - name: metrics-collection
+      content: |
+        - Recopilar velocidad del equipo al cierre de cada sprint.
+        - Calcular el indice de desempeno del cronograma (SPI).
+        - Registrar la cantidad de defectos abiertos vs cerrados.
+        - Medir el porcentaje de historias completadas vs comprometidas.
+        - Actualizar el grafico burndown o burnup del proyecto.
+    - name: risk-escalation
+      content: |
+        - Clasificar riesgos por probabilidad e impacto.
+        - Escalar riesgos de impacto alto a la direccion de forma inmediata.
+        - Documentar el plan de mitigacion para cada riesgo activo.
+        - Revisar y actualizar la matriz de riesgos semanalmente.
+        - Registrar riesgos materializados como lecciones aprendidas.

@@ -1,0 +1,61 @@
+id: dotnet-blazor
+name: .NET 9 + Blazor
+description: Stack full-stack con .NET 9 y Blazor para aplicaciones web interactivas usando C# tanto en frontend como en backend, ideal para equipos Microsoft
+
+frontend:
+  framework: Blazor
+  language: C#
+  version: "9+"
+  package_manager: NuGet
+  test_framework: bUnit, Playwright
+  build_tool: dotnet CLI
+
+backend:
+  framework: ASP.NET Core
+  language: C#
+  version: "9+"
+  build_tool: dotnet CLI / MSBuild
+  test_framework: xUnit, NSubstitute, FluentAssertions
+  orm: Entity Framework Core
+
+database:
+  default: SQL Server
+  alternatives:
+    - PostgreSQL
+    - Azure SQL
+    - SQLite
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes / Azure Container Apps
+  ci_cd: GitHub Actions / Azure DevOps
+  cloud: Azure / AWS
+
+role_context:
+  developer-backend: |
+    Usa ASP.NET Core 9 con Minimal APIs o Controllers segun complejidad.
+    Estructura: Clean Architecture con capas Domain, Application, Infrastructure, API.
+    Records para DTOs. FluentValidation para validaciones. Middleware global para errores.
+    Tests: xUnit + NSubstitute + FluentAssertions + Testcontainers.
+    Migraciones: EF Core Migrations. ORM: Entity Framework Core con LINQ.
+  developer-frontend: |
+    Usa Blazor 9+ con Interactive Server o WebAssembly segun requisitos.
+    Componentes reutilizables con parametros y EventCallback.
+    Renderizado estatico SSR por defecto, interactividad bajo demanda.
+    Estado con CascadingValue, Fluxor o servicios inyectados.
+    Tests: bUnit para componentes. E2E: Playwright.
+  dba: |
+    SQL Server como BD principal (o PostgreSQL segun proyecto).
+    Migraciones versionadas con EF Core Migrations o DbUp.
+    Indices basados en patrones de consulta LINQ/EF Core.
+    Considerar tracking vs no-tracking, split queries, connection pooling.
+  devops: |
+    Dockerfile multi-stage: dotnet publish + runtime ASP.NET 9.
+    docker-compose para desarrollo local con SQL Server en contenedor.
+    Pipeline: restore -> build -> test -> publish -> docker -> deploy.
+    Azure Container Apps o AKS para produccion.
+  solution-architect: |
+    Arquitectura: Clean Architecture con MediatR para CQRS.
+    Patrones: Repository, Unit of Work, Domain Events, Mediator.
+    Integraciones: REST con OpenAPI via Swashbuckle/NSwag, gRPC para servicios internos.
+    Seguridad: ASP.NET Core Identity con OAuth2/OIDC via Microsoft Identity Platform.

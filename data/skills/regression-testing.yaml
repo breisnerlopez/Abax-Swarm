@@ -1,0 +1,45 @@
+id: regression-testing
+name: Pruebas de Regresion Manuales
+description: >
+  Planificacion y ejecucion de pruebas de regresion manuales
+  para verificar que las funcionalidades existentes no se vean
+  afectadas por cambios recientes en el sistema.
+used_by:
+  - qa-functional
+content:
+  when_to_use: |
+    - Al preparar una release con cambios en multiples modulos.
+    - Al corregir defectos que impactan flujos criticos.
+    - Al integrar un nuevo componente con el sistema existente.
+    - Cuando no existe cobertura automatizada suficiente.
+  instructions: |
+    ## Tipos de Regresion Manual
+    | Tipo | Descripcion |
+    |---|---|
+    | Regresion completa | Ejecucion de todos los casos de prueba del sistema |
+    | Regresion parcial | Solo los modulos afectados por el cambio |
+    | Regresion de confirmacion | Verificar que el defecto corregido no reaparece |
+    | Regresion de impacto | Modulos relacionados indirectamente con el cambio |
+
+    ## Proceso de Ejecucion
+    1. Identificar los modulos impactados por el cambio.
+    2. Seleccionar los casos de prueba de regresion aplicables.
+    3. Priorizar casos criticos y de alta frecuencia de uso.
+    4. Ejecutar los casos de prueba documentando resultados.
+    5. Reportar defectos encontrados con toda la evidencia.
+    6. Comunicar el resultado de la regresion al equipo.
+  guides:
+    - name: test-selection-criteria
+      content: |
+        - Incluir todos los flujos criticos de negocio del sistema.
+        - Agregar casos de prueba de modulos con dependencias al cambio.
+        - Priorizar areas con historial de defectos frecuentes.
+        - Incluir pruebas de integracion entre modulos afectados.
+        - Considerar pruebas de datos y configuracion del sistema.
+    - name: execution-tracking
+      content: |
+        - Registrar el estado de cada caso ejecutado (paso/fallo/bloqueado).
+        - Documentar el tiempo invertido en la ejecucion de regresion.
+        - Comparar resultados con la ejecucion de regresion anterior.
+        - Calcular el porcentaje de cobertura de regresion alcanzado.
+        - Generar el informe de regresion con metricas y hallazgos.

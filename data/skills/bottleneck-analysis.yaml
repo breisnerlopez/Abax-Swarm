@@ -1,0 +1,55 @@
+id: bottleneck-analysis
+name: Analisis de Cuellos de Botella
+description: >
+  Identificacion y analisis de cuellos de botella en el rendimiento
+  del sistema para proponer soluciones de optimizacion.
+used_by:
+  - qa-performance
+content:
+  when_to_use: |
+    - Cuando las pruebas de rendimiento revelan tiempos de respuesta elevados.
+    - Al investigar degradacion de rendimiento en produccion.
+    - Despues de ejecutar pruebas de estres para analizar resultados.
+    - Cuando se necesita justificar inversiones en infraestructura.
+  instructions: |
+    ## Proceso de Analisis de Cuellos de Botella
+
+    ### 1. Recopilacion de Datos
+    - Metricas de infraestructura (CPU, memoria, disco, red).
+    - Logs de aplicacion y servidor web.
+    - Trazas de transacciones end-to-end.
+    - Metricas de base de datos (queries, conexiones, locks).
+
+    ### 2. Identificacion de Capas
+    | Capa | Indicadores de Cuello de Botella |
+    |---|---|
+    | Red | Latencia alta, perdida de paquetes, saturacion de ancho de banda |
+    | Servidor web | Cola de peticiones, conexiones agotadas |
+    | Aplicacion | Threads bloqueados, memory leaks, GC excesivo |
+    | Base de datos | Queries lentas, locks, conexiones agotadas |
+    | Infraestructura | CPU > 80%, memoria > 90%, disco I/O saturado |
+
+    ### 3. Analisis de Causa Raiz
+    - Correlacionar metricas temporalmente con los sintomas.
+    - Aislar el componente problematico con pruebas focalizadas.
+    - Validar hipotesis con cambios controlados.
+
+    ### 4. Recomendaciones
+    - Clasificar por impacto y esfuerzo de implementacion.
+    - Proponer soluciones a corto, mediano y largo plazo.
+    - Estimar la mejora esperada con cada optimizacion.
+  guides:
+    - name: diagnostico-rapido
+      content: |
+        ## Guia de Diagnostico Rapido
+        - Revisar primero los recursos de infraestructura (CPU, RAM, disco).
+        - Si la infra esta bien, analizar queries de base de datos.
+        - Si la BD esta bien, revisar logs de aplicacion y trazas.
+        - Si todo parece normal, verificar la red y balanceadores.
+    - name: reporte-hallazgos
+      content: |
+        ## Guia de Reporte de Hallazgos
+        - Incluir graficas de metricas durante la prueba.
+        - Mostrar correlacion entre carga y degradacion.
+        - Documentar el punto exacto de quiebre del sistema.
+        - Priorizar recomendaciones con matriz impacto vs esfuerzo.

@@ -1,0 +1,58 @@
+id: navigation-flow
+name: Flujos de Navegacion UX
+description: >
+  Diseno y documentacion de flujos de navegacion para optimizar
+  la experiencia del usuario y la arquitectura de informacion.
+used_by:
+  - ux-designer
+content:
+  when_to_use: |
+    - Al definir la estructura de navegacion de un producto nuevo.
+    - Cuando se redisena la arquitectura de informacion existente.
+    - Al analizar embudos de conversion y puntos de abandono.
+    - Cuando se necesita optimizar flujos criticos del usuario.
+  instructions: |
+    ## Diseno de Flujos de Navegacion
+
+    ### 1. Mapeo de Flujos
+    - Identificar los flujos principales del usuario (tareas criticas).
+    - Documentar flujos secundarios y alternativos.
+    - Mapear puntos de decision y ramificaciones.
+    - Definir estados de error y caminos de recuperacion.
+
+    ### 2. Arquitectura de Informacion
+    | Elemento | Descripcion |
+    |---|---|
+    | Mapa del sitio | Estructura jerarquica de todas las secciones |
+    | Taxonomia | Categorias y etiquetas para organizar contenido |
+    | Navegacion principal | Menu global accesible desde cualquier pantalla |
+    | Navegacion contextual | Enlaces y acciones relevantes al contexto actual |
+    | Busqueda | Sistema de busqueda con filtros y sugerencias |
+
+    ### 3. Diagramas de Flujo
+    - Usar notacion estandar (inicio, decision, accion, fin).
+    - Incluir todos los caminos posibles (exito, error, cancelacion).
+    - Marcar puntos de integracion con sistemas externos.
+    - Anotar condiciones y reglas de negocio en cada decision.
+
+    ### 4. Validacion de Flujos
+    - Realizar pruebas de card sorting para validar categorias.
+    - Ejecutar pruebas de arbol (tree testing) para navegacion.
+    - Medir numero de clics para completar tareas criticas.
+    - Iterar basandose en datos y feedback de usuarios.
+  guides:
+    - name: optimizacion-embudos
+      content: |
+        ## Guia de Optimizacion de Embudos
+        - Identificar las etapas del embudo y tasas de conversion.
+        - Analizar puntos de abandono con herramientas de analitica.
+        - Reducir pasos innecesarios en flujos criticos.
+        - Implementar indicadores de progreso en procesos largos.
+    - name: patrones-navegacion
+      content: |
+        ## Guia de Patrones de Navegacion
+        - Navegacion superior: ideal para sitios con pocas secciones principales.
+        - Navegacion lateral: adecuada para aplicaciones con muchas opciones.
+        - Navegacion por tabs: util para contenido categorizado al mismo nivel.
+        - Breadcrumbs: imprescindibles en estructuras con mas de 2 niveles.
+        - Mega menu: apropiado cuando hay muchas subcategorias visibles.

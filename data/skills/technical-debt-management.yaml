@@ -1,0 +1,67 @@
+id: technical-debt-management
+name: Gestion de Deuda Tecnica
+description: >
+  Identificacion, clasificacion, priorizacion y planificacion de la
+  reduccion de deuda tecnica en proyectos de software para mantener
+  la sostenibilidad y evolucion del sistema a largo plazo.
+used_by:
+  - tech-lead
+content:
+  when_to_use: |
+    - Al planificar sprints o iteraciones para balancear features con reduccion de deuda.
+    - Cuando el equipo reporta dificultad creciente para implementar cambios.
+    - Durante retrospectivas donde se identifican problemas recurrentes de calidad.
+    - Al evaluar la viabilidad de nuevas funcionalidades sobre codigo existente.
+    - Antes de migraciones o actualizaciones tecnologicas mayores.
+  instructions: |
+    ## Tipos de Deuda Tecnica
+
+    ### 1. Deuda de Codigo
+    - Codigo duplicado o sin refactorizar.
+    - Funciones o clases excesivamente complejas (alta complejidad ciclomatica).
+    - Violaciones de principios SOLID y patrones de diseno.
+    - Codigo muerto o sin uso que no ha sido eliminado.
+
+    ### 2. Deuda de Arquitectura
+    - Acoplamiento excesivo entre modulos o servicios.
+    - Ausencia de capas de abstraccion necesarias.
+    - Decisiones de diseno obsoletas que limitan la evolucion.
+    - Dependencias circulares entre componentes.
+
+    ### 3. Deuda de Infraestructura
+    - Dependencias desactualizadas o con vulnerabilidades conocidas.
+    - Falta de automatizacion en despliegues (CI/CD incompleto).
+    - Ambientes de desarrollo no reproducibles.
+    - Ausencia de monitoreo y observabilidad.
+
+    ### 4. Deuda de Pruebas
+    - Cobertura insuficiente de pruebas unitarias o de integracion.
+    - Pruebas fragiles que fallan intermitentemente.
+    - Ausencia de pruebas de rendimiento o seguridad.
+
+    ## Registro de Deuda Tecnica
+    | ID | Descripcion | Tipo | Impacto | Esfuerzo | Prioridad | Sprint Objetivo | Estado |
+    |---|---|---|---|---|---|---|---|
+    | DT-001 | [Descripcion del item] | Codigo/Arq/Infra/Test | Alto/Medio/Bajo | S/M/L/XL | P1/P2/P3 | Sprint N | Pendiente |
+
+    ## Estrategia de Priorizacion
+    - **P1 - Critica**: Bloquea desarrollo o genera incidentes en produccion. Resolver en el sprint actual.
+    - **P2 - Alta**: Ralentiza significativamente al equipo. Planificar en los proximos 2 sprints.
+    - **P3 - Media**: Afecta la mantenibilidad a mediano plazo. Incluir en roadmap trimestral.
+
+    ## Metricas de Seguimiento
+    - Ratio de deuda tecnica (% del backlog dedicado a deuda).
+    - Tendencia de complejidad ciclomatica por modulo.
+    - Tiempo promedio de resolucion de bugs (indicador indirecto).
+    - Velocidad del equipo a lo largo del tiempo.
+    - Cantidad de items de deuda abiertos vs cerrados por sprint.
+
+    ## Regla del Boy Scout
+    Cada pull request debe dejar el codigo un poco mejor de como lo encontro.
+    Reservar un 15-20% de la capacidad del sprint para reduccion de deuda.
+  guides:
+    - name: analisis-complejidad
+      content: |
+        Procedimiento para ejecutar analisis de complejidad ciclomatica,
+        identificar hotspots de codigo y priorizar refactorizaciones
+        usando herramientas como SonarQube y CodeClimate.

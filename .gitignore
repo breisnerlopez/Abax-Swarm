@@ -1,0 +1,24 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.DS_Store
+Thumbs.db
+
+# Internal dev docs (not for public repo)
+docs/internal/
+
+# Generated output (created by the tool, not source code)
+.opencode/
+.claude/
+opencode.json
+project-manifest.yaml
+
+# Archives
+*.7z
+*.zip
+*.tar.gz
+
+# Temp files
+*.tmp

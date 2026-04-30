@@ -1,0 +1,52 @@
+id: defect-reporting
+name: Reporte y Gestion de Defectos
+description: >
+  Registro, clasificacion, seguimiento y cierre de defectos
+  encontrados durante el proceso de pruebas, asegurando
+  informacion clara y reproducible para su correccion.
+used_by:
+  - qa-functional
+content:
+  when_to_use: |
+    - Al encontrar un comportamiento inesperado durante la ejecucion de pruebas.
+    - Al verificar la correccion de un defecto reportado previamente.
+    - Al analizar metricas de calidad y tendencias de defectos.
+    - Al priorizar defectos para su correccion en el sprint.
+  instructions: |
+    ## Estructura del Reporte de Defecto
+    | Campo | Descripcion |
+    |---|---|
+    | ID | Identificador unico del defecto (BUG-XXX) |
+    | Titulo | Descripcion concisa del problema |
+    | Severidad | Critica / Alta / Media / Baja |
+    | Prioridad | Urgente / Alta / Normal / Baja |
+    | Ambiente | Entorno donde se reprodujo (Dev, QA, Staging) |
+    | Precondiciones | Estado necesario antes de reproducir |
+    | Pasos para reproducir | Secuencia numerada y detallada |
+    | Resultado actual | Lo que ocurre (con evidencia) |
+    | Resultado esperado | Lo que deberia ocurrir segun el requerimiento |
+    | Evidencia | Capturas de pantalla, logs, videos |
+
+    ## Ciclo de Vida del Defecto
+    1. Nuevo: defecto registrado por el tester.
+    2. Asignado: asignado al desarrollador responsable.
+    3. En correccion: el desarrollador trabaja en la solucion.
+    4. Resuelto: el desarrollador marca como corregido.
+    5. Verificado: el tester confirma la correccion.
+    6. Cerrado: defecto validado y cerrado.
+    7. Reabierto: si la correccion no es satisfactoria.
+  guides:
+    - name: severity-classification
+      content: |
+        - Critica: el sistema no funciona, no hay workaround, afecta a todos los usuarios.
+        - Alta: funcionalidad principal afectada con workaround limitado.
+        - Media: funcionalidad secundaria afectada, existe workaround viable.
+        - Baja: problema cosmetico o de usabilidad menor.
+        - Asignar severidad basandose en el impacto funcional, no en la frecuencia.
+    - name: effective-reporting
+      content: |
+        - Escribir titulos que describan el problema, no el sintoma.
+        - Incluir un solo defecto por reporte para facilitar el seguimiento.
+        - Adjuntar evidencia visual en cada reporte sin excepcion.
+        - Verificar que el defecto es reproducible antes de reportarlo.
+        - Referenciar el caso de prueba y requerimiento asociado.

@@ -1,0 +1,47 @@
+id: test-automation-framework
+name: Framework de Automatizacion de Pruebas
+description: >
+  Diseno, configuracion y mantenimiento del framework de
+  automatizacion de pruebas, incluyendo arquitectura,
+  patrones de diseno y mejores practicas.
+used_by:
+  - qa-automation
+content:
+  when_to_use: |
+    - Al iniciar un proyecto de automatizacion de pruebas.
+    - Al evaluar o migrar a un nuevo framework.
+    - Al definir la arquitectura y patrones del framework.
+    - Al establecer estandares de codificacion para scripts de prueba.
+  instructions: |
+    ## Componentes del Framework
+    | Componente | Descripcion |
+    |---|---|
+    | Motor de ejecucion | Herramienta que ejecuta los tests (Selenium, Cypress, Playwright) |
+    | Patron de diseno | Page Object Model, Screenplay u otro patron estructural |
+    | Gestion de datos | Estrategia para datos de prueba (fixtures, factories, BD) |
+    | Reportes | Generacion de informes de resultados (Allure, ExtentReports) |
+    | Configuracion | Manejo de ambientes, credenciales y parametros |
+    | Utilidades | Helpers reutilizables para acciones comunes |
+
+    ## Principios de Diseno
+    1. Separar la logica de prueba de la logica de interaccion con la UI.
+    2. Implementar Page Object Model para encapsular elementos y acciones.
+    3. Usar datos externos (CSV, JSON, BD) en lugar de datos hardcodeados.
+    4. Garantizar que cada test sea independiente y pueda ejecutarse en aislamiento.
+    5. Mantener tiempos de ejecucion cortos con esperas explicitas, no implicitas.
+  guides:
+    - name: framework-setup
+      content: |
+        - Seleccionar la herramienta de automatizacion segun la tecnologia del proyecto.
+        - Definir la estructura de carpetas: pages, tests, utils, data, config.
+        - Configurar el gestor de dependencias (Maven, npm, pip).
+        - Implementar un Page Object base con metodos comunes.
+        - Configurar el generador de reportes con capturas de pantalla en fallos.
+        - Integrar con el sistema de control de versiones del equipo.
+    - name: maintainability-practices
+      content: |
+        - Revisar y refactorizar Page Objects cuando cambie la interfaz.
+        - Eliminar tests duplicados o redundantes periodicamente.
+        - Mantener los localizadores centralizados y actualizados.
+        - Documentar cada metodo utilitario con su proposito y parametros.
+        - Ejecutar analisis estatico de codigo en los scripts de prueba.

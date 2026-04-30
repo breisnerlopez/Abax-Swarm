@@ -1,0 +1,54 @@
+id: python-fastapi
+name: Python + FastAPI
+description: Backend Python moderno con FastAPI para APIs de alto rendimiento y proyectos data-driven
+
+backend:
+  framework: FastAPI
+  language: Python
+  version: "3.12+"
+  build_tool: pip/poetry/uv
+  test_framework: pytest, httpx
+  orm: SQLAlchemy 2.0
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - SQLite
+    - MongoDB
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions
+  cloud: AWS/GCP
+
+role_context:
+  developer-backend: |
+    FastAPI con Python 3.12+. Async por defecto.
+    Estructura: routers -> services -> repositories -> models.
+    Validacion con Pydantic v2. Dependency Injection nativa.
+    ORM: SQLAlchemy 2.0 async con Mapped[]. Migraciones: Alembic.
+    Tests: pytest + httpx AsyncClient + factory_boy.
+    Servidor: uvicorn (dev), gunicorn + uvicorn workers (prod).
+  dba: |
+    SQLAlchemy 2.0 con modelos declarativos (Mapped[]).
+    Migraciones: Alembic con auto-generation.
+    Connection pooling: asyncpg + SQLAlchemy create_async_engine.
+    Indices y constraints definidos en modelos.
+  devops: |
+    Dockerfile multi-stage: poetry/pip install + uvicorn.
+    CI: ruff (lint) -> mypy (types) -> pytest -> build -> deploy.
+    Servidor prod: gunicorn con uvicorn workers.
+    Health check: /health endpoint.
+  qa-automation: |
+    pytest + httpx AsyncClient para API testing.
+    factory_boy + Faker para datos de prueba.
+    Testcontainers para integracion con BD real.
+    Coverage con pytest-cov.
+  solution-architect: |
+    Arquitectura hexagonal: puertos y adaptadores.
+    Dependency Injection nativa de FastAPI.
+    Pydantic para contratos de API (request/response).
+    Background tasks con Celery o TaskIQ.
+    WebSockets nativos si se requiere realtime.

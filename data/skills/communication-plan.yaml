@@ -1,0 +1,65 @@
+id: communication-plan
+name: Plan de Comunicacion del Proyecto
+description: >
+  Estrategia y planificacion de las comunicaciones del proyecto para
+  mantener informados a todos los interesados, gestionar expectativas
+  y facilitar la adopcion de cambios organizacionales.
+used_by:
+  - change-manager
+content:
+  when_to_use: |
+    - Al iniciar un proyecto para definir la estrategia de comunicacion.
+    - Cuando se identifican nuevos stakeholders o audiencias clave.
+    - Antes de hitos importantes que requieren comunicacion formal.
+    - Cuando se detecta desinformacion, rumores o resistencia al cambio.
+    - Para coordinar mensajes entre multiples areas o niveles jerarquicos.
+  instructions: |
+    ## Estructura del Plan de Comunicacion
+
+    ### 1. Analisis de Audiencias
+    - Identificar todos los grupos de interes (sponsors, usuarios, equipo tecnico, lideres).
+    - Clasificar por nivel de influencia e interes en el proyecto.
+    - Determinar necesidades de informacion especificas de cada grupo.
+    - Evaluar canales preferidos y habitos de consumo de informacion.
+
+    ### 2. Mensajes Clave
+    - **Vision del cambio**: Por que se hace el proyecto y que beneficios trae.
+    - **Impacto personal**: Como afecta a cada grupo en su dia a dia.
+    - **Cronograma**: Cuando ocurriran los cambios principales.
+    - **Soporte disponible**: Donde obtener ayuda y a quien acudir.
+    - **Progreso**: Como avanza el proyecto y que se ha logrado.
+
+    ### 3. Matriz de Comunicaciones
+    | Audiencia | Mensaje | Canal | Frecuencia | Responsable | Fecha | Estado |
+    |---|---|---|---|---|---|---|
+    | [Grupo] | [Mensaje clave] | Email/Reunion/Intranet | Semanal/Quincenal/Puntual | [Nombre/Rol] | [Fecha] | Pendiente |
+
+    ### 4. Canales de Comunicacion
+    - **Formales**: Correo corporativo, intranet, comunicados oficiales, reuniones town hall.
+    - **Informales**: Chats de equipo, cafes virtuales, sesiones de preguntas y respuestas.
+    - **Interactivos**: Talleres, demos, sesiones de feedback, encuestas.
+    - **Visuales**: Infografias, videos cortos, dashboards de progreso.
+
+    ### 5. Cronograma de Comunicacion
+    - **Fase de inicio**: Anuncio del proyecto, vision y objetivos.
+    - **Fase de desarrollo**: Actualizaciones de progreso, anticipar cambios.
+    - **Fase de implementacion**: Instrucciones operativas, fechas clave, soporte.
+    - **Fase de estabilizacion**: Resultados, lecciones aprendidas, reconocimientos.
+
+    ### 6. Gestion de Feedback
+    - Establecer canales bidireccionales para recibir retroalimentacion.
+    - Definir proceso de escalamiento para inquietudes criticas.
+    - Medir la efectividad de las comunicaciones con encuestas periodicas.
+    - Ajustar mensajes y canales segun la retroalimentacion recibida.
+
+    ## Indicadores de Efectividad
+    - Tasa de apertura y lectura de comunicaciones.
+    - Asistencia a sesiones informativas y talleres.
+    - Nivel de conocimiento del proyecto (medido por encuestas).
+    - Reduccion de consultas repetitivas sobre temas ya comunicados.
+  guides:
+    - name: mensajes-por-fase
+      content: |
+        Plantillas y ejemplos de mensajes clave adaptados a cada fase
+        del ciclo de vida del proyecto, con tono y contenido apropiado
+        para diferentes audiencias y niveles organizacionales.

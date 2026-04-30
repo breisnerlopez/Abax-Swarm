@@ -1,0 +1,56 @@
+id: runbook-creation
+name: Creacion de Runbooks Operativos
+description: >
+  Creacion de runbooks operativos para procedimientos de operacion,
+  incidentes y mantenimiento de sistemas en produccion.
+used_by:
+  - tech-writer
+content:
+  when_to_use: |
+    - Al desplegar un nuevo sistema o servicio en produccion.
+    - Cuando se requiere documentar procedimientos de recuperacion ante fallos.
+    - Al preparar procedimientos de mantenimiento programado.
+    - Cuando se necesita estandarizar la respuesta ante incidentes.
+  instructions: |
+    ## Estructura de un Runbook
+
+    ### 1. Informacion General
+    - Nombre del servicio o sistema.
+    - Equipo responsable y contactos de escalamiento.
+    - Dependencias criticas (servicios, bases de datos, APIs externas).
+    - SLAs y objetivos de disponibilidad.
+
+    ### 2. Procedimientos Operativos
+    | Tipo | Contenido |
+    |---|---|
+    | Inicio y parada | Comandos y secuencia para iniciar/detener el servicio |
+    | Despliegue | Pasos de deploy, rollback y verificacion |
+    | Monitoreo | Alertas configuradas, dashboards y umbrales |
+    | Backup | Procedimientos de respaldo y restauracion |
+    | Escalamiento | Cadena de escalamiento con tiempos y contactos |
+
+    ### 3. Respuesta a Incidentes
+    - Sintomas comunes y diagnostico inicial.
+    - Pasos de mitigacion inmediata.
+    - Procedimiento de rollback de emergencia.
+    - Comunicacion a stakeholders y usuarios.
+
+    ### 4. Mantenimiento Programado
+    - Ventanas de mantenimiento definidas.
+    - Checklist pre y post mantenimiento.
+    - Procedimientos de validacion del servicio.
+  guides:
+    - name: formato-procedimiento
+      content: |
+        ## Guia de Formato de Procedimiento
+        - Cada paso debe ser ejecutable sin conocimiento previo del sistema.
+        - Incluir comandos exactos listos para copiar y pegar.
+        - Agregar verificaciones despues de cada paso critico.
+        - Incluir tiempo estimado de ejecucion por procedimiento.
+    - name: gestion-alertas
+      content: |
+        ## Guia de Gestion de Alertas
+        - Documentar cada alerta con: nombre, condicion, severidad.
+        - Incluir pasos de diagnostico especificos por alerta.
+        - Definir acciones automaticas vs manuales.
+        - Registrar falsos positivos conocidos y como descartarlos.

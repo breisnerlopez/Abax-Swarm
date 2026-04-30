@@ -1,0 +1,85 @@
+id: migration-scripts
+name: Scripts de Migracion de Datos
+description: >
+  Diseno, desarrollo, validacion y ejecucion de scripts para migrar
+  datos entre sistemas, bases de datos o versiones, garantizando la
+  integridad, completitud y trazabilidad de la informacion migrada.
+used_by:
+  - dba
+content:
+  when_to_use: |
+    - Al migrar datos de un sistema legacy a un sistema nuevo.
+    - Cuando se actualizan versiones del motor de base de datos.
+    - Al consolidar o dividir bases de datos existentes.
+    - Para cargas iniciales de datos en nuevos ambientes.
+    - Cuando se modifica el modelo de datos y se requiere transformacion de registros existentes.
+    - Al sincronizar datos entre ambientes (desarrollo, QA, produccion).
+  instructions: |
+    ## Fases de la Migracion de Datos
+
+    ### 1. Analisis y Planificacion
+    - Inventariar tablas, volumenes y relaciones en el sistema origen.
+    - Mapear campos origen a campos destino (field mapping).
+    - Identificar reglas de transformacion y limpieza de datos.
+    - Definir criterios de validacion y aceptacion.
+    - Estimar tiempos de ejecucion y ventana de migracion disponible.
+
+    ### 2. Diseno de Scripts
+    - **Extraccion**: Scripts para extraer datos del sistema origen.
+    - **Transformacion**: Logica de limpieza, conversion de tipos, normalizacion.
+    - **Carga**: Scripts de insercion en el sistema destino respetando integridad referencial.
+    - **Validacion**: Queries de verificacion de conteos, sumas y consistencia.
+    - **Rollback**: Scripts de reversion para cada paso de la migracion.
+
+    ### 3. Estructura del Script de Migracion
+    ```
+    -- =============================================
+    -- Script: MIG-001_Descripcion
+    -- Autor: [Nombre]
+    -- Fecha: [YYYY-MM-DD]
+    -- Descripcion: [Proposito del script]
+    -- Dependencias: [Scripts previos requeridos]
+    -- Rollback: [Referencia al script de reversion]
+    -- =============================================
+
+    BEGIN TRANSACTION;
+    -- Paso 1: Validaciones previas
+    -- Paso 2: Extraccion y transformacion
+    -- Paso 3: Carga de datos
+    -- Paso 4: Validaciones posteriores
+    COMMIT; -- o ROLLBACK en caso de error
+    ```
+
+    ### 4. Reglas de Desarrollo
+    - Todo script debe ser idempotente (ejecutable multiples veces sin duplicar datos).
+    - Incluir manejo de errores con TRY-CATCH o equivalente.
+    - Registrar en tabla de auditoria: script ejecutado, registros procesados, errores.
+    - Ejecutar dentro de transacciones con punto de rollback.
+    - Numerar scripts secuencialmente (MIG-001, MIG-002, etc.).
+    - No modificar scripts ya ejecutados en produccion; crear scripts correctivos.
+
+    ### 5. Validaciones Obligatorias
+    | Validacion | Query Origen | Query Destino | Resultado Esperado |
+    |---|---|---|---|
+    | Conteo total de registros | SELECT COUNT(*) FROM origen | SELECT COUNT(*) FROM destino | Iguales |
+    | Sumas de control | SELECT SUM(monto) FROM origen | SELECT SUM(monto) FROM destino | Iguales |
+    | Registros huerfanos | [Query especifica] | [Query especifica] | Cero registros |
+    | Integridad referencial | [Query especifica] | [Query especifica] | Sin violaciones |
+
+    ### 6. Plan de Ejecucion
+    - Ejecutar primero en ambiente de desarrollo, luego QA, luego produccion.
+    - Documentar tiempos de ejecucion reales en cada ambiente.
+    - Realizar backup completo antes de ejecutar en produccion.
+    - Tener script de rollback probado y listo antes de ejecutar.
+    - Comunicar ventana de mantenimiento a los equipos afectados.
+
+    ## Registro de Ejecucion
+    | Script | Ambiente | Fecha | Registros | Duracion | Resultado | Ejecutado Por |
+    |---|---|---|---|---|---|---|
+    | MIG-001 | [DEV/QA/PROD] | [Fecha] | [Cantidad] | [Minutos] | OK/Error | [Nombre] |
+  guides:
+    - name: mapeo-datos-origen-destino
+      content: |
+        Plantilla y metodologia para documentar el mapeo completo
+        de campos entre sistema origen y destino, incluyendo reglas
+        de transformacion, valores por defecto y tratamiento de nulos.

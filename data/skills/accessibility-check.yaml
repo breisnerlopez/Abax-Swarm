@@ -1,0 +1,112 @@
+id: accessibility-check
+name: Verificacion de Accesibilidad
+description: >
+  Verificacion y aseguramiento del cumplimiento de las pautas
+  de accesibilidad web WCAG 2.1/2.2 para garantizar que las
+  interfaces sean utilizables por todas las personas.
+used_by:
+  - developer-frontend
+  - ux-designer
+content:
+  when_to_use: |
+    - Al disenar o implementar nuevos componentes o vistas.
+    - Al realizar auditorias de accesibilidad antes de un release.
+    - Al recibir reportes de problemas de accesibilidad por parte de usuarios.
+    - Al evaluar el cumplimiento normativo (ej: EN 301 549, ADA, Section 508).
+  instructions: |
+    ## Niveles de conformidad WCAG
+
+    - **Nivel A**: Requisitos minimos. Sin estos, el contenido es inaccesible
+      para grupos amplios de usuarios.
+    - **Nivel AA**: Nivel objetivo recomendado. Elimina las barreras mas
+      significativas. Es el estandar legal en la mayoria de jurisdicciones.
+    - **Nivel AAA**: Nivel maximo. No siempre es posible cumplirlo al 100%
+      pero se debe aspirar donde sea viable.
+
+    ## Checklist de verificacion por categoria
+
+    ### 1. Perceptible
+    - Todas las imagenes tienen texto alternativo descriptivo (alt).
+    - Los videos tienen subtitulos y audiodescripcion cuando corresponde.
+    - El contraste de color cumple ratio minimo 4.5:1 (texto normal)
+      y 3:1 (texto grande, >= 18pt o 14pt bold).
+    - El contenido no depende unicamente del color para transmitir informacion.
+    - El texto puede ampliarse al 200% sin perdida de funcionalidad.
+
+    ### 2. Operable
+    - Toda la funcionalidad es accesible mediante teclado (Tab, Enter, Escape, flechas).
+    - Existe un indicador de foco visible en todos los elementos interactivos.
+    - No hay trampas de teclado (el usuario puede navegar libremente).
+    - Los formularios tienen labels asociados correctamente con for/id.
+    - Los timeouts permiten extension o desactivacion.
+
+    ### 3. Comprensible
+    - El idioma de la pagina esta declarado en el atributo lang del HTML.
+    - Los mensajes de error son claros e indican como corregir el problema.
+    - La navegacion es consistente en todas las paginas.
+    - Los formularios tienen instrucciones claras y validacion accesible.
+
+    ### 4. Robusto
+    - El HTML es semanticamente correcto y valido.
+    - Se usan roles ARIA solo cuando no existe un elemento HTML nativo equivalente.
+    - Los componentes personalizados implementan los patrones WAI-ARIA correspondientes.
+    - El contenido es compatible con lectores de pantalla (NVDA, JAWS, VoiceOver).
+
+    ## Herramientas de verificacion
+
+    - **axe DevTools**: Extension de navegador para auditorias automatizadas.
+    - **Lighthouse**: Auditoria integrada en Chrome DevTools.
+    - **WAVE**: Evaluador web de accesibilidad.
+    - **Pa11y**: Herramienta CLI para integracion en CI/CD.
+    - **Screen readers**: Probar manualmente con NVDA (Windows) o VoiceOver (macOS).
+  guides:
+    - name: patrones-aria-comunes
+      content: |
+        ## Roles y atributos ARIA mas utilizados
+
+        - **role="button"**: Solo si no se puede usar <button>. Requiere
+          manejo de Enter y Space con keydown.
+        - **role="dialog"** + aria-modal="true": Para modales. Atrapar
+          el foco dentro del dialogo.
+        - **role="alert"**: Para mensajes urgentes que deben anunciarse
+          inmediatamente por el lector de pantalla.
+        - **role="navigation"** + aria-label: Para regiones de navegacion.
+          Usar aria-label si hay multiples navs.
+        - **aria-expanded**: En botones que controlan paneles colapsables
+          (acordeones, menus desplegables).
+        - **aria-live="polite"**: Para regiones cuyo contenido se actualiza
+          dinamicamente (notificaciones, contadores).
+        - **aria-describedby**: Para asociar texto de ayuda o errores
+          a un campo de formulario.
+
+        ## Reglas fundamentales de ARIA
+
+        1. No usar ARIA si existe un elemento HTML nativo equivalente.
+        2. No cambiar la semantica nativa (no poner role="button" en un <a>
+           si es realmente un enlace).
+        3. Todos los controles interactivos con ARIA deben ser operables
+           por teclado.
+        4. No usar aria-hidden="true" en elementos enfocables.
+        5. Todos los elementos interactivos deben tener un nombre accesible.
+    - name: testing-accesibilidad
+      content: |
+        ## Estrategia de testing
+
+        ### Tests automatizados (CI/CD)
+        - Integrar axe-core con Jest o Cypress para detectar violaciones
+          automaticamente en cada build.
+        - Configurar reglas como umbral minimo: 0 violaciones criticas.
+        - Usar eslint-plugin-jsx-a11y para capturar errores en tiempo
+          de desarrollo.
+
+        ### Tests manuales
+        - Navegar toda la aplicacion usando solo teclado.
+        - Probar con al menos un lector de pantalla (NVDA o VoiceOver).
+        - Verificar contraste con el inspector de color del navegador.
+        - Probar con zoom al 200% y 400%.
+        - Desactivar CSS y verificar que el orden de lectura sea logico.
+
+        ### Tests con usuarios reales
+        - Incluir personas con discapacidad en las sesiones de usabilidad.
+        - Probar con tecnologias asistivas reales en dispositivos reales.
+        - Documentar hallazgos y priorizarlos por impacto.

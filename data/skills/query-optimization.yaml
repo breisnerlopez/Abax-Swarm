@@ -1,0 +1,73 @@
+id: query-optimization
+name: Optimizacion de Consultas SQL
+description: >
+  Tecnicas y estrategias para analizar, diagnosticar y optimizar el
+  rendimiento de consultas SQL, incluyendo uso de indices, planes de
+  ejecucion y refactorizacion de sentencias para mejorar tiempos de respuesta.
+used_by:
+  - dba
+content:
+  when_to_use: |
+    - Cuando se detectan consultas lentas que afectan el rendimiento del sistema.
+    - Durante la revision de codigo que incluye nuevas consultas SQL o modificaciones.
+    - Al diagnosticar problemas de rendimiento en la base de datos.
+    - Al disenar nuevas tablas o modelos de datos que requieren consultas frecuentes.
+    - En auditorias periodicas de rendimiento de la base de datos.
+  instructions: |
+    ## Proceso de Optimizacion
+
+    ### 1. Identificacion de Consultas Problematicas
+    - Revisar el log de consultas lentas (slow query log).
+    - Monitorear con DMVs (Dynamic Management Views) en SQL Server o pg_stat_statements en PostgreSQL.
+    - Identificar las consultas con mayor consumo de CPU, I/O y tiempo de ejecucion.
+    - Priorizar por frecuencia de ejecucion e impacto en el usuario final.
+
+    ### 2. Analisis del Plan de Ejecucion
+    - Ejecutar EXPLAIN / EXPLAIN ANALYZE (PostgreSQL) o SET SHOWPLAN (SQL Server).
+    - Identificar operaciones costosas: Table Scan, Sort, Hash Join excesivos.
+    - Detectar estimaciones de cardinalidad incorrectas.
+    - Verificar si se usan los indices existentes o se ignoran.
+    - Buscar operaciones de spill a disco (tempdb/temp files).
+
+    ### 3. Estrategias de Indices
+    - **Indices de cobertura**: Incluir columnas del SELECT para evitar acceso a la tabla.
+    - **Indices compuestos**: Ordenar columnas por selectividad (mas selectiva primero).
+    - **Indices filtrados**: Para consultas con condiciones WHERE frecuentes sobre subconjuntos.
+    - **Evitar sobre-indexacion**: Cada indice adicional penaliza operaciones de escritura.
+    - Analizar fragmentacion y programar mantenimiento periodico (REBUILD/REORGANIZE).
+
+    ### 4. Refactorizacion de Consultas
+    - Reemplazar subconsultas correlacionadas por JOINs cuando sea posible.
+    - Usar CTEs (Common Table Expressions) para mejorar legibilidad sin perder rendimiento.
+    - Evitar funciones en clausulas WHERE que impidan el uso de indices (e.g., `WHERE YEAR(fecha) = 2025`).
+    - Limitar el uso de SELECT *; especificar solo columnas necesarias.
+    - Usar paginacion con OFFSET/FETCH o keyset pagination para grandes conjuntos de datos.
+    - Evitar cursores; preferir operaciones basadas en conjuntos.
+
+    ### 5. Optimizacion de JOINs
+    - Asegurar que las columnas de JOIN tengan indices adecuados.
+    - Preferir INNER JOIN sobre OUTER JOIN cuando sea semanticamente equivalente.
+    - Filtrar datos lo antes posible en la consulta (pushdown de predicados).
+    - Considerar la desnormalizacion controlada para consultas de lectura intensiva.
+
+    ### 6. Parametrizacion y Cache
+    - Usar consultas parametrizadas para aprovechar cache de planes de ejecucion.
+    - Evitar parameter sniffing con OPTIMIZE FOR o RECOMPILE cuando sea necesario.
+    - Implementar cache a nivel de aplicacion para consultas de referencia frecuente.
+
+    ## Registro de Optimizaciones
+    | Consulta | Tiempo Antes | Tiempo Despues | Tecnica Aplicada | Fecha | Responsable |
+    |---|---|---|---|---|---|
+    | [Descripcion/ID] | [ms] | [ms] | [Indice/Refactor/etc] | [Fecha] | [Nombre] |
+
+    ## Metricas Clave
+    - Tiempo de respuesta promedio y percentil 95 de consultas criticas.
+    - Numero de Table Scans por minuto.
+    - Ratio de cache hit del buffer pool.
+    - Esperas de I/O y bloqueos (locks/deadlocks).
+  guides:
+    - name: lectura-planes-ejecucion
+      content: |
+        Interpretacion detallada de los operadores mas comunes en planes
+        de ejecucion de SQL Server y PostgreSQL, con ejemplos de como
+        identificar cuellos de botella y acciones correctivas para cada caso.

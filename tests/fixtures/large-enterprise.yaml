@@ -1,0 +1,16 @@
+name: plataforma-core
+description: Plataforma core bancaria con multiples frentes, migracion de datos y despliegue masivo
+targetDir: /tmp/test-large
+size: large
+criteria:
+  - has_integrations
+  - has_sensitive_data
+  - has_regulatory_compliance
+  - has_massive_deployment
+  - has_high_concurrency
+  - has_data_migration
+  - has_user_facing_ui
+  - has_external_vendors
+stackId: react-nextjs
+target: opencode
+teamScope: full

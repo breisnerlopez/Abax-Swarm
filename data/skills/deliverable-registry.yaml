@@ -1,0 +1,273 @@
+id: deliverable-registry
+name: Registro y Control de Entregables
+description: >
+  Registro centralizado de entregables del proyecto por fase, con seguimiento
+  de estado, responsable, fechas compromiso vs reales, aprobaciones y gates
+  de fase para asegurar completitud antes de avanzar.
+used_by:
+  - project-manager
+  - qa-lead
+content:
+  when_to_use: |
+    - Usar cuando se inicia una nueva fase y se necesita definir entregables esperados.
+    - Usar cuando se completa un entregable y se debe registrar su aprobacion.
+    - Usar cuando se prepara un gate de fase para validar que todos los entregables obligatorios estan aprobados.
+    - Usar cuando se detecta un entregable atrasado y se necesita escalar.
+    - Usar cuando se genera el reporte de avance del proyecto.
+  instructions: |
+    ## Registro Maestro de Entregables
+
+    Template:
+
+    ```markdown
+    ## Registro de Entregables - [Nombre Proyecto]
+
+    ### Fase: [Nombre Fase]
+    | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+    |---|---|---|---|---|---|---|---|---|---|
+    | DEL-001 | [Nombre] | Doc/Pres/Diag/Code/Report | [Rol] | [Rol] | Si/No | [Fecha] | [Fecha] | Pendiente/En Progreso/En Revision/Aprobado/Rechazado | [Notas] |
+    ```
+
+    ## Estados de un Entregable
+
+    - **Pendiente**: No iniciado.
+    - **En Progreso**: En elaboracion por el responsable.
+    - **En Revision**: Enviado al aprobador para validacion.
+    - **Aprobado**: Validado y firmado por el aprobador.
+    - **Rechazado**: Devuelto con observaciones para correccion.
+    - **No Aplica**: Entregable opcional que no se requiere en este proyecto.
+
+    ## Gate de Fase
+
+    Antes de avanzar de fase, ejecutar el gate:
+
+    ### Checklist de Gate
+
+    1. Listar todos los entregables obligatorios de la fase.
+    2. Verificar que cada uno tiene estado "Aprobado".
+    3. Verificar que entregables opcionales tienen estado "Aprobado" o "No Aplica".
+    4. Calcular el porcentaje de completitud.
+    5. Si completitud < 100% en obligatorios → NO se puede avanzar.
+    6. Registrar la decision del gate en el formato:
+
+    ```markdown
+    ### Gate de Fase: [Nombre Fase]
+    - **Fecha**: [Fecha]
+    - **Aprobador**: [Nombre/Rol]
+    - **Obligatorios**: [X/Y] aprobados
+    - **Opcionales**: [X/Y] aprobados, [Z] no aplican
+    - **Completitud**: [%]
+    - **Decision**: APROBADO / RECHAZADO
+    - **Observaciones**: [Notas]
+    ```
+
+    ## Dashboard de Entregables
+
+    Template for summary dashboard:
+
+    ### Resumen por Fase
+
+    | Fase | Total | Obligatorios | Aprobados | En Progreso | Pendientes | % Completitud |
+    |---|---|---|---|---|---|---|
+    | Inicio | [N] | [N] | [N] | [N] | [N] | [%] |
+    | Analisis | [N] | [N] | [N] | [N] | [N] | [%] |
+    | ... | | | | | | |
+
+    ### Semaforo de Entregables
+
+    - **Verde**: >= 90% obligatorios aprobados para la fase actual.
+    - **Amarillo**: 70-89% obligatorios aprobados o en revision.
+    - **Rojo**: < 70% obligatorios aprobados o entregables criticos pendientes.
+
+    ### Entregables en Riesgo
+
+    | ID | Entregable | Fase | Responsable | Dias Atraso | Impacto | Accion |
+    |---|---|---|---|---|---|---|
+    | DEL-XXX | [Nombre] | [Fase] | [Rol] | [N] | Alto/Medio | [Accion correctiva] |
+
+    ## Reglas de Gobernanza
+
+    - Todo entregable obligatorio debe tener responsable y aprobador asignados al inicio de la fase.
+    - Fecha compromiso se define al inicio de la fase y solo se modifica con control de cambios.
+    - Entregable rechazado vuelve a "En Progreso" con observaciones documentadas.
+    - Maximo 2 ciclos de rechazo; al tercero se escala al gate_approver de la fase.
+    - Entregables opcionales se marcan "No Aplica" al inicio de la fase si no se requieren.
+    - El registro se actualiza al menos 2 veces por semana.
+
+    ## Trazabilidad
+
+    Cada entregable debe poder vincularse a:
+    - Requerimiento funcional que lo origina.
+    - Tarea del tablero Kanban que lo genera.
+    - Presentacion donde se comunica (si aplica).
+  guides:
+    - name: plantilla-registro-entregables
+      content: |
+        # Plantilla: Registro de Entregables
+
+        ## Registro de Entregables - [Nombre del Proyecto]
+
+        **Proyecto**: [Nombre del Proyecto]
+        **PM**: [Nombre del Project Manager]
+        **Fecha de creacion**: [Fecha]
+        **Ultima actualizacion**: [Fecha]
+
+        ---
+
+        ### Fase: Inicio
+
+        | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+        |---|---|---|---|---|---|---|---|---|---|
+        | DEL-001 | Acta de Constitucion del Proyecto | Doc | Project Manager | Sponsor | Si | 2026-01-15 | 2026-01-14 | Aprobado | Firmada por sponsor |
+        | DEL-002 | Identificacion de Stakeholders | Doc | Project Manager | Sponsor | Si | 2026-01-20 | - | En Progreso | Pendiente validar lista |
+        | DEL-003 | Plan de Comunicaciones Preliminar | Doc | Project Manager | Sponsor | No | 2026-01-22 | - | Pendiente | - |
+
+        ### Fase: Analisis
+
+        | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+        |---|---|---|---|---|---|---|---|---|---|
+        | DEL-010 | Documento de Requerimientos | Doc | Analista | Tech Lead | Si | 2026-02-10 | - | Pendiente | - |
+        | DEL-011 | Diagrama de Arquitectura | Diag | Arquitecto | Tech Lead | Si | 2026-02-15 | - | Pendiente | - |
+        | DEL-012 | Prototipo de UI | Pres | UX Designer | Product Owner | No | 2026-02-20 | - | Pendiente | - |
+
+        ### Fase: Diseno
+
+        | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+        |---|---|---|---|---|---|---|---|---|---|
+        | DEL-020 | Modelo de Datos | Diag | Arquitecto | Tech Lead | Si | 2026-03-01 | - | Pendiente | - |
+        | DEL-021 | Especificacion de APIs | Doc | Arquitecto | Tech Lead | Si | 2026-03-05 | - | Pendiente | - |
+        | DEL-022 | Plan de Pruebas | Doc | QA Lead | Tech Lead | Si | 2026-03-10 | - | Pendiente | - |
+
+        ### Fase: Implementacion
+
+        | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+        |---|---|---|---|---|---|---|---|---|---|
+        | DEL-030 | Codigo Fuente (modulo principal) | Code | Developer Lead | Tech Lead | Si | 2026-04-01 | - | Pendiente | - |
+        | DEL-031 | Reporte de Cobertura de Tests | Report | QA Lead | Tech Lead | Si | 2026-04-05 | - | Pendiente | - |
+        | DEL-032 | Documentacion Tecnica | Doc | Developer Lead | Arquitecto | Si | 2026-04-10 | - | Pendiente | - |
+
+        ### Fase: Cierre
+
+        | ID | Entregable | Tipo | Responsable | Aprobador | Obligatorio | Fecha Compromiso | Fecha Real | Estado | Observaciones |
+        |---|---|---|---|---|---|---|---|---|---|
+        | DEL-040 | Acta de Cierre | Doc | Project Manager | Sponsor | Si | 2026-05-01 | - | Pendiente | - |
+        | DEL-041 | Lecciones Aprendidas | Doc | Project Manager | Equipo | Si | 2026-05-05 | - | Pendiente | - |
+        | DEL-042 | Reporte Final del Proyecto | Report | Project Manager | Sponsor | Si | 2026-05-10 | - | Pendiente | - |
+
+        ---
+
+        **Estados validos**: Pendiente | En Progreso | En Revision | Aprobado | Rechazado | No Aplica
+
+        **Tipos validos**: Doc | Pres | Diag | Code | Report
+
+    - name: checklist-gate-de-fase
+      content: |
+        # Checklist: Gate de Fase
+
+        ## Informacion del Gate
+
+        - **Proyecto**: [Nombre del Proyecto]
+        - **Fase evaluada**: [Nombre de la Fase]
+        - **Fecha del gate**: [Fecha]
+        - **Responsable del gate**: [Nombre/Rol]
+        - **Participantes**: [Lista de participantes]
+
+        ---
+
+        ## Paso 1: Inventario de Entregables
+
+        Confirmar que todos los entregables de la fase estan listados en el registro:
+
+        - [ ] Se revisaron todos los entregables obligatorios de la fase.
+        - [ ] Se revisaron todos los entregables opcionales de la fase.
+        - [ ] No hay entregables faltantes que deberian haberse incluido.
+
+        **Total entregables de la fase**: [N]
+        **Obligatorios**: [N]
+        **Opcionales**: [N]
+
+        ## Paso 2: Validacion de Entregables Obligatorios
+
+        Para cada entregable obligatorio, verificar:
+
+        - [ ] Tiene responsable asignado.
+        - [ ] Tiene aprobador asignado.
+        - [ ] Estado actual es "Aprobado".
+        - [ ] Fecha real de entrega esta registrada.
+        - [ ] El aprobador confirmo la calidad del entregable.
+
+        **Obligatorios aprobados**: [X] de [Y]
+
+        ## Paso 3: Validacion de Entregables Opcionales
+
+        Para cada entregable opcional, verificar:
+
+        - [ ] Estado es "Aprobado" o "No Aplica".
+        - [ ] Si es "No Aplica", la justificacion esta documentada.
+        - [ ] Si es "Aprobado", el aprobador confirmo la calidad.
+
+        **Opcionales aprobados**: [X] de [Y]
+        **Opcionales no aplican**: [Z] de [Y]
+
+        ## Paso 4: Calculo de Completitud
+
+        - Completitud obligatorios: ([Aprobados] / [Total obligatorios]) x 100 = [%]
+        - Completitud opcionales: ([Aprobados + No Aplica] / [Total opcionales]) x 100 = [%]
+        - Completitud general: ([Total resueltos] / [Total entregables]) x 100 = [%]
+
+        ## Paso 5: Preguntas de Validacion
+
+        Responder cada pregunta antes de tomar la decision:
+
+        1. Todos los entregables obligatorios estan aprobados?
+           - [ ] Si → Continuar
+           - [ ] No → Gate RECHAZADO (documentar pendientes)
+
+        2. Existen riesgos abiertos asociados a entregables de esta fase?
+           - [ ] No → Continuar
+           - [ ] Si → Documentar riesgos y plan de mitigacion
+
+        3. Las dependencias de la siguiente fase estan satisfechas?
+           - [ ] Si → Continuar
+           - [ ] No → Documentar dependencias bloqueantes
+
+        4. El equipo confirma que no hay deuda tecnica critica sin documentar?
+           - [ ] Si → Continuar
+           - [ ] No → Documentar y evaluar impacto
+
+        5. Los stakeholders relevantes fueron informados del estado?
+           - [ ] Si → Continuar
+           - [ ] No → Completar comunicacion antes de cerrar gate
+
+        ## Paso 6: Decision del Gate
+
+        ```markdown
+        ### Gate de Fase: [Nombre Fase]
+        - **Fecha**: [Fecha]
+        - **Aprobador**: [Nombre/Rol]
+        - **Obligatorios**: [X/Y] aprobados
+        - **Opcionales**: [X/Y] aprobados, [Z] no aplican
+        - **Completitud**: [%]
+        - **Decision**: APROBADO / RECHAZADO
+        - **Observaciones**: [Notas]
+        ```
+
+        ## Paso 7: Criterios de Escalamiento
+
+        Escalar al nivel superior si:
+
+        - Un entregable obligatorio lleva mas de 2 ciclos de rechazo.
+        - La completitud de obligatorios es menor al 70% en la fecha limite del gate.
+        - Existe un bloqueo externo que impide completar un entregable critico.
+        - El responsable de un entregable no esta disponible y no hay sustituto asignado.
+
+        **Ruta de escalamiento**:
+        1. Primer nivel: Project Manager.
+        2. Segundo nivel: Sponsor del proyecto.
+        3. Tercer nivel: Comite de gobernanza / PMO.
+
+        ---
+
+        **Resultado del gate**: [APROBADO / RECHAZADO]
+        **Firma del responsable**: ___________________
+        **Fecha**: [Fecha]

@@ -1,0 +1,104 @@
+dependencies:
+  product-owner:
+    hard: []
+    soft: []
+
+  project-manager:
+    hard: []
+    soft:
+      - product-owner
+
+  business-analyst:
+    hard: []
+    soft:
+      - product-owner
+
+  solution-architect:
+    hard:
+      - business-analyst
+    soft:
+      - tech-lead
+
+  integration-architect:
+    hard:
+      - solution-architect
+    soft:
+      - developer-backend
+
+  security-architect:
+    hard:
+      - solution-architect
+    soft: []
+
+  tech-lead:
+    hard:
+      - business-analyst
+    soft:
+      - solution-architect
+
+  developer-backend:
+    hard:
+      - tech-lead
+    soft:
+      - dba
+      - solution-architect
+
+  developer-frontend:
+    hard:
+      - tech-lead
+    soft:
+      - ux-designer
+
+  dba:
+    hard: []
+    soft:
+      - solution-architect
+      - tech-lead
+
+  qa-lead:
+    hard:
+      - business-analyst
+    soft:
+      - project-manager
+
+  qa-functional:
+    hard:
+      - business-analyst
+    soft:
+      - qa-lead
+
+  qa-automation:
+    hard:
+      - qa-lead
+    soft:
+      - devops
+
+  qa-performance:
+    hard:
+      - solution-architect
+    soft:
+      - dba
+      - devops
+
+  devops:
+    hard:
+      - tech-lead
+    soft:
+      - solution-architect
+
+  tech-writer:
+    hard:
+      - business-analyst
+    soft: []
+
+  ux-designer:
+    hard: []
+    soft:
+      - business-analyst
+      - product-owner
+
+  change-manager:
+    hard:
+      - project-manager
+    soft:
+      - product-owner

@@ -1,0 +1,51 @@
+id: go-fiber
+name: Go + Fiber
+description: Backend de alto rendimiento con Go y el framework Fiber, optimizado para APIs concurrentes y microservicios con minimo consumo de recursos
+
+backend:
+  framework: Fiber
+  language: Go
+  version: "1.23+"
+  build_tool: go build / Makefile
+  test_framework: testing (stdlib), testify, httptest
+  orm: GORM / sqlx
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - Redis
+    - MongoDB
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions / GitLab CI
+  cloud: AWS / GCP
+
+role_context:
+  developer-backend: |
+    Usa Go 1.23+ con Fiber v2. Estructura por dominios: handler -> service -> repository.
+    Interfaces para desacoplar capas. Context con timeout en todas las operaciones I/O.
+    Middleware: recover, logger, CORS, rate limiter, request ID.
+    Validacion con go-playground/validator. Errores tipados con wrapping.
+    Tests: tabla de tests con testing + testify/assert. Mocks con mockery o interfaces.
+    Migraciones: golang-migrate. ORM: GORM o sqlx para queries complejas.
+  dba: |
+    PostgreSQL como BD principal con pgx como driver nativo.
+    Migraciones versionadas con golang-migrate o goose.
+    Connection pool configurado con pgxpool (max conns, idle timeout).
+    Indices basados en patrones de consulta. Prepared statements para rendimiento.
+    Considerar particionamiento para tablas de alto volumen.
+  devops: |
+    Dockerfile multi-stage: go build con CGO_ENABLED=0 + scratch/distroless.
+    Binario estatico de ~10-20MB, imagen final minima.
+    docker-compose para desarrollo local con hot reload (air).
+    Pipeline: lint (golangci-lint) -> test -> build -> docker -> push -> deploy.
+    Health checks y metricas con /metrics endpoint para Prometheus.
+  solution-architect: |
+    Arquitectura: Clean Architecture o Hexagonal adaptada a Go.
+    Patrones: Repository, Factory, Strategy con interfaces Go.
+    Integraciones: REST con OpenAPI 3.1, gRPC para comunicacion interna.
+    Concurrencia: goroutines con canales, errgroup para operaciones paralelas.
+    Seguridad: JWT middleware, rate limiting, CORS configurado.

@@ -1,0 +1,46 @@
+id: ci-cd-testing
+name: Testing en Pipelines CI/CD
+description: >
+  Integracion y ejecucion de pruebas automatizadas dentro
+  de pipelines de integracion continua y despliegue continuo
+  para asegurar calidad en cada entrega.
+used_by:
+  - qa-automation
+content:
+  when_to_use: |
+    - Al configurar un nuevo pipeline de CI/CD.
+    - Al integrar suites de pruebas automatizadas en el pipeline.
+    - Al optimizar tiempos de ejecucion del pipeline.
+    - Al definir criterios de calidad para bloquear despliegues.
+  instructions: |
+    ## Etapas de Testing en CI/CD
+    | Etapa | Descripcion |
+    |---|---|
+    | Build | Compilacion y pruebas unitarias rapidas |
+    | Smoke | Pruebas criticas que validan la estabilidad basica |
+    | Integracion | Verificacion de interaccion entre componentes |
+    | Regresion | Suite completa de pruebas automatizadas |
+    | Performance | Pruebas de carga y rendimiento (opcional por entorno) |
+    | Deploy gate | Validacion final antes de desplegar a produccion |
+
+    ## Mejores Practicas
+    1. Ejecutar pruebas unitarias en cada commit para feedback rapido.
+    2. Ejecutar smoke tests en cada merge a la rama principal.
+    3. Programar regresion completa en horarios de baja actividad.
+    4. Configurar umbrales de cobertura minima como quality gate.
+    5. Notificar fallos al equipo de forma inmediata por canal dedicado.
+  guides:
+    - name: pipeline-configuration
+      content: |
+        - Definir las etapas del pipeline en el archivo de configuracion (Jenkinsfile, .gitlab-ci.yml, azure-pipelines.yml).
+        - Configurar la ejecucion paralela de suites independientes.
+        - Establecer timeouts por etapa para evitar bloqueos.
+        - Configurar reintentos automaticos para tests inestables (max 1 reintento).
+        - Almacenar artefactos de prueba (reportes, logs, screenshots) en cada ejecucion.
+    - name: quality-gates
+      content: |
+        - Definir cobertura minima de codigo como requisito para merge.
+        - Bloquear despliegue si el porcentaje de tests exitosos es menor al umbral.
+        - Requerir que todos los smoke tests pasen antes de avanzar de etapa.
+        - Configurar alertas cuando la duracion del pipeline supere el limite.
+        - Revisar metricas de estabilidad de tests semanalmente.

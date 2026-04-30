@@ -1,0 +1,26 @@
+id: run-tests
+name: Ejecutor de Tests
+description: Ejecuta la suite de tests del proyecto y retorna resultados con estado, cobertura y fallos detectados.
+used_by:
+  - tech-lead
+  - developer-backend
+  - developer-frontend
+  - qa-functional
+  - qa-automation
+  - devops
+implementation:
+  language: typescript
+  args:
+    test_type:
+      type: string
+      description: "Tipo de test: unit, integration, e2e, all"
+      default: unit
+    path:
+      type: string
+      description: Ruta especifica a ejecutar (opcional, vacio para todos)
+      default: ""
+      required: false
+  returns: string
+  body: |
+    const cmd = args.path ? "npm test -- " + args.path : "npm test";
+    return "Ejecutando: " + cmd + " (tipo: " + args.test_type + ")";

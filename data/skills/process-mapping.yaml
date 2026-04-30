@@ -1,0 +1,54 @@
+id: process-mapping
+name: Mapeo de Procesos AS-IS/TO-BE
+description: >
+  Modelado y documentacion de procesos de negocio en su estado actual (AS-IS)
+  y estado futuro deseado (TO-BE) para identificar mejoras y guiar la implementacion.
+used_by:
+  - business-analyst
+content:
+  when_to_use: |
+    - Cuando se inicia un proyecto de mejora o automatizacion de procesos.
+    - Cuando se necesita entender el flujo actual antes de proponer cambios.
+    - Cuando se detectan ineficiencias, cuellos de botella o redundancias operativas.
+    - Cuando se requiere documentar procesos para cumplimiento normativo o auditoria.
+    - Cuando se migra un sistema y se necesita mapear la logica de proceso existente.
+  instructions: |
+    ## Proceso de Mapeo AS-IS
+    1. Identificar el proceso a modelar y definir su alcance (inicio y fin).
+    2. Identificar los actores y roles involucrados (carriles/lanes).
+    3. Relevar las actividades paso a paso mediante entrevistas y observacion directa.
+    4. Documentar el flujo usando notacion BPMN o diagrama de flujo:
+       - Eventos de inicio y fin.
+       - Actividades (tareas y subprocesos).
+       - Compuertas de decision (exclusivas, paralelas, inclusivas).
+       - Flujos de secuencia y flujos de mensaje.
+    5. Identificar entradas, salidas y artefactos de cada actividad.
+    6. Registrar tiempos promedio, volumenes y frecuencias.
+    7. Validar el modelo AS-IS con los ejecutores reales del proceso.
+
+    ## Proceso de Mapeo TO-BE
+    1. Analizar el AS-IS para identificar:
+       - Actividades que no agregan valor.
+       - Cuellos de botella y demoras.
+       - Tareas manuales automatizables.
+       - Puntos de error o reproceso frecuente.
+    2. Disenar el proceso TO-BE incorporando las mejoras identificadas.
+    3. Documentar los cambios respecto al AS-IS con justificacion de cada modificacion.
+    4. Estimar beneficios esperados: reduccion de tiempo, costo, errores.
+    5. Validar el TO-BE con stakeholders y obtener aprobacion formal.
+    6. Generar el plan de transicion de AS-IS a TO-BE.
+  guides:
+    - name: buenas-practicas-modelado
+      content: |
+        - Mantener los diagramas simples y legibles; descomponer procesos complejos en subprocesos.
+        - Usar nombres de actividad en formato verbo + sustantivo (ej: "Validar factura").
+        - Numerar las actividades para facilitar referencias cruzadas.
+        - Incluir anotaciones para reglas de negocio asociadas a compuertas de decision.
+        - Documentar los caminos de excepcion, no solo el flujo feliz.
+        - Usar colores o estilos consistentes para diferenciar actores.
+    - name: analisis-de-brechas
+      content: |
+        - Comparar AS-IS y TO-BE actividad por actividad.
+        - Clasificar cada brecha como: eliminacion, modificacion, adicion o automatizacion.
+        - Priorizar las brechas segun impacto en el negocio y complejidad de implementacion.
+        - Vincular cada brecha con los requerimientos del sistema a construir.

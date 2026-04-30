@@ -1,0 +1,55 @@
+id: test-strategy
+name: Estrategia de Pruebas
+description: >
+  Definicion y planificacion de la estrategia de pruebas de software,
+  incluyendo niveles, tipos, criterios de entrada y salida.
+used_by:
+  - qa-lead
+content:
+  when_to_use: |
+    - Al iniciar un proyecto o una nueva fase de desarrollo.
+    - Cuando se requiere definir el alcance y enfoque de las pruebas.
+    - Al preparar un plan de pruebas para una entrega o release.
+    - Cuando se incorporan nuevos miembros al equipo de QA.
+  instructions: |
+    ## Estructura de la Estrategia de Pruebas
+
+    ### 1. Alcance
+    - Definir que se prueba y que queda fuera de alcance.
+    - Identificar los modulos, funcionalidades y flujos criticos.
+
+    ### 2. Niveles de Pruebas
+    | Nivel | Responsable | Objetivo |
+    |---|---|---|
+    | Unitarias | Desarrollador | Validar componentes individuales |
+    | Integracion | QA/Dev | Verificar interaccion entre modulos |
+    | Sistema | QA Lead | Validar el sistema completo |
+    | Aceptacion | Usuario/PO | Confirmar cumplimiento de requisitos |
+
+    ### 3. Tipos de Pruebas
+    - Funcionales, regresion, humo, exploratorias, rendimiento, seguridad.
+
+    ### 4. Criterios de Entrada y Salida
+    - **Entrada:** ambiente disponible, datos de prueba preparados, build estable.
+    - **Salida:** cobertura minima alcanzada, defectos criticos resueltos, reporte generado.
+
+    ### 5. Herramientas y Ambientes
+    - Especificar herramientas de gestion de pruebas, automatizacion y ambientes.
+
+    ### 6. Riesgos de Pruebas
+    - Identificar riesgos que afecten la ejecucion del plan de pruebas.
+  guides:
+    - name: seleccion-tipos-prueba
+      content: |
+        ## Guia de Seleccion de Tipos de Prueba
+        - Para funcionalidades nuevas: pruebas funcionales completas + exploratorias.
+        - Para correcciones: pruebas de regresion focalizadas.
+        - Para releases mayores: suite completa incluyendo rendimiento y seguridad.
+        - Para hotfixes: pruebas de humo y validacion puntual.
+    - name: criterios-cobertura
+      content: |
+        ## Guia de Criterios de Cobertura
+        - Cobertura minima de codigo: 80% en modulos criticos.
+        - Cobertura funcional: 100% de casos de uso prioritarios.
+        - Cobertura de regresion: todos los flujos principales del sistema.
+        - Documentar excepciones y justificaciones de exclusion.

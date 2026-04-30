@@ -1,0 +1,106 @@
+iron_laws:
+  - id: no-code-without-test
+    name: "Sin codigo sin test"
+    applies_to:
+      - construction
+      - technology
+    law: "NO se escribe codigo de produccion sin test que lo respalde."
+    rationale: "El codigo sin test es codigo sin garantia. Los tests son la red de seguridad que permite evolucionar el sistema con confianza. Sin ellos, cada cambio es una apuesta."
+    violations:
+      - "Escribir una funcion nueva y hacer commit sin ningun test unitario."
+      - "Modificar logica de negocio existente sin actualizar o crear tests correspondientes."
+      - "Justificar la ausencia de tests diciendo que el codigo es demasiado simple."
+      - "Entregar una historia de usuario sin cobertura de tests automatizados."
+
+  - id: no-fix-without-root-cause
+    name: "Sin fix sin causa raiz"
+    applies_to:
+      - construction
+      - technology
+      - data
+    law: "NO se aplica un fix sin investigar la causa raiz primero."
+    rationale: "Un fix sin diagnostico es un parche que oculta el problema real. La causa raiz no investigada vuelve a manifestarse, frecuentemente de forma mas grave y en el peor momento."
+    violations:
+      - "Aplicar un try-catch generico para silenciar una excepcion sin entender por que ocurre."
+      - "Reiniciar un servicio como solucion definitiva sin investigar que causo la caida."
+      - "Cambiar un valor en base de datos manualmente sin entender por que se corrompio."
+
+  - id: no-completion-without-evidence
+    name: "Sin completado sin evidencia"
+    applies_to:
+      - quality
+      - construction
+      - technology
+      - deployment
+    law: "NO se declara completado sin evidencia verificable de ejecucion exitosa."
+    rationale: "Declarar algo como terminado sin pruebas verificables es una promesa vacia. La evidencia objetiva protege al equipo de falsos positivos y garantiza que el trabajo realmente cumple su proposito."
+    violations:
+      - "Mover una tarea a Done sin adjuntar capturas, logs o resultados de tests."
+      - "Declarar un despliegue exitoso sin verificar que el servicio responde correctamente."
+      - "Cerrar un bug como resuelto sin demostrar que el escenario original ya no se reproduce."
+      - "Reportar una migracion completada sin validar integridad de datos."
+
+  - id: no-deploy-without-rollback
+    name: "Sin despliegue sin rollback"
+    applies_to:
+      - deployment
+      - operations
+    law: "NO se despliega a produccion sin plan de rollback probado."
+    rationale: "Todo despliegue puede fallar. Sin un plan de rollback probado, un fallo en produccion se convierte en una crisis sin salida clara, afectando usuarios y negocio."
+    violations:
+      - "Desplegar a produccion sin documentar los pasos para revertir el cambio."
+      - "Tener un plan de rollback teorico que nunca se ha ejecutado en un ambiente inferior."
+      - "Desplegar cambios de base de datos irreversibles sin estrategia de recuperacion."
+
+  - id: no-design-without-requirements
+    name: "Sin diseno sin requerimientos"
+    applies_to:
+      - architecture
+      - technology
+      - analysis
+    law: "NO se disena solucion tecnica sin requerimiento funcional aprobado."
+    rationale: "Disenar sin requerimientos claros es construir sobre arena. Las decisiones tecnicas deben estar ancladas a necesidades de negocio validadas para evitar re-trabajo y soluciones que no resuelven el problema real."
+    violations:
+      - "Comenzar a disenar una arquitectura basandose en supuestos no validados con el negocio."
+      - "Proponer una solucion tecnica sin que exista un documento de requerimientos aprobado."
+      - "Tomar decisiones de tecnologia antes de entender las restricciones funcionales."
+      - "Disenar una API sin tener definidos los casos de uso que debe soportar."
+
+  - id: no-scope-change-without-impact
+    name: "Sin cambio de alcance sin impacto"
+    applies_to:
+      - management
+      - business
+      - change
+    law: "NO se acepta cambio de alcance sin evaluacion formal de impacto."
+    rationale: "Cada cambio de alcance no evaluado introduce riesgo invisible al proyecto. Sin analisis de impacto, los plazos, costos y calidad se degradan silenciosamente hasta que el proyecto fracasa."
+    violations:
+      - "Aceptar un requerimiento nuevo del cliente sin evaluar impacto en cronograma y presupuesto."
+      - "Agregar funcionalidad extra porque parece facil sin registrar el cambio formalmente."
+      - "Permitir que el alcance crezca incrementalmente sin actualizacion de la linea base."
+
+  - id: no-merge-without-review
+    name: "Sin merge sin revision"
+    applies_to:
+      - construction
+      - technology
+    law: "NO se mergea codigo sin revision tecnica aprobada."
+    rationale: "El code review es la ultima linea de defensa antes de que el codigo entre al proyecto. Sin revision, errores de logica, vulnerabilidades y deuda tecnica entran sin filtro al producto."
+    violations:
+      - "Hacer merge directo a la rama principal sin crear un Pull Request."
+      - "Auto-aprobar el propio Pull Request sin que otro miembro del equipo lo revise."
+      - "Mergear con comentarios de revision pendientes sin resolver."
+      - "Saltar la revision porque hay prisa por entregar."
+
+  - id: no-release-without-qa
+    name: "Sin release sin QA"
+    applies_to:
+      - quality
+      - deployment
+    law: "NO se libera a produccion sin ciclo de QA completado y aprobado."
+    rationale: "QA es el guardian de la calidad del producto. Liberar sin QA completo es transferir el riesgo directamente al usuario final, danando la confianza y generando costos de soporte evitables."
+    violations:
+      - "Desplegar a produccion con casos de prueba pendientes de ejecucion."
+      - "Liberar con defectos conocidos sin evaluacion formal de riesgo."
+      - "Saltar el ciclo de QA porque el cambio se considera menor o urgente."
+      - "Obtener aprobacion parcial de QA y desplegar sin completar los escenarios restantes."

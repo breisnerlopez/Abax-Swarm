@@ -1,0 +1,116 @@
+id: api-consumption
+name: Consumo e Integracion de APIs
+description: >
+  Consumo e integracion de APIs REST y GraphQL desde el frontend,
+  incluyendo manejo de estado asincrono, cache, errores,
+  autenticacion y optimizacion de peticiones.
+used_by:
+  - developer-frontend
+content:
+  when_to_use: |
+    - Al integrar el frontend con servicios backend mediante APIs REST o GraphQL.
+    - Al implementar capas de datos con librerias como Axios, Fetch, Apollo o React Query.
+    - Al disenar la estrategia de manejo de errores y reintentos en el cliente.
+    - Al optimizar el rendimiento de las llamadas a APIs (cache, deduplicacion, paginacion).
+  instructions: |
+    ## Principios de consumo de APIs
+
+    1. **Capa de abstraccion**: Crear un modulo o servicio centralizado para las
+       llamadas HTTP. No llamar a fetch/axios directamente desde los componentes.
+    2. **Tipado estricto**: Definir interfaces/tipos para los request y response
+       de cada endpoint. Usar generics en los clientes HTTP.
+    3. **Manejo de errores consistente**: Implementar un interceptor global que
+       clasifique errores (red, 4xx, 5xx) y los transforme en mensajes de usuario.
+    4. **Autenticacion**: Manejar tokens (JWT, OAuth) mediante interceptores.
+       Implementar refresh automatico de tokens expirados.
+    5. **Variables de entorno**: Las URLs base de las APIs deben configurarse
+       por entorno (dev, staging, prod) via variables de entorno.
+
+    ## Estructura recomendada
+
+    ```
+    src/
+      api/
+        client.ts          # Instancia de Axios/Fetch configurada
+        interceptors.ts    # Interceptores de request y response
+        endpoints/
+          users.ts         # Funciones para /api/users
+          products.ts      # Funciones para /api/products
+        types/
+          user.types.ts    # Interfaces de request/response
+          product.types.ts
+    ```
+
+    ## Manejo de estados de peticion
+
+    Toda llamada a API tiene 4 estados que la UI debe reflejar:
+    - **idle**: No se ha iniciado la peticion.
+    - **loading**: Peticion en curso (mostrar skeleton o spinner).
+    - **success**: Datos recibidos correctamente.
+    - **error**: Fallo en la peticion (mostrar mensaje y opcion de reintento).
+
+    ## Estrategias de cache
+
+    - **Stale-While-Revalidate**: Mostrar datos en cache mientras se revalidan
+      en segundo plano (React Query, SWR).
+    - **Cache-first**: Usar cache si existe, solo ir al servidor si no hay datos.
+    - **Network-first**: Siempre ir al servidor, usar cache como fallback offline.
+    - **Invalidacion**: Invalidar cache al mutar datos relacionados.
+
+    ## Optimizacion de peticiones
+
+    - Implementar debounce en busquedas (300-500ms).
+    - Usar paginacion o scroll infinito para listas grandes.
+    - Cancelar peticiones obsoletas con AbortController.
+    - Agrupar peticiones relacionadas cuando la API lo permita (batching).
+    - Prefetch de datos que el usuario probablemente necesitara.
+  guides:
+    - name: rest-vs-graphql
+      content: |
+        ## REST - Cuando usarlo
+
+        - APIs publicas o de terceros que solo ofrecen REST.
+        - Operaciones CRUD simples con recursos bien definidos.
+        - Cuando se necesita cache HTTP nativo (ETags, Cache-Control).
+        - Endpoints con respuestas predecibles y estables.
+
+        ## GraphQL - Cuando usarlo
+
+        - Cuando el frontend necesita datos de multiples recursos en una sola peticion.
+        - Para evitar over-fetching (recibir mas datos de los necesarios)
+          y under-fetching (necesitar multiples llamadas).
+        - Cuando los requerimientos de datos cambian frecuentemente.
+        - Con Apollo Client o urql para cache normalizado automatico.
+
+        ## Buenas practicas de GraphQL en el cliente
+
+        - Definir queries y mutations en archivos .graphql separados.
+        - Usar fragments para reutilizar selecciones de campos.
+        - Generar tipos automaticamente con GraphQL Code Generator.
+        - Implementar politicas de cache (cache-first, network-only) por query.
+        - Usar subscriptions solo cuando se necesite tiempo real (WebSocket).
+    - name: manejo-de-errores
+      content: |
+        ## Clasificacion de errores HTTP
+
+        - **400 Bad Request**: Datos enviados invalidos. Mostrar errores de
+          validacion en el formulario.
+        - **401 Unauthorized**: Token expirado o ausente. Intentar refresh
+          del token; si falla, redirigir a login.
+        - **403 Forbidden**: Sin permisos. Mostrar mensaje de acceso denegado.
+        - **404 Not Found**: Recurso no encontrado. Mostrar estado vacio
+          o redirigir.
+        - **409 Conflict**: Conflicto de datos (ej: registro duplicado).
+          Informar al usuario y sugerir accion.
+        - **422 Unprocessable Entity**: Error de validacion del servidor.
+          Mapear errores a los campos del formulario.
+        - **429 Too Many Requests**: Rate limit. Implementar backoff exponencial.
+        - **500+ Server Error**: Error del servidor. Mostrar mensaje generico
+          y opcion de reintento.
+
+        ## Patron de reintentos
+
+        - Reintentar solo errores de red y 5xx (nunca 4xx).
+        - Usar backoff exponencial: 1s, 2s, 4s (maximo 3 intentos).
+        - Mostrar indicador de reintento al usuario.
+        - Permitir cancelacion manual del reintento.

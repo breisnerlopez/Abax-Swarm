@@ -1,0 +1,112 @@
+id: integration-design
+name: Diseno de Integraciones entre Sistemas
+description: >
+  Diseno y especificacion de integraciones entre sistemas, incluyendo
+  patrones de integracion empresarial, contratos de API, manejo de
+  errores, estrategias de resiliencia y monitoreo de flujos.
+used_by:
+  - solution-architect
+content:
+  when_to_use: |
+    - Al conectar sistemas internos que necesitan intercambiar datos.
+    - Cuando se integran servicios de terceros o proveedores externos.
+    - Al disenar flujos de datos entre microservicios.
+    - Cuando se migra de una integracion punto a punto a un modelo orquestado.
+    - Al definir contratos de API entre equipos o dominios diferentes.
+  instructions: |
+    ## Marco de Diseno de Integraciones
+
+    ### 1. Analisis de la integracion
+    - Identificar los sistemas origen y destino.
+    - Documentar los datos que se intercambian y su volumetria.
+    - Definir la frecuencia y latencia requerida (tiempo real, near-real-time, batch).
+    - Clasificar la criticidad de la integracion para el negocio.
+    - Identificar los contratos y formatos de datos existentes.
+
+    ### 2. Seleccion del patron de integracion
+    - **Request-Reply (sincrono)**: REST, gRPC, GraphQL. Para consultas con respuesta inmediata.
+    - **Messaging (asincrono)**: Colas (SQS, RabbitMQ) o topics (Kafka, SNS). Para desacoplamiento.
+    - **Event-Driven**: Publicacion de eventos de dominio. Para reaccion a cambios de estado.
+    - **File Transfer**: SFTP, S3, blob storage. Para intercambio de grandes volumenes batch.
+    - **Shared Database**: Base de datos compartida (usar solo como ultimo recurso).
+    - **API Gateway**: Punto unico de entrada con transformacion y enrutamiento.
+
+    ### 3. Diseno del contrato de integracion
+    - Definir el esquema de datos con versionado (v1, v2).
+    - Especificar formatos (JSON, XML, Avro, Protobuf).
+    - Documentar codigos de respuesta y estructura de errores.
+    - Establecer limites de tamano de payload y paginacion.
+    - Definir politica de compatibilidad (backward, forward compatible).
+
+    ### 4. Resiliencia y manejo de errores
+    - **Retry con backoff exponencial**: Para errores transitorios (5xx, timeouts).
+    - **Circuit Breaker**: Para prevenir cascada de fallos entre servicios.
+    - **Dead Letter Queue (DLQ)**: Para mensajes que no pueden procesarse.
+    - **Idempotencia**: Garantizar que reintentos no causan duplicados.
+    - **Timeout y fallback**: Definir tiempos maximos y respuestas alternativas.
+    - **Compensacion**: Transacciones de compensacion para rollback en sagas.
+
+    ### 5. Seguridad de la integracion
+    - Autenticacion: OAuth2, API keys, mTLS segun el contexto.
+    - Autorizacion: Scopes y permisos granulares por operacion.
+    - Cifrado: TLS en transito, cifrado de campos sensibles en el payload.
+    - Rate limiting: Limites por cliente para proteger el servicio.
+
+    ### 6. Monitoreo y observabilidad
+    - Metricas: latencia, tasa de errores, throughput por integracion.
+    - Tracing distribuido: Correlation ID en todos los mensajes y llamadas.
+    - Alertas: Umbrales para degradacion de SLA de integracion.
+    - Dashboard: Visualizacion del estado de cada flujo de integracion.
+
+    ## Formato de Especificacion
+    | Integracion | Origen | Destino | Patron | Frecuencia | SLA | Responsable |
+    |-------------|--------|---------|--------|------------|-----|-------------|
+
+  guides:
+    - name: patrones-integracion-empresarial
+      content: |
+        ## Guia de Patrones de Integracion Empresarial (EIP)
+
+        ### Patrones de mensajeria
+        - **Message Channel**: Canal dedicado para cada tipo de mensaje.
+        - **Message Router**: Enrutamiento condicional basado en contenido o cabeceras.
+        - **Message Translator**: Transformacion de formato entre sistemas.
+        - **Message Filter**: Descarte de mensajes que no cumplen criterios.
+
+        ### Patrones de composicion
+        - **Pipes and Filters**: Cadena de procesamiento por etapas.
+        - **Scatter-Gather**: Envio paralelo y agregacion de respuestas.
+        - **Saga**: Transacciones distribuidas con compensacion.
+        - **Choreography vs Orchestration**: Coordinacion descentralizada vs centralizada.
+
+        ### Cuando usar cada patron
+        - Alta disponibilidad requerida: Mensajeria asincrona con colas persistentes.
+        - Baja latencia requerida: Comunicacion sincrona con cache.
+        - Desacoplamiento entre dominios: Eventos de dominio con esquemas versionados.
+        - Procesamiento de grandes volumenes: Streaming con Kafka o procesamiento batch.
+    - name: contrato-api-template
+      content: |
+        ## Plantilla de Contrato de API para Integraciones
+
+        ### Informacion general
+        - Nombre de la integracion y proposito.
+        - Sistemas involucrados (productor y consumidor).
+        - Responsables tecnicos de cada lado.
+        - SLA acordado (disponibilidad, latencia maxima).
+
+        ### Especificacion tecnica
+        - Protocolo: REST / gRPC / Mensajeria / Eventos.
+        - Endpoint o topic/queue.
+        - Metodo de autenticacion.
+        - Formato de request y response con ejemplos.
+
+        ### Manejo de errores
+        - Codigos de error especificos del dominio.
+        - Estructura estandar de respuesta de error.
+        - Politica de reintentos acordada.
+        - Procedimiento de escalacion ante fallos prolongados.
+
+        ### Versionado y ciclo de vida
+        - Estrategia de versionado (URL, header, content negotiation).
+        - Periodo de soporte para versiones anteriores.
+        - Proceso de notificacion de cambios breaking.

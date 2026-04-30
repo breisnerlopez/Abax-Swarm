@@ -1,0 +1,51 @@
+id: backend-implementation
+name: Implementacion de Logica Backend
+description: >
+  Desarrollo e implementacion de la logica de negocio del lado del servidor,
+  incluyendo arquitectura de servicios, acceso a datos y exposicion de APIs.
+used_by:
+  - developer-backend
+content:
+  when_to_use: |
+    - Cuando se debe implementar una nueva funcionalidad o endpoint en el servidor.
+    - Cuando se necesita crear o modificar servicios, repositorios o controladores.
+    - Cuando se implementan integraciones con sistemas externos o bases de datos.
+    - Cuando se refactoriza logica existente para mejorar mantenibilidad o rendimiento.
+    - Cuando se disenan APIs REST o GraphQL para consumo de clientes.
+  instructions: |
+    ## Proceso de Implementacion Backend
+    1. Analizar los requerimientos funcionales y criterios de aceptacion asignados.
+    2. Disenar la solucion tecnica considerando la arquitectura existente:
+       - Identificar las capas afectadas: controlador, servicio, repositorio, modelo.
+       - Definir contratos de entrada/salida (DTOs, request/response).
+       - Disenar el modelo de datos si se requieren cambios en base de datos.
+    3. Implementar siguiendo el patron de capas:
+       a. **Modelo/Entidad**: definir o modificar entidades de dominio.
+       b. **Repositorio**: implementar acceso a datos con consultas optimizadas.
+       c. **Servicio**: codificar la logica de negocio, validaciones y orquestacion.
+       d. **Controlador/API**: exponer endpoints con verbos HTTP apropiados.
+    4. Aplicar principios SOLID en todo el codigo:
+       - Responsabilidad unica por clase y metodo.
+       - Inyeccion de dependencias para desacoplamiento.
+       - Interfaces para abstraer implementaciones.
+    5. Implementar validaciones de entrada en el controlador y reglas de negocio en el servicio.
+    6. Escribir pruebas unitarias y de integracion para la logica implementada.
+    7. Documentar los endpoints creados o modificados (OpenAPI/Swagger).
+    8. Realizar code review antes de integrar al branch principal.
+  guides:
+    - name: diseno-de-apis
+      content: |
+        - Usar verbos HTTP semanticamente correctos: GET (consulta), POST (creacion), PUT (actualizacion completa), PATCH (actualizacion parcial), DELETE (eliminacion).
+        - Nombrar recursos en plural y en minusculas: /api/v1/usuarios, /api/v1/ordenes.
+        - Retornar codigos de estado HTTP apropiados: 200, 201, 204, 400, 401, 403, 404, 500.
+        - Implementar paginacion para endpoints que retornan listas.
+        - Versionar las APIs desde el inicio (v1, v2).
+        - Incluir mensajes de error descriptivos en el cuerpo de respuesta.
+    - name: principios-de-arquitectura
+      content: |
+        - Separar la logica de negocio de la logica de infraestructura.
+        - No colocar logica de negocio en controladores; delegar al servicio.
+        - Usar transacciones de base de datos para operaciones que modifican multiples registros.
+        - Implementar logging estructurado en puntos criticos del flujo.
+        - Configurar valores externos mediante variables de entorno o archivos de configuracion.
+        - Evitar dependencias circulares entre servicios.

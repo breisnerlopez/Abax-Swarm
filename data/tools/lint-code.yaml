@@ -1,0 +1,24 @@
+id: lint-code
+name: Analizador de Codigo
+description: Ejecuta linters y analizadores estaticos sobre el codigo fuente para detectar problemas de estilo y calidad.
+used_by:
+  - tech-lead
+  - developer-backend
+  - developer-frontend
+  - qa-automation
+  - devops
+implementation:
+  language: typescript
+  args:
+    path:
+      type: string
+      description: Ruta del archivo o directorio a analizar
+      default: "."
+    fix:
+      type: boolean
+      description: Intentar corregir automaticamente los problemas encontrados
+      default: false
+  returns: string
+  body: |
+    const fixFlag = args.fix ? " --fix" : "";
+    return "Ejecutando: npm run lint -- " + args.path + fixFlag;

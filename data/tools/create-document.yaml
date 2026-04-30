@@ -1,0 +1,29 @@
+id: create-document
+name: Creador de Documentos
+description: Crea documentos Markdown estructurados con metadata, secciones y formato estandarizado del proyecto.
+used_by:
+  - business-analyst
+  - project-manager
+  - product-owner
+  - tech-writer
+  - change-manager
+  - qa-lead
+  - security-architect
+implementation:
+  language: typescript
+  args:
+    title:
+      type: string
+      description: Titulo del documento
+    doc_type:
+      type: string
+      description: "Tipo: functional, technical, test-plan, deployment, risk, change-request"
+      default: functional
+    content:
+      type: string
+      description: Contenido principal del documento en Markdown
+  returns: string
+  body: |
+    const header = "# " + args.title + "\n\n";
+    const meta = "| Campo | Valor |\n|---|---|\n| Tipo | " + args.doc_type + " |\n| Fecha | " + new Date().toISOString().split("T")[0] + " |\n| Estado | Borrador |\n\n---\n\n";
+    return header + meta + args.content;

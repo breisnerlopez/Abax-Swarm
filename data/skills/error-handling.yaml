@@ -1,0 +1,57 @@
+id: error-handling
+name: Manejo de Errores y Excepciones
+description: >
+  Estrategias y patrones para el manejo estructurado de errores y excepciones
+  en aplicaciones backend, garantizando robustez y facilidad de diagnostico.
+used_by:
+  - developer-backend
+content:
+  when_to_use: |
+    - Cuando se implementa logica que puede fallar por datos invalidos, recursos no disponibles o condiciones inesperadas.
+    - Cuando se disenan APIs y se necesita retornar errores claros al cliente.
+    - Cuando se integran sistemas externos que pueden fallar o responder con errores.
+    - Cuando se detectan excepciones no controladas en logs o monitoreo.
+    - Cuando se refactoriza codigo para mejorar la resiliencia y observabilidad.
+  instructions: |
+    ## Estrategia de Manejo de Errores
+    1. Clasificar los errores segun su naturaleza:
+       - **Errores de validacion**: datos de entrada invalidos (400 Bad Request).
+       - **Errores de autenticacion/autorizacion**: acceso denegado (401/403).
+       - **Errores de negocio**: violacion de reglas de negocio (409 Conflict / 422 Unprocessable).
+       - **Errores de recurso**: entidad no encontrada (404 Not Found).
+       - **Errores de sistema**: fallos internos, base de datos, red (500 Internal Server Error).
+    2. Implementar un manejador global de excepciones (Exception Handler / Middleware):
+       - Capturar excepciones no controladas antes de que lleguen al cliente.
+       - Transformar excepciones en respuestas HTTP estandarizadas.
+       - Registrar el error completo en logs con stack trace.
+    3. Definir un formato estandar de respuesta de error:
+       ```json
+       {
+         "codigo": "ERR_VALIDACION_001",
+         "mensaje": "El campo email es obligatorio",
+         "detalle": "Se esperaba un email valido en el campo 'email'",
+         "timestamp": "2026-01-15T10:30:00Z"
+       }
+       ```
+    4. Crear excepciones personalizadas por dominio de error:
+       - ValidacionException, RecursoNoEncontradoException, ReglaNegocioException.
+    5. Implementar reintentos con backoff exponencial para errores transitorios en integraciones.
+    6. Usar circuit breaker para proteger al sistema de dependencias degradadas.
+    7. Nunca exponer detalles internos (stack trace, queries SQL) en respuestas al cliente.
+  guides:
+    - name: patrones-de-error-handling
+      content: |
+        - Fallar rapido (fail fast): validar entradas al inicio del metodo.
+        - Lanzar excepciones especificas, nunca Exception generica.
+        - Capturar excepciones en el nivel correcto; no atrapar lo que no se puede manejar.
+        - Usar bloques try-catch solo cuando se tiene una estrategia de recuperacion.
+        - Propagar excepciones con contexto adicional cuando sea necesario (wrap).
+        - Documentar las excepciones que un metodo puede lanzar.
+    - name: logging-y-observabilidad
+      content: |
+        - Registrar errores con nivel apropiado: WARN para recuperables, ERROR para criticos.
+        - Incluir contexto en cada log: ID de usuario, ID de transaccion, operacion.
+        - Usar identificadores de correlacion (correlation ID) para rastrear flujos distribuidos.
+        - Configurar alertas automaticas para errores criticos recurrentes.
+        - No registrar informacion sensible en logs (contrasenas, tokens, datos personales).
+        - Centralizar los logs en una plataforma de monitoreo para facilitar el diagnostico.

@@ -1,0 +1,55 @@
+id: load-script-design
+name: Diseno de Scripts de Carga
+description: >
+  Diseno y desarrollo de scripts de pruebas de carga con
+  patrones realistas de uso y configuracion de escenarios.
+used_by:
+  - qa-performance
+content:
+  when_to_use: |
+    - Al preparar una nueva suite de pruebas de rendimiento.
+    - Cuando se necesita simular escenarios de uso realistas.
+    - Al automatizar pruebas de carga para integracion continua.
+    - Cuando se requiere parametrizar scripts existentes para nuevos escenarios.
+  instructions: |
+    ## Estructura de Scripts de Carga
+
+    ### 1. Analisis de Escenarios
+    - Identificar los flujos de usuario mas frecuentes en produccion.
+    - Definir la distribucion de carga por escenario (porcentaje de usuarios).
+    - Mapear las transacciones criticas del negocio.
+
+    ### 2. Diseno del Script
+    | Componente | Descripcion |
+    |---|---|
+    | Think time | Pausas realistas entre acciones del usuario |
+    | Parametrizacion | Datos dinamicos (usuarios, productos, fechas) |
+    | Correlacion | Captura de tokens, sesiones y valores dinamicos |
+    | Validaciones | Verificacion de respuestas correctas |
+    | Manejo de errores | Control de fallos y reintentos |
+
+    ### 3. Perfiles de Carga
+    - Ramp-up gradual (evitar inicio abrupto).
+    - Meseta de carga sostenida.
+    - Ramp-down controlado.
+    - Definir usuarios concurrentes por etapa.
+
+    ### 4. Datos de Prueba
+    - Generar datasets representativos del volumen de produccion.
+    - Asegurar unicidad cuando sea necesario (evitar colisiones).
+    - Preparar mecanismos de limpieza post-ejecucion.
+  guides:
+    - name: patrones-think-time
+      content: |
+        ## Guia de Patrones de Think Time
+        - Navegacion general: 3-5 segundos entre paginas.
+        - Formularios: 15-30 segundos para completar campos.
+        - Busquedas: 2-3 segundos entre acciones.
+        - Usar distribucion gaussiana, no valores fijos.
+    - name: estrategia-parametrizacion
+      content: |
+        ## Guia de Estrategia de Parametrizacion
+        - Usar archivos CSV para datos de entrada masivos.
+        - Rotar credenciales de usuario para evitar bloqueos.
+        - Generar datos unicos con timestamps o secuencias.
+        - Separar datos por ambiente (dev, staging, performance).

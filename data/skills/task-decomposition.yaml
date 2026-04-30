@@ -1,0 +1,344 @@
+id: task-decomposition
+name: Descomposicion de Tareas
+description: >
+  Descomposicion de trabajo en tareas ejecutables y verificables de granularidad
+  fina. Esta skill transforma requerimientos de alto nivel en planes de implementacion
+  concretos donde cada tarea es autocontenida, tiene criterios de verificacion claros
+  y puede ser ejecutada sin ambiguedad. Elimina la vaguedad y asegura que cualquier
+  ejecutor (humano o agente) pueda completar el trabajo sin necesidad de interpretar.
+used_by:
+  - tech-lead
+  - project-manager
+content:
+  when_to_use: |
+    - Usar cuando se recibe un requerimiento para planificar implementacion.
+    - Usar cuando se necesita dividir una historia de usuario en tareas tecnicas.
+    - Usar cuando se delega trabajo a subagentes.
+    - Usar cuando una tarea estimada en mas de 30 minutos necesita desglose.
+    - Usar cuando multiples personas o agentes van a trabajar en paralelo.
+  instructions: |
+    ## Principio Fundamental
+
+    **"Cada tarea debe ser ejecutable en 2-15 minutos y verificable independientemente."**
+
+    Una tarea bien descompuesta es aquella que cualquier desarrollador competente
+    (o agente) puede tomar, ejecutar y verificar sin necesidad de:
+    - Preguntar que significa algo.
+    - Adivinar que archivos modificar.
+    - Inventar detalles no especificados.
+    - Depender de que otra tarea no completada se termine primero (salvo dependencias explicitas).
+
+    Si una tarea requiere interpretacion, esta mal descompuesta.
+
+    ---
+
+    ## Estructura de Tarea
+
+    Cada tarea en el plan de implementacion debe contener TODOS estos campos:
+
+    ### Campos Obligatorios:
+
+    | Campo                    | Descripcion                                                  | Ejemplo                                             |
+    |--------------------------|--------------------------------------------------------------|------------------------------------------------------|
+    | **ID**                   | Identificador unico secuencial                              | `T-01`, `T-02`, `T-03`                              |
+    | **Descripcion**          | Que hacer, en una oracion clara                              | "Crear endpoint POST /api/users con validacion"      |
+    | **Archivos afectados**   | Rutas absolutas de archivos a crear o modificar              | `/src/controllers/UserController.ts`                 |
+    | **Dependencias**         | IDs de tareas que deben completarse antes                    | `T-01, T-02` o `ninguna`                            |
+    | **Criterio de verificacion** | Comando o accion para verificar completitud             | `npm test -- --grep "POST /api/users"`               |
+    | **Estimacion**           | Tiempo estimado (2-15 min)                                   | `~8 min`                                             |
+
+    ### Ejemplo de Tarea Correcta:
+
+    ```
+    ### T-03: Crear servicio de validacion de usuario
+
+    - **Descripcion:** Implementar la clase UserValidationService con metodos
+      validateEmail(), validatePassword() y validateAge() segun las reglas
+      de negocio especificadas en el requisito.
+    - **Archivos afectados:**
+      - Crear: /src/services/UserValidationService.ts
+      - Crear: /src/tests/services/UserValidationService.test.ts
+    - **Dependencias:** T-01 (modelo de datos User)
+    - **Criterio de verificacion:** npm test -- --grep "UserValidationService"
+    - **Estimacion:** ~10 min
+    - [ ] Completada
+    ```
+
+    ### Ejemplo de Tarea INCORRECTA:
+
+    ```
+    ### T-03: Agregar validaciones
+
+    - Agregar las validaciones necesarias al usuario.
+    - Archivos: en la carpeta de servicios.
+    - Verificacion: probar que funcione.
+    ```
+
+    Problemas: No dice que validaciones, no dice que archivo exacto, no dice
+    como verificar, no tiene dependencias, no tiene estimacion.
+
+    ---
+
+    ## Reglas de Descomposicion
+
+    ### 1. Rutas exactas de archivos (nunca relativas o ambiguas)
+
+    - **CORRECTO:** `/src/controllers/UserController.ts`
+    - **INCORRECTO:** `el controller de usuarios`
+    - **INCORRECTO:** `./controllers/UserController.ts`
+    - **INCORRECTO:** `en la carpeta de controllers`
+
+    Cada tarea debe listar las rutas absolutas de TODOS los archivos que se
+    crean o modifican. Si no sabes la ruta exacta, investigala antes de crear
+    el plan.
+
+    ### 2. Codigo completo en cada paso (NO placeholders)
+
+    Las instrucciones deben ser suficientemente detalladas para que el ejecutor
+    no tenga que inventar nada. Esto significa:
+
+    - **PROHIBIDO:** `"TBD"`, `"TODO"`, `"completar despues"`
+    - **PROHIBIDO:** `"similar a tarea N"` (cada tarea es autocontenida)
+    - **PROHIBIDO:** `"agregar validacion"` (que validacion? que reglas?)
+    - **PROHIBIDO:** `"implementar logica de negocio"` (que logica especificamente?)
+    - **PROHIBIDO:** `"manejar errores apropiadamente"` (que errores? como?)
+
+    En su lugar, ser explicito:
+    - "Validar que email no sea null, no este vacio, y matchee el regex
+      `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`"
+    - "Capturar DatabaseException y retornar HTTP 500 con body
+      `{ error: 'Internal server error', code: 'DB_ERROR' }`"
+
+    ### 3. Cada tarea tiene un comando de verificacion
+
+    El criterio de verificacion debe ser un comando ejecutable o una accion
+    concreta y observable:
+
+    - **CORRECTO:** `npm test -- --grep "UserService"` (comando ejecutable)
+    - **CORRECTO:** `curl -X POST http://localhost:3000/api/users -d '{"email":"test@test.com"}' | jq .status` (comando verificable)
+    - **INCORRECTO:** `verificar que funcione` (ambiguo)
+    - **INCORRECTO:** `probar manualmente` (sin instrucciones de como)
+
+    ### 4. Checkboxes para tracking
+
+    Cada tarea incluye un checkbox `- [ ] Completada` para seguimiento de
+    progreso. Esto permite:
+    - Saber de un vistazo cuantas tareas estan completadas.
+    - Identificar rapidamente que queda por hacer.
+    - Mantener un registro auditable de progreso.
+
+    ### 5. Granularidad correcta
+
+    - Si una tarea toma **menos de 2 minutos**, probablemente debe combinarse
+      con otra tarea relacionada.
+    - Si una tarea toma **mas de 15 minutos**, debe subdividirse.
+    - Si una tarea tiene **mas de 3 archivos afectados**, considerar subdividirla.
+
+    ---
+
+    ## Ejemplo de Plan de Implementacion
+
+    ```markdown
+    # Plan de Implementacion: API de Gestion de Usuarios
+
+    **Requisito:** Crear un CRUD de usuarios con validacion y autenticacion.
+    **Total de tareas:** 6
+    **Tiempo estimado total:** ~55 min
+
+    ---
+
+    ### T-01: Crear modelo de datos User [~5 min]
+
+    - **Descripcion:** Crear la entidad User con campos: id (UUID auto),
+      email (string unique), passwordHash (string), fullName (string),
+      createdAt (timestamp), updatedAt (timestamp).
+    - **Archivos afectados:**
+      - Crear: /src/models/User.ts
+      - Crear: /src/migrations/20240101_create_users_table.ts
+    - **Dependencias:** ninguna
+    - **Verificacion:** `npm run migration:run && npm run migration:status`
+    - [ ] Completada
+
+    ### T-02: Crear repositorio UserRepository [~8 min]
+
+    - **Descripcion:** Implementar UserRepository con metodos: findById(id),
+      findByEmail(email), create(userData), update(id, userData), delete(id).
+      Usar el patron Repository con inyeccion de dependencia del pool de conexion.
+    - **Archivos afectados:**
+      - Crear: /src/repositories/UserRepository.ts
+      - Crear: /src/tests/repositories/UserRepository.test.ts
+    - **Dependencias:** T-01
+    - **Verificacion:** `npm test -- --grep "UserRepository"`
+    - [ ] Completada
+
+    ### T-03: Crear servicio de validacion [~10 min]
+
+    - **Descripcion:** Implementar UserValidationService con:
+      - validateEmail(email): no null, no vacio, regex valido, max 255 chars
+      - validatePassword(pwd): min 8 chars, al menos 1 mayuscula, 1 numero
+      - validateFullName(name): no null, no vacio, 2-100 chars, solo letras y espacios
+    - **Archivos afectados:**
+      - Crear: /src/services/UserValidationService.ts
+      - Crear: /src/tests/services/UserValidationService.test.ts
+    - **Dependencias:** ninguna
+    - **Verificacion:** `npm test -- --grep "UserValidationService"`
+    - [ ] Completada
+
+    (... continuar con T-04, T-05, T-06 ...)
+    ```
+
+    ---
+
+    ## Anti-Patrones Prohibidos
+
+    Estas expresiones estan PROHIBIDAS en cualquier plan de implementacion:
+
+    | Anti-Patron                          | Por que es problematico                                   |
+    |--------------------------------------|----------------------------------------------------------|
+    | "etc", "y demas", "entre otros"      | Oculta trabajo no especificado. El ejecutor no sabe que hacer. |
+    | "agregar lo necesario"               | Que es "lo necesario"? Es subjetivo y ambiguo.           |
+    | "similar al anterior"                | Cada tarea debe ser autocontenida y completa.            |
+    | "segun corresponda"                  | Quien decide que corresponde? Especificar explicitamente.|
+    | "optimizar si es necesario"          | Optimizar que? Con que criterio? Definirlo.              |
+    | "manejar errores"                    | Cuales errores? Como manejarlos? Listarlos.              |
+    | "agregar tests"                      | Tests de que? Cuantos? Que escenarios cubrir?            |
+    | "ver documentacion"                  | Que documentacion? Que parte? Incluir la info relevante. |
+    | "implementar logica"                 | Que logica especificamente? Detallar paso a paso.        |
+    | "completar mas adelante"             | Si no esta completo, no es una tarea ejecutable.         |
+
+    Si te encuentras escribiendo alguna de estas frases, es senal de que no
+    entiendes el requisito lo suficiente para descomponerlo. Detente e investiga.
+
+    ---
+
+    ## Proceso de Creacion del Plan
+
+    1. **Entender el requisito completo.** Leer toda la especificacion. Hacer
+       preguntas si algo es ambiguo. No empezar a descomponer hasta entender
+       el alcance total.
+
+    2. **Identificar los componentes principales.** Que modelos, servicios,
+       controladores, tests se necesitan?
+
+    3. **Establecer dependencias.** Que se debe hacer primero? Que puede
+       hacerse en paralelo?
+
+    4. **Descomponer cada componente.** Crear tareas de 2-15 minutos con todos
+       los campos obligatorios.
+
+    5. **Validar el plan.** Revisar que:
+       - Todas las tareas tienen todos los campos.
+       - No hay ambiguedades ni frases prohibidas.
+       - Las dependencias son correctas y no hay ciclos.
+       - La suma de tareas cubre todo el requisito (nada se quedo fuera).
+       - Cada tarea tiene verificacion ejecutable.
+
+    6. **Identificar oportunidades de paralelizacion.** Tareas sin dependencias
+       entre si pueden ejecutarse simultaneamente por diferentes agentes o
+       desarrolladores.
+  guides:
+    - name: plantilla-plan-implementacion
+      content: |
+        ## Plantilla de Plan de Implementacion
+
+        Copiar y completar esta plantilla para cada plan nuevo:
+
+        ```markdown
+        # Plan de Implementacion: [Nombre del Requisito]
+
+        **Requisito:** [Descripcion breve del requisito]
+        **Fuente:** [Ticket/Issue/Historia de usuario]
+        **Total de tareas:** [N]
+        **Tiempo estimado total:** [suma de estimaciones]
+        **Paralelismo maximo:** [cuantas tareas pueden ejecutarse simultaneamente]
+
+        ## Dependencias Externas
+        - [Listar cualquier dependencia externa: APIs, servicios, datos, accesos]
+
+        ## Diagrama de Dependencias
+        ```
+        T-01 ──> T-02 ──> T-04
+                       ──> T-05
+        T-03 ──────────> T-05
+        T-05 ──> T-06
+        ```
+
+        ---
+
+        ### T-01: [Nombre del Componente] [~N min]
+
+        - **Descripcion:** [Que hacer, especifico y completo]
+        - **Archivos afectados:**
+          - Crear: [ruta absoluta]
+          - Modificar: [ruta absoluta]
+        - **Dependencias:** [IDs o "ninguna"]
+        - **Verificacion:** [comando ejecutable]
+        - [ ] Completada
+
+        ### T-02: [Nombre del Componente] [~N min]
+
+        (... repetir para cada tarea ...)
+
+        ---
+
+        ## Resumen de Progreso
+        - [ ] T-01: [descripcion breve]
+        - [ ] T-02: [descripcion breve]
+        - [ ] ...
+        ```
+
+        ### Notas sobre la Plantilla
+        - El diagrama de dependencias es obligatorio cuando hay mas de 4 tareas.
+        - El resumen de progreso al final permite seguimiento rapido.
+        - Las dependencias externas se listan por separado para visibilidad.
+        - El paralelismo maximo indica cuantos ejecutores pueden trabajar a la vez.
+    - name: estrategias-paralelizacion
+      content: |
+        ## Guia de Estrategias de Paralelizacion
+
+        ### Principio
+        Maximizar el trabajo que puede hacerse en paralelo reduce el tiempo total
+        de implementacion. Pero la paralelizacion solo es segura cuando las tareas
+        son verdaderamente independientes.
+
+        ### Identificar Tareas Paralelizables
+
+        Dos tareas pueden ejecutarse en paralelo si y solo si:
+        1. No modifican los mismos archivos.
+        2. Ninguna depende del output de la otra.
+        3. No crean conflictos de merge al integrarse.
+
+        ### Patrones Comunes de Paralelizacion
+
+        #### Patron 1: Modelo + Servicio en paralelo con Frontend
+        ```
+        T-01 (Modelo) ──> T-03 (Servicio) ──> T-05 (Controller)
+        T-02 (UI mockup) ──> T-04 (Componentes UI) ──> T-06 (Integracion)
+        ```
+        El backend y el frontend pueden avanzar en paralelo si se acuerda
+        el contrato de la API de antemano.
+
+        #### Patron 2: Tests en paralelo con implementacion
+        Un agente/desarrollador escribe los tests (basados en la spec) mientras
+        otro implementa el codigo. Requiere que la interfaz (firmas de funciones,
+        tipos) se defina primero en una tarea previa.
+
+        #### Patron 3: Componentes independientes
+        Si el sistema tiene componentes que no interactuan entre si (ej: modulo de
+        notificaciones y modulo de reportes), pueden desarrollarse completamente
+        en paralelo.
+
+        ### Anti-Patrones de Paralelizacion
+
+        | Anti-Patron                              | Riesgo                                           |
+        |------------------------------------------|--------------------------------------------------|
+        | Dos tareas editan el mismo archivo        | Conflictos de merge, una sobrescribe a la otra.  |
+        | Tarea depende de interfaz no definida     | El ejecutor inventa la interfaz, genera retrabajo.|
+        | Paralelizar sin definir contratos          | Las piezas no encajan al integrar.               |
+        | Asumir que "se resuelve en el merge"       | Los merges complejos introducen bugs sutiles.     |
+
+        ### Regla de Oro
+        Antes de paralelizar, crear una tarea inicial (T-00) que defina todos
+        los contratos, interfaces y tipos compartidos. Esta tarea se ejecuta
+        primero y es dependencia de todas las demas. Esto asegura que las
+        piezas paralelas seran compatibles al integrarse.

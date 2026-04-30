@@ -1,0 +1,321 @@
+phases:
+  - id: inception
+    name: Inicio
+    gate_approver: product-owner
+    deliverables:
+      - id: project-charter
+        name: Acta de Constitucion del Proyecto
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: kickoff-presentation
+        name: Presentacion de Kickoff
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: stakeholder-register
+        name: Registro de Interesados
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: initial-risk-matrix
+        name: Matriz de Riesgos Inicial
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: project-schedule
+        name: Cronograma Preliminar
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: diagram
+
+  - id: functional-analysis
+    name: Analisis Funcional
+    gate_approver: product-owner
+    deliverables:
+      - id: functional-spec
+        name: Especificacion Funcional
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: business-rules-doc
+        name: Documento de Reglas de Negocio
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: process-diagrams
+        name: Diagramas de Proceso
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: diagram
+      - id: acceptance-criteria-doc
+        name: Criterios de Aceptacion
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: functional-presentation
+        name: Presentacion de Propuesta Funcional
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: change-impact-report
+        name: Analisis de Impacto del Cambio
+        responsible: change-manager
+        approver: project-manager
+        mandatory: false
+        artifact_type: document
+
+  - id: technical-design
+    name: Diseno Tecnico
+    gate_approver: solution-architect
+    deliverables:
+      - id: architecture-doc
+        name: Documento de Arquitectura
+        responsible: solution-architect
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+      - id: architecture-presentation
+        name: Presentacion de Arquitectura
+        responsible: solution-architect
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: data-model
+        name: Modelo de Datos
+        responsible: dba
+        approver: solution-architect
+        mandatory: true
+        artifact_type: diagram
+      - id: integration-design-doc
+        name: Diseno de Integraciones
+        responsible: integration-architect
+        approver: solution-architect
+        mandatory: false
+        artifact_type: document
+      - id: security-assessment
+        name: Evaluacion de Seguridad
+        responsible: security-architect
+        approver: solution-architect
+        mandatory: false
+        artifact_type: document
+      - id: test-strategy-doc
+        name: Estrategia de Pruebas
+        responsible: qa-lead
+        approver: project-manager
+        mandatory: true
+        artifact_type: document
+      - id: technical-task-breakdown
+        name: Descomposicion Tecnica de Tareas
+        responsible: tech-lead
+        approver: project-manager
+        mandatory: true
+        artifact_type: document
+
+  - id: construction
+    name: Construccion
+    gate_approver: tech-lead
+    deliverables:
+      - id: source-code
+        name: Codigo Fuente Implementado
+        responsible: developer-backend
+        approver: tech-lead
+        mandatory: true
+        artifact_type: code
+      - id: unit-tests
+        name: Pruebas Unitarias
+        responsible: developer-backend
+        approver: tech-lead
+        mandatory: true
+        artifact_type: code
+      - id: api-documentation
+        name: Documentacion de API
+        responsible: developer-backend
+        approver: tech-lead
+        mandatory: false
+        artifact_type: document
+      - id: sprint-status-presentation
+        name: Presentacion de Avance
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: code-review-report
+        name: Reporte de Revision de Codigo
+        responsible: tech-lead
+        approver: solution-architect
+        mandatory: true
+        artifact_type: report
+
+  - id: qa-testing
+    name: Pruebas QA
+    gate_approver: qa-lead
+    deliverables:
+      - id: test-cases
+        name: Casos de Prueba
+        responsible: qa-functional
+        approver: qa-lead
+        mandatory: true
+        artifact_type: document
+      - id: test-execution-report
+        name: Reporte de Ejecucion de Pruebas
+        responsible: qa-functional
+        approver: qa-lead
+        mandatory: true
+        artifact_type: report
+      - id: defect-report
+        name: Reporte de Defectos
+        responsible: qa-functional
+        approver: qa-lead
+        mandatory: true
+        artifact_type: report
+      - id: qa-results-presentation
+        name: Presentacion de Resultados QA
+        responsible: qa-lead
+        approver: project-manager
+        mandatory: true
+        artifact_type: presentation
+      - id: performance-report
+        name: Reporte de Pruebas de Rendimiento
+        responsible: qa-performance
+        approver: qa-lead
+        mandatory: false
+        artifact_type: report
+      - id: regression-report
+        name: Reporte de Regresion
+        responsible: qa-automation
+        approver: qa-lead
+        mandatory: true
+        artifact_type: report
+
+  - id: uat
+    name: Pruebas de Aceptacion
+    gate_approver: product-owner
+    deliverables:
+      - id: uat-plan
+        name: Plan de UAT
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: uat-execution-report
+        name: Reporte de Ejecucion UAT
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: report
+      - id: uat-signoff
+        name: Acta de Aceptacion UAT
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: uat-presentation
+        name: Presentacion de Resultados UAT
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+
+  - id: deployment
+    name: Despliegue
+    gate_approver: project-manager
+    deliverables:
+      - id: deployment-plan-doc
+        name: Plan de Despliegue
+        responsible: devops
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+      - id: rollback-plan
+        name: Plan de Rollback
+        responsible: devops
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+      - id: go-live-presentation
+        name: Presentacion Go-Live Readiness
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: communication-plan-doc
+        name: Plan de Comunicacion
+        responsible: change-manager
+        approver: project-manager
+        mandatory: true
+        artifact_type: document
+      - id: training-materials
+        name: Materiales de Capacitacion
+        responsible: change-manager
+        approver: project-manager
+        mandatory: false
+        artifact_type: document
+      - id: runbook
+        name: Runbook Operativo
+        responsible: tech-writer
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+
+  - id: stabilization
+    name: Estabilizacion
+    gate_approver: project-manager
+    deliverables:
+      - id: incident-report
+        name: Reporte de Incidentes Post-Produccion
+        responsible: tech-lead
+        approver: project-manager
+        mandatory: true
+        artifact_type: report
+      - id: support-status-report
+        name: Reporte de Soporte
+        responsible: tech-lead
+        approver: project-manager
+        mandatory: true
+        artifact_type: report
+      - id: stabilization-presentation
+        name: Presentacion de Estabilizacion
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+
+  - id: closure
+    name: Cierre
+    gate_approver: product-owner
+    deliverables:
+      - id: closure-report
+        name: Informe de Cierre del Proyecto
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: report
+      - id: lessons-learned
+        name: Lecciones Aprendidas
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: closure-presentation
+        name: Presentacion de Cierre
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+      - id: final-documentation
+        name: Documentacion Final del Proyecto
+        responsible: tech-writer
+        approver: project-manager
+        mandatory: true
+        artifact_type: document

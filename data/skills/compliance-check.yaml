@@ -1,0 +1,104 @@
+id: compliance-check
+name: Verificacion de Cumplimiento Regulatorio
+description: >
+  Verificacion sistematica del cumplimiento de normativas y regulaciones
+  aplicables al desarrollo de software, incluyendo proteccion de datos
+  personales, estandares de seguridad y requisitos sectoriales.
+used_by:
+  - security-architect
+content:
+  when_to_use: |
+    - Al disenar sistemas que manejan datos personales o sensibles.
+    - Antes de lanzar un producto o funcionalidad al mercado.
+    - Cuando se integran servicios de terceros que procesan datos regulados.
+    - En auditorias periodicas de cumplimiento normativo.
+    - Al expandir operaciones a nuevas jurisdicciones o mercados.
+  instructions: |
+    ## Marco de Verificacion de Cumplimiento
+
+    ### 1. Identificacion de normativas aplicables
+    - Determinar jurisdicciones donde opera el sistema.
+    - Identificar regulaciones sectoriales (financiero, salud, gobierno).
+    - Clasificar los datos que procesa el sistema segun su sensibilidad.
+    - Documentar las normativas aplicables con sus requisitos clave.
+
+    ### 2. Proteccion de Datos Personales (GDPR / LGPD / Ley de Proteccion Local)
+    - **Base legal**: Verificar que existe base legal para cada tratamiento de datos.
+    - **Consentimiento**: Confirmar mecanismos de obtencion y registro de consentimiento.
+    - **Minimizacion**: Validar que solo se recolectan datos estrictamente necesarios.
+    - **Derechos ARCO**: Asegurar mecanismos para Acceso, Rectificacion, Cancelacion y Oposicion.
+    - **Portabilidad**: Verificar capacidad de exportar datos en formato interoperable.
+    - **Notificacion de brechas**: Confirmar proceso para notificar en 72 horas.
+    - **Privacy by Design**: Validar que la privacidad esta integrada desde el diseno.
+    - **DPO**: Verificar si se requiere un Delegado de Proteccion de Datos.
+
+    ### 3. Seguridad de la Informacion (ISO 27001 / SOC 2)
+    - **Control de acceso**: Verificar gestion de identidades y principio de menor privilegio.
+    - **Cifrado**: Confirmar cifrado de datos sensibles en transito y reposo.
+    - **Continuidad**: Validar planes de respaldo, recuperacion y continuidad de negocio.
+    - **Gestion de incidentes**: Asegurar procedimientos de respuesta a incidentes.
+    - **Gestion de proveedores**: Verificar acuerdos de seguridad con terceros.
+
+    ### 4. Estandares de Pago (PCI DSS)
+    - Verificar segmentacion de red para entornos con datos de tarjeta.
+    - Confirmar que datos de tarjeta no se almacenan sin necesidad (nunca CVV).
+    - Validar uso de tokenizacion para datos de pago.
+    - Revisar que los logs de acceso se retienen 12 meses minimo.
+
+    ### 5. Accesibilidad (WCAG 2.1)
+    - Verificar que las interfaces cumplen nivel AA como minimo.
+    - Confirmar compatibilidad con lectores de pantalla.
+    - Validar contraste de colores y tamano de texto configurable.
+
+    ### 6. Documentacion y evidencia
+    - Mantener registro de actividades de tratamiento de datos.
+    - Documentar evaluaciones de impacto en proteccion de datos (DPIA).
+    - Conservar evidencia de consentimientos otorgados.
+    - Registrar auditorias y sus resultados.
+
+    ## Formato de Reporte de Cumplimiento
+    | Normativa | Requisito | Estado | Evidencia | Brecha | Plan de accion |
+    |-----------|-----------|--------|-----------|--------|---------------|
+
+  guides:
+    - name: evaluacion-impacto-privacidad
+      content: |
+        ## Guia para Evaluacion de Impacto en Proteccion de Datos (DPIA)
+
+        ### Cuando es obligatoria
+        - Procesamiento a gran escala de datos sensibles.
+        - Monitoreo sistematico de personas en areas publicas.
+        - Decisiones automatizadas con efectos legales sobre personas.
+        - Uso de nuevas tecnologias que impliquen alto riesgo.
+
+        ### Pasos de la evaluacion
+        1. **Descripcion del tratamiento**: Que datos, para que fin, como se procesan.
+        2. **Evaluacion de necesidad**: Es proporcional al objetivo? Existen alternativas?
+        3. **Identificacion de riesgos**: Que puede salir mal para los titulares de datos?
+        4. **Medidas de mitigacion**: Controles tecnicos y organizativos propuestos.
+        5. **Consulta a la autoridad**: Si el riesgo residual sigue siendo alto.
+
+        ### Plantilla de riesgos
+        | Escenario de riesgo | Probabilidad | Impacto | Riesgo | Mitigacion |
+        |---------------------|-------------|---------|--------|------------|
+    - name: checklist-gdpr-desarrollo
+      content: |
+        ## Checklist GDPR para Equipos de Desarrollo
+
+        ### En el diseno
+        - [ ] Definida la base legal para cada dato recolectado.
+        - [ ] Implementada minimizacion de datos en el modelo.
+        - [ ] Disenados endpoints para derechos ARCO.
+        - [ ] Definida politica de retencion y eliminacion automatica.
+
+        ### En la implementacion
+        - [ ] Consentimiento registrado con fecha, version y alcance.
+        - [ ] Datos personales cifrados en base de datos.
+        - [ ] Logs de acceso a datos personales habilitados.
+        - [ ] Anonimizacion o pseudonimizacion aplicada donde es posible.
+
+        ### En el despliegue
+        - [ ] Aviso de privacidad actualizado y visible.
+        - [ ] Proceso de eliminacion de datos probado y funcional.
+        - [ ] Transferencias internacionales de datos documentadas.
+        - [ ] Acuerdos de procesamiento de datos firmados con proveedores.

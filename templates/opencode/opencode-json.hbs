@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+{{#each agents}}
+    "{{this.id}}": {
+      "description": "{{{this.agent.description}}}",
+      "mode": "{{this.agent.mode}}",
+      "temperature": {{this.agent.temperature}},
+      "tools": {
+{{#each this.agent.tools_enabled}}
+        "{{@key}}": {{this}}{{#unless @last}},{{/unless}}
+{{/each}}
+      },
+      "permission": {
+{{#each this.agent.permissions}}
+        "{{@key}}": "{{this}}"{{#unless @last}},{{/unless}}
+{{/each}}
+      }
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  }
+}

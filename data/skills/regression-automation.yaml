@@ -1,0 +1,44 @@
+id: regression-automation
+name: Automatizacion de Pruebas de Regresion
+description: >
+  Estrategia y ejecucion de pruebas de regresion automatizadas
+  para verificar que los cambios en el software no introduzcan
+  defectos en funcionalidad existente.
+used_by:
+  - qa-automation
+content:
+  when_to_use: |
+    - Al completar una nueva funcionalidad que impacta modulos existentes.
+    - Al corregir un defecto critico en produccion.
+    - Al preparar una release para despliegue.
+    - Al actualizar dependencias o componentes del sistema.
+  instructions: |
+    ## Estrategia de Regresion Automatizada
+    | Nivel | Descripcion |
+    |---|---|
+    | Smoke | Subset minimo que valida funcionalidad critica (< 15 min) |
+    | Sanity | Validacion enfocada en el area modificada (< 30 min) |
+    | Regresion completa | Suite total de pruebas automatizadas (< 4 hrs) |
+    | Regresion selectiva | Tests seleccionados por analisis de impacto |
+
+    ## Criterios de Seleccion de Tests
+    1. Priorizar tests que cubran flujos criticos de negocio.
+    2. Incluir tests asociados a los modulos modificados.
+    3. Agregar tests de integracion entre modulos afectados.
+    4. Incluir tests de defectos previamente corregidos en el area.
+    5. Excluir tests de funcionalidad no relacionada para optimizar tiempos.
+  guides:
+    - name: suite-management
+      content: |
+        - Etiquetar cada test con su nivel (smoke, sanity, full).
+        - Clasificar tests por modulo funcional para ejecucion selectiva.
+        - Revisar y actualizar la suite de regresion al final de cada sprint.
+        - Eliminar tests obsoletos que ya no aplican a la funcionalidad actual.
+        - Medir y optimizar el tiempo de ejecucion total de la suite.
+    - name: failure-analysis
+      content: |
+        - Analizar cada fallo para distinguir defecto real de test inestable.
+        - Marcar tests inestables (flaky) y asignar su correccion como deuda tecnica.
+        - Registrar los defectos encontrados en regresion con evidencia automatizada.
+        - Reportar la tasa de deteccion de defectos por suite de regresion.
+        - Comparar resultados entre ejecuciones para detectar tendencias.

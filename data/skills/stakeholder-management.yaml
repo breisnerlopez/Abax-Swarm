@@ -1,0 +1,49 @@
+id: stakeholder-management
+name: Gestion de Stakeholders
+description: >
+  Identificacion, analisis y gestion de las expectativas
+  y comunicacion con los interesados del proyecto para
+  asegurar alineacion y satisfaccion continua.
+used_by:
+  - product-owner
+content:
+  when_to_use: |
+    - Al iniciar un nuevo proyecto o producto.
+    - Al identificar nuevos interesados durante el ciclo de vida.
+    - Al preparar presentaciones o demos para interesados.
+    - Al gestionar expectativas ante cambios de alcance.
+  instructions: |
+    ## Clasificacion de Stakeholders
+    | Categoria | Descripcion |
+    |---|---|
+    | Patrocinador | Provee financiamiento y autoridad al proyecto |
+    | Usuario final | Quien utilizara el producto directamente |
+    | Equipo tecnico | Desarrolladores, testers y arquitectos |
+    | Reguladores | Entidades que imponen normativas o cumplimiento |
+    | Soporte | Equipos de operaciones y mantenimiento |
+
+    ## Matriz Poder-Interes
+    1. Alto poder, alto interes: gestionar de cerca con comunicacion frecuente.
+    2. Alto poder, bajo interes: mantener satisfechos con reportes periodicos.
+    3. Bajo poder, alto interes: mantener informados y escuchar su feedback.
+    4. Bajo poder, bajo interes: monitorear con minimo esfuerzo.
+
+    ## Plan de Comunicacion
+    - Definir frecuencia, canal y formato para cada grupo.
+    - Adaptar el nivel de detalle segun la audiencia.
+    - Documentar decisiones y acuerdos en cada interaccion.
+  guides:
+    - name: stakeholder-mapping
+      content: |
+        - Listar todos los interesados identificados con su rol.
+        - Clasificar cada uno en la matriz poder-interes.
+        - Definir la estrategia de comunicacion por cuadrante.
+        - Actualizar el mapa al menos una vez por iteracion.
+        - Registrar cambios de expectativas o prioridades.
+    - name: feedback-management
+      content: |
+        - Recopilar feedback de forma estructurada despues de cada demo.
+        - Categorizar las solicitudes en mejoras, defectos o nuevos requisitos.
+        - Priorizar el feedback recibido junto con el backlog existente.
+        - Comunicar las decisiones tomadas y su justificacion.
+        - Medir la satisfaccion de stakeholders de forma periodica.

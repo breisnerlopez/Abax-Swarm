@@ -1,0 +1,47 @@
+id: project-planning
+name: Planificacion de Proyectos
+description: >
+  Definicion del alcance, cronograma, recursos y entregables
+  del proyecto mediante tecnicas de planificacion que aseguren
+  la viabilidad y el seguimiento efectivo.
+used_by:
+  - project-manager
+content:
+  when_to_use: |
+    - Al iniciar un nuevo proyecto o fase del proyecto.
+    - Al replantear el plan por cambios de alcance aprobados.
+    - Al asignar recursos a nuevas actividades.
+    - Al definir la linea base del cronograma.
+  instructions: |
+    ## Componentes del Plan de Proyecto
+    | Componente | Descripcion |
+    |---|---|
+    | Acta de constitucion | Objetivos, alcance y restricciones del proyecto |
+    | EDT (WBS) | Descomposicion jerarquica del trabajo en entregables |
+    | Cronograma | Secuencia de actividades con duraciones y dependencias |
+    | Presupuesto | Estimacion de costos por actividad y fase |
+    | Plan de recursos | Asignacion de personas y herramientas necesarias |
+    | Plan de riesgos | Identificacion y respuesta a riesgos potenciales |
+
+    ## Tecnicas de Estimacion
+    1. Estimacion analoga: basada en proyectos similares anteriores.
+    2. Estimacion parametrica: formulas con variables historicas.
+    3. Estimacion de tres puntos: optimista, pesimista y mas probable.
+    4. Planning poker: consenso del equipo para historias de usuario.
+    5. Descomposicion: dividir actividades grandes en tareas menores.
+  guides:
+    - name: schedule-creation
+      content: |
+        - Descomponer el alcance en paquetes de trabajo (WBS).
+        - Identificar las actividades necesarias para cada paquete.
+        - Establecer dependencias entre actividades (FS, SS, FF, SF).
+        - Estimar la duracion de cada actividad con el equipo.
+        - Identificar la ruta critica y los margenes de holgura.
+        - Asignar recursos a cada actividad segun disponibilidad.
+    - name: change-control
+      content: |
+        - Registrar cada solicitud de cambio en un log centralizado.
+        - Evaluar el impacto en alcance, tiempo, costo y calidad.
+        - Presentar el analisis de impacto al comite de cambios.
+        - Actualizar el plan de proyecto tras la aprobacion del cambio.
+        - Comunicar los cambios aprobados a todos los interesados.

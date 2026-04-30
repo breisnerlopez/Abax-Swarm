@@ -1,0 +1,129 @@
+id: integration-patterns
+name: Patrones de Integracion Empresarial
+description: >
+  Patrones de integracion empresarial para conectar sistemas
+  heterogeneos, incluyendo mensajeria, eventos, coreografia,
+  orquestacion y transformacion de datos entre aplicaciones.
+used_by:
+  - integration-architect
+content:
+  when_to_use: |
+    - Al disenar la arquitectura de integracion entre sistemas internos o externos.
+    - Al seleccionar el patron adecuado para un escenario de comunicacion entre servicios.
+    - Al evaluar tecnologias de mensajeria y middleware (Kafka, RabbitMQ, MuleSoft, etc.).
+    - Al resolver problemas de consistencia, orden y fiabilidad en integraciones.
+    - Al documentar la arquitectura de integracion de la organizacion.
+  instructions: |
+    ## Estilos de integracion fundamentales
+
+    ### 1. Transferencia de archivos
+    - Un sistema produce archivos que otro consume.
+    - Simple pero con alta latencia y acoplamiento temporal.
+    - Usar cuando: integracion con sistemas legacy o batch processing.
+
+    ### 2. Base de datos compartida
+    - Multiples aplicaciones leen/escriben la misma base de datos.
+    - Fuerte acoplamiento al esquema. Antipatron en microservicios.
+    - Evitar en nuevos disenos; considerar solo para migraciones graduales.
+
+    ### 3. Invocacion remota (RPC / REST / gRPC)
+    - Comunicacion sincrona solicitud-respuesta.
+    - Baja latencia pero acoplamiento temporal (el servidor debe estar disponible).
+    - Usar para: operaciones que requieren respuesta inmediata.
+
+    ### 4. Mensajeria asincrona
+    - Comunicacion mediante mensajes a traves de un broker.
+    - Desacoplamiento temporal y espacial.
+    - Usar para: eventos, comandos, notificaciones, flujos de larga duracion.
+
+    ## Patrones de mensajeria (Enterprise Integration Patterns)
+
+    ### Canales
+    - **Point-to-Point**: Un mensaje es consumido por un solo receptor.
+    - **Publish-Subscribe**: Un mensaje es distribuido a todos los suscriptores.
+    - **Dead Letter Channel**: Canal para mensajes que no pudieron procesarse.
+
+    ### Enrutamiento
+    - **Content-Based Router**: Enruta mensajes segun su contenido.
+    - **Message Filter**: Descarta mensajes que no cumplen criterios.
+    - **Splitter**: Divide un mensaje compuesto en mensajes individuales.
+    - **Aggregator**: Combina multiples mensajes relacionados en uno solo.
+    - **Scatter-Gather**: Envia a multiples destinos y agrega respuestas.
+
+    ### Transformacion
+    - **Message Translator**: Convierte entre formatos (XML, JSON, Avro, Protobuf).
+    - **Envelope Wrapper**: Agrega metadatos (headers, correlation ID, timestamp).
+    - **Content Enricher**: Enriquece el mensaje con datos de fuentes adicionales.
+    - **Canonical Data Model**: Modelo de datos comun que evita traducciones N-a-N.
+
+    ## Orquestacion vs Coreografia
+
+    ### Orquestacion
+    - Un servicio central (orquestador) coordina el flujo.
+    - Logica de negocio centralizada y facil de seguir.
+    - Riesgo: punto unico de fallo y cuello de botella.
+    - Herramientas: Camunda, Temporal, AWS Step Functions.
+
+    ### Coreografia
+    - Cada servicio reacciona a eventos y publica sus propios eventos.
+    - Mayor autonomia y desacoplamiento.
+    - Riesgo: flujo dificil de visualizar y depurar.
+    - Requiere buena observabilidad y trazabilidad distribuida.
+  guides:
+    - name: saga-pattern
+      content: |
+        ## Patron Saga para transacciones distribuidas
+
+        En microservicios no se puede usar una transaccion ACID que abarque
+        multiples servicios. El patron Saga gestiona la consistencia eventual
+        mediante una secuencia de transacciones locales con compensaciones.
+
+        ### Saga basada en orquestacion
+        1. El orquestador inicia el paso 1 (ej: reservar inventario).
+        2. Si el paso 1 tiene exito, inicia el paso 2 (ej: procesar pago).
+        3. Si el paso 2 falla, ejecuta la compensacion del paso 1
+           (ej: liberar inventario).
+        4. Continua hasta completar todos los pasos o compensar.
+
+        ### Saga basada en coreografia
+        1. Servicio A publica evento "PedidoCreado".
+        2. Servicio B escucha, reserva inventario y publica "InventarioReservado".
+        3. Servicio C escucha, procesa pago y publica "PagoCompletado".
+        4. Si el pago falla, publica "PagoFallido" y Servicio B
+           compensa liberando inventario.
+
+        ### Buenas practicas
+        - Cada paso debe ser idempotente.
+        - Cada paso debe tener una compensacion definida.
+        - Implementar timeouts para detectar pasos que no responden.
+        - Registrar el estado de la saga para auditoria y depuracion.
+        - Considerar el orden de compensacion (inverso al de ejecucion).
+    - name: tecnologias-de-mensajeria
+      content: |
+        ## Comparativa de brokers de mensajeria
+
+        ### Apache Kafka
+        - Modelo: Log distribuido append-only con particiones.
+        - Fortalezas: Alto throughput, retencion de mensajes, replay, streaming.
+        - Ideal para: Event sourcing, streaming de datos, pipelines de datos.
+        - Consideraciones: Mayor complejidad operativa, no tiene routing
+          avanzado nativo.
+
+        ### RabbitMQ
+        - Modelo: Broker AMQP con exchanges, queues y bindings.
+        - Fortalezas: Routing flexible, prioridades, TTL, DLX.
+        - Ideal para: Task queues, RPC asincrono, routing complejo.
+        - Consideraciones: Menor throughput que Kafka, mensajes no se
+          retienen despues de ser consumidos.
+
+        ### AWS SQS / SNS
+        - Modelo: Colas (SQS) y topics pub/sub (SNS) gestionados.
+        - Fortalezas: Cero operaciones, alta disponibilidad, integracion AWS.
+        - Ideal para: Arquitecturas serverless, desacoplamiento simple en AWS.
+        - Consideraciones: Vendor lock-in, latencia variable, funcionalidades
+          limitadas comparado con Kafka/RabbitMQ.
+
+        ### Azure Service Bus
+        - Modelo: Colas y topics con sesiones, transacciones y DLQ.
+        - Fortalezas: Soporte transaccional, ordered delivery, deduplicacion.
+        - Ideal para: Integraciones empresariales en ecosistema Azure.

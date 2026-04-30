@@ -1,0 +1,44 @@
+id: data-integrity
+name: Integridad y Calidad de Datos
+description: >
+  Verificacion y aseguramiento de la integridad, consistencia
+  y calidad de los datos almacenados en bases de datos,
+  incluyendo validaciones, restricciones y procesos de limpieza.
+used_by:
+  - dba
+content:
+  when_to_use: |
+    - Al disenar o modificar esquemas de base de datos.
+    - Al detectar inconsistencias o datos duplicados.
+    - Al implementar procesos de migracion de datos.
+    - Al establecer politicas de calidad de datos.
+  instructions: |
+    ## Principios de Integridad de Datos
+    | Tipo | Descripcion |
+    |---|---|
+    | Integridad de entidad | Cada registro tiene una clave primaria unica y no nula |
+    | Integridad referencial | Las claves foraneas apuntan a registros existentes |
+    | Integridad de dominio | Los valores respetan el tipo y rango definido |
+    | Integridad definida por usuario | Reglas de negocio especificas aplicadas a los datos |
+
+    ## Estrategias de Calidad
+    1. Definir restricciones CHECK y NOT NULL en columnas criticas.
+    2. Implementar triggers de validacion para reglas complejas.
+    3. Programar procesos periodicos de deteccion de anomalias.
+    4. Establecer metricas de calidad: completitud, precision, consistencia.
+    5. Documentar el linaje de datos para trazabilidad.
+  guides:
+    - name: validation-checklist
+      content: |
+        - Verificar que todas las tablas tienen clave primaria definida.
+        - Confirmar que las relaciones tienen claves foraneas con ON DELETE apropiado.
+        - Revisar que los campos obligatorios tienen restriccion NOT NULL.
+        - Validar que los tipos de datos coinciden con el dominio de negocio.
+        - Comprobar que no existen registros huerfanos en tablas relacionadas.
+    - name: data-cleansing-process
+      content: |
+        - Identificar registros duplicados mediante consultas de agrupacion.
+        - Detectar valores fuera de rango con consultas de validacion.
+        - Estandarizar formatos de fechas, nombres y codigos.
+        - Registrar cada correccion en un log de auditoria.
+        - Ejecutar validaciones post-limpieza para confirmar resultados.

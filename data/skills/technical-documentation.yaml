@@ -1,0 +1,58 @@
+id: technical-documentation
+name: Documentacion Tecnica
+description: >
+  Creacion y mantenimiento de documentacion tecnica clara y precisa
+  para sistemas, APIs, arquitectura y procesos de desarrollo.
+used_by:
+  - tech-writer
+content:
+  when_to_use: |
+    - Al documentar una nueva API o servicio.
+    - Cuando se requiere documentar la arquitectura de un sistema.
+    - Al crear guias de instalacion y configuracion.
+    - Cuando se necesita documentar decisiones tecnicas (ADRs).
+  instructions: |
+    ## Estructura de Documentacion Tecnica
+
+    ### 1. Documentacion de API
+    - Descripcion general del servicio y su proposito.
+    - Endpoints con metodo, ruta, parametros y respuestas.
+    - Codigos de error y su significado.
+    - Ejemplos de peticiones y respuestas.
+    - Autenticacion y autorizacion requerida.
+
+    ### 2. Documentacion de Arquitectura
+    | Seccion | Contenido |
+    |---|---|
+    | Vision general | Diagrama de contexto y proposito del sistema |
+    | Componentes | Descripcion de cada modulo y su responsabilidad |
+    | Integraciones | Sistemas externos y protocolos de comunicacion |
+    | Datos | Modelo de datos y flujos de informacion |
+    | Despliegue | Infraestructura y topologia de red |
+
+    ### 3. Principios de Redaccion Tecnica
+    - Usar lenguaje claro y directo, evitar ambiguedades.
+    - Incluir diagramas y ejemplos concretos.
+    - Mantener versionado alineado con el codigo.
+    - Revisar y actualizar con cada cambio significativo.
+
+    ### 4. Formato y Organizacion
+    - Tabla de contenidos para documentos extensos.
+    - Nomenclatura consistente en todo el documento.
+    - Referencias cruzadas entre documentos relacionados.
+  guides:
+    - name: plantilla-api
+      content: |
+        ## Guia de Plantilla para Documentacion de API
+        - Titulo: nombre del servicio y version.
+        - Base URL y ambientes disponibles.
+        - Autenticacion: tipo, headers, tokens.
+        - Por cada endpoint: metodo, ruta, descripcion, parametros, ejemplo.
+        - Seccion de errores comunes con codigos y soluciones.
+    - name: diagramas-tecnicos
+      content: |
+        ## Guia de Diagramas Tecnicos
+        - Usar notacion C4 para diagramas de arquitectura.
+        - Diagramas de secuencia para flujos complejos.
+        - Diagramas de entidad-relacion para modelos de datos.
+        - Mantener diagramas como codigo (PlantUML, Mermaid).

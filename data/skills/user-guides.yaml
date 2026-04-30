@@ -1,0 +1,56 @@
+id: user-guides
+name: Guias de Usuario
+description: >
+  Creacion de guias de usuario claras y accesibles para facilitar
+  la adopcion y uso correcto de aplicaciones y sistemas.
+used_by:
+  - tech-writer
+content:
+  when_to_use: |
+    - Al lanzar una nueva funcionalidad o producto.
+    - Cuando se requiere capacitar a usuarios finales.
+    - Al actualizar funcionalidades existentes con cambios significativos.
+    - Cuando el soporte reporta preguntas frecuentes recurrentes.
+  instructions: |
+    ## Estructura de Guias de Usuario
+
+    ### 1. Organizacion del Contenido
+    - Introduccion: que hace el sistema y para quien esta dirigido.
+    - Requisitos previos: accesos, permisos, configuracion inicial.
+    - Tareas paso a paso organizadas por flujo de trabajo.
+    - Preguntas frecuentes y resolucion de problemas.
+
+    ### 2. Redaccion para el Usuario
+    | Principio | Aplicacion |
+    |---|---|
+    | Claridad | Instrucciones directas sin jerga tecnica |
+    | Brevedad | Pasos concisos, un solo objetivo por seccion |
+    | Visual | Capturas de pantalla anotadas en cada paso clave |
+    | Contexto | Explicar el por que, no solo el como |
+    | Accesibilidad | Texto alternativo en imagenes, estructura con encabezados |
+
+    ### 3. Formato de Pasos
+    - Numerar cada paso secuencialmente.
+    - Iniciar cada paso con un verbo de accion.
+    - Incluir resultado esperado despues de cada accion.
+    - Resaltar elementos de interfaz en negrita.
+
+    ### 4. Mantenimiento
+    - Revisar guias con cada release del producto.
+    - Incorporar feedback de usuarios y soporte.
+    - Versionar guias alineadas con versiones del software.
+  guides:
+    - name: capturas-pantalla
+      content: |
+        ## Guia de Capturas de Pantalla
+        - Capturar solo el area relevante, no la pantalla completa.
+        - Usar anotaciones (flechas, recuadros) para destacar elementos.
+        - Mantener resolucion consistente en todas las capturas.
+        - Actualizar capturas cuando cambie la interfaz.
+    - name: estructura-paso-a-paso
+      content: |
+        ## Guia de Estructura Paso a Paso
+        - Formato: numero + verbo + objeto + ubicacion.
+        - Ejemplo: "1. Haga clic en el boton Guardar en la barra superior."
+        - Agregar notas de advertencia antes del paso que las requiere.
+        - Incluir pasos de verificacion al final de cada procedimiento.

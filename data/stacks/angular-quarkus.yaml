@@ -1,0 +1,68 @@
+id: angular-quarkus
+name: Angular + Quarkus
+description: Frontend Angular con backend Quarkus para aplicaciones cloud-native con compilacion nativa GraalVM y arranque ultrarapido
+
+frontend:
+  framework: Angular
+  language: TypeScript
+  version: "19+"
+  package_manager: npm
+  test_framework: Jasmine/Karma, Cypress
+  build_tool: Angular CLI
+
+backend:
+  framework: Quarkus
+  language: Java
+  version: "21+"
+  build_tool: Maven/Gradle
+  test_framework: JUnit 5, REST Assured, Mockito
+  orm: Hibernate ORM with Panache
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MariaDB
+    - MySQL
+    - MongoDB
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions/Tekton
+  cloud: AWS/GCP/Azure
+
+role_context:
+  developer-backend: |
+    Usa Quarkus 3.x con Java 21+ y compilacion nativa GraalVM.
+    CDI para inyeccion de dependencias. RESTEasy Reactive para endpoints REST.
+    Hibernate ORM with Panache (Active Record o Repository pattern).
+    Records para DTOs. Jakarta Validation. ExceptionMapper para errores.
+    Tests: JUnit 5 + REST Assured + @QuarkusTest + Testcontainers.
+    Dev Services para bases de datos en desarrollo. Migraciones: Flyway.
+  developer-frontend: |
+    Usa Angular 19+ con standalone components y Signals.
+    Formularios tipados con ReactiveFormsModule. Lazy loading de rutas.
+    Servicios con inject(). Estado reactivo con Signals.
+    Tests: Jasmine + Angular Testing Library. E2E: Cypress.
+  dba: |
+    PostgreSQL como BD principal (o segun proyecto).
+    Scripts Flyway para migraciones versionadas.
+    Panache genera queries optimizadas; revisar indices segun patrones de acceso.
+    Considerar N+1, batch fetching, connection pool (Agroal).
+    Reactive SQL clients disponibles para acceso no bloqueante.
+  devops: |
+    Dockerfile multi-stage: Maven build nativo con GraalVM + distroless (backend).
+    Dockerfile multi-stage: Node build + Nginx (frontend).
+    Imagen nativa arranca en milisegundos, ideal para serverless y Knative.
+    docker-compose para desarrollo local con Dev Services de Quarkus.
+    Pipeline: build -> test -> native-build -> docker -> push -> deploy.
+  qa-automation: |
+    Backend: JUnit 5 + @QuarkusTest + REST Assured + Testcontainers.
+    Frontend: Cypress + Angular Testing Library.
+    CI: Maven test + Cypress run en pipeline. Tests nativos con @NativeImageTest.
+  solution-architect: |
+    Arquitectura: microservicios cloud-native con compilacion nativa GraalVM.
+    Patrones: Repository/Active Record con Panache, CQRS, Event Sourcing si aplica.
+    Integraciones: REST con OpenAPI 3.1, mensajeria con SmallRye Reactive Messaging (Kafka).
+    Seguridad: Quarkus OIDC con Keycloak. MicroProfile JWT para tokens.
+    Ideal para Kubernetes, Knative y arquitecturas serverless.

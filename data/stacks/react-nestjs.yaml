@@ -1,0 +1,71 @@
+id: react-nestjs
+name: React + NestJS
+description: Stack full-stack TypeScript con React en frontend y NestJS en backend para aplicaciones modernas con tipado extremo a extremo
+
+frontend:
+  framework: React
+  language: TypeScript
+  version: "19+"
+  package_manager: npm/pnpm
+  test_framework: Vitest, React Testing Library, Playwright
+  build_tool: Vite
+
+backend:
+  framework: NestJS
+  language: TypeScript
+  version: "5+"
+  build_tool: nest-cli
+  test_framework: Jest, Supertest
+  orm: Prisma/TypeORM
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - MongoDB
+    - SQLite
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions
+  cloud: AWS/Vercel
+
+role_context:
+  developer-backend: |
+    Usa NestJS 11+ con TypeScript estricto. Sigue arquitectura modular.
+    Estructura: controller -> service -> repository (module-based).
+    DTOs con class-validator y class-transformer. Pipes para validacion.
+    Exception filters para manejo global de errores.
+    ORM: Prisma con migraciones versionadas o TypeORM con decoradores.
+    Tests: Jest + Supertest + @nestjs/testing. Testcontainers para integracion.
+    Guards para autorizacion. Interceptors para logging y transformacion.
+  developer-frontend: |
+    Usa React 19+ con Server Components y hooks modernos.
+    Estado global con Zustand o TanStack Query para server state.
+    Formularios con React Hook Form + Zod para validacion.
+    Routing con TanStack Router o React Router 7.
+    Tests: Vitest + React Testing Library. E2E: Playwright.
+    Estilos: Tailwind CSS 4. Componentes: shadcn/ui.
+  dba: |
+    PostgreSQL como BD principal (o segun proyecto).
+    Prisma Migrate o TypeORM migrations para migraciones versionadas.
+    Indices basados en patrones de consulta del ORM.
+    Considerar N+1 con Prisma (include/select), connection pooling con PgBouncer.
+    Prisma Studio para visualizacion de datos en desarrollo.
+  devops: |
+    Dockerfile multi-stage: Node build + Node slim (backend NestJS).
+    Dockerfile multi-stage: Node build + Nginx (frontend React).
+    docker-compose para desarrollo local con hot reload.
+    Pipeline: install -> lint -> test -> build -> docker -> push -> deploy.
+    Monorepo con Turborepo o Nx para compartir tipos entre front y back.
+  qa-automation: |
+    Backend: Jest + Supertest + @nestjs/testing + Testcontainers.
+    Frontend: Vitest + React Testing Library + Playwright para E2E.
+    CI: pnpm test + Playwright run en pipeline. Cobertura con c8/istanbul.
+  solution-architect: |
+    Arquitectura: modular con NestJS, tipado compartido front-back via monorepo.
+    Patrones: Repository, CQRS module de NestJS, Event-driven con EventEmitter2.
+    Integraciones: REST con OpenAPI (Swagger module), GraphQL opcional.
+    Seguridad: Passport.js con JWT, Guards de NestJS, CORS configurado.
+    Ventaja clave: TypeScript end-to-end con contratos de tipos compartidos.

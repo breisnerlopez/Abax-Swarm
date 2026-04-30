@@ -1,0 +1,60 @@
+id: react-nextjs
+name: React + Next.js
+description: Fullstack TypeScript con React 19 y Next.js 15+ para aplicaciones web modernas
+
+frontend:
+  framework: React + Next.js
+  language: TypeScript
+  version: "15+"
+  package_manager: npm/pnpm
+  test_framework: Vitest, React Testing Library, Playwright
+  build_tool: Next.js CLI
+
+backend:
+  framework: Next.js API Routes / Server Actions
+  language: TypeScript
+  version: "5.x"
+  build_tool: Next.js CLI
+  test_framework: Vitest
+  orm: Prisma/Drizzle
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - SQLite
+    - PlanetScale
+
+devops:
+  containerization: Docker
+  orchestration: Vercel/Kubernetes
+  ci_cd: GitHub Actions
+  cloud: Vercel/AWS
+
+role_context:
+  developer-backend: |
+    Next.js 15+ API Routes con App Router. TypeScript strict.
+    Route Handlers en app/api/. Server Actions para mutaciones.
+    ORM: Prisma (schema-first) o Drizzle (TS-first).
+    Validacion con Zod. Error handling con NextResponse.
+    Tests: Vitest + supertest o httpx equivalente.
+  developer-frontend: |
+    React 19 con Server Components por defecto.
+    Client Components solo cuando necesario (interactividad).
+    Estado: Zustand o React Context. Estilos: Tailwind CSS.
+    Metadata API para SEO. Image/Font optimization nativo.
+    Tests: Vitest + React Testing Library. E2E: Playwright.
+  dba: |
+    Prisma schema como fuente de verdad del modelo.
+    Migraciones con prisma migrate o drizzle-kit.
+    Connection pooling con Prisma Accelerate o pgbouncer.
+  devops: |
+    Deploy preferido: Vercel (zero-config).
+    Alternativa: Dockerfile con next build + standalone output.
+    CI: GitHub Actions -> lint -> test -> build -> deploy.
+    Preview deployments automaticos por PR.
+  solution-architect: |
+    App Router con layouts anidados y loading/error boundaries.
+    Server Components para data fetching. Client Components para interactividad.
+    API Routes para webhooks y integraciones externas.
+    Cache: ISR, on-demand revalidation, React cache().

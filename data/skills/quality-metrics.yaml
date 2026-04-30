@@ -1,0 +1,54 @@
+id: quality-metrics
+name: Metricas de Calidad de Software
+description: >
+  Definicion, medicion y seguimiento de metricas de calidad
+  del software para asegurar estándares y mejora continua.
+used_by:
+  - qa-lead
+content:
+  when_to_use: |
+    - Al establecer objetivos de calidad para un proyecto.
+    - Durante revisiones periodicas de calidad del software.
+    - Al generar reportes de estado para stakeholders.
+    - Cuando se necesita identificar tendencias o areas de mejora.
+  instructions: |
+    ## Metricas Principales de Calidad
+
+    ### 1. Metricas de Defectos
+    | Metrica | Formula | Objetivo |
+    |---|---|---|
+    | Densidad de defectos | Defectos / KLOC | < 5 por KLOC |
+    | Tasa de deteccion | Defectos encontrados / Total estimados | > 90% |
+    | Tasa de escape | Defectos en produccion / Total defectos | < 5% |
+    | Tiempo medio de resolucion | Suma tiempos / Cantidad defectos | < 2 dias |
+
+    ### 2. Metricas de Pruebas
+    - Cobertura de pruebas (codigo y requisitos).
+    - Tasa de ejecucion de casos de prueba.
+    - Porcentaje de pruebas automatizadas vs manuales.
+    - Efectividad de pruebas (defectos encontrados por caso).
+
+    ### 3. Metricas de Proceso
+    - Cumplimiento del plan de pruebas.
+    - Velocidad de ejecucion de ciclos de prueba.
+    - Reincidencia de defectos (reopen rate).
+
+    ### 4. Dashboards y Reportes
+    - Generar dashboards con visualizacion clara de tendencias.
+    - Reportes semanales con estado de metricas clave.
+    - Alertas cuando las metricas superan umbrales definidos.
+  guides:
+    - name: interpretacion-metricas
+      content: |
+        ## Guia de Interpretacion de Metricas
+        - Densidad de defectos alta: revisar practicas de desarrollo y code review.
+        - Tasa de escape elevada: reforzar pruebas en etapas tempranas.
+        - Tiempo de resolucion alto: analizar cuellos de botella en el proceso.
+        - Baja cobertura: priorizar automatizacion en areas criticas.
+    - name: definicion-umbrales
+      content: |
+        ## Guia de Definicion de Umbrales
+        - Establecer umbrales basados en historicos del equipo.
+        - Clasificar en: aceptable, advertencia y critico.
+        - Revisar y ajustar umbrales trimestralmente.
+        - Documentar justificacion de cada umbral definido.

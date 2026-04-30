@@ -1,0 +1,40 @@
+id: api-design
+name: Diseno de APIs
+description: >
+  Diseno de APIs REST con buenas practicas, contratos claros,
+  versionado, manejo de errores y documentacion OpenAPI.
+used_by:
+  - solution-architect
+  - integration-architect
+  - developer-backend
+content:
+  when_to_use: |
+    - Al disenar nuevos endpoints REST.
+    - Al definir contratos entre frontend y backend.
+    - Al disenar integraciones entre sistemas.
+  instructions: |
+    ## Principios de Diseno de API REST
+    1. Usar sustantivos para recursos, verbos HTTP para acciones.
+    2. Versionado en URL (/api/v1/) o header.
+    3. Paginacion para colecciones (offset/limit o cursor).
+    4. Filtros y ordenamiento via query params.
+    5. Codigos HTTP semanticos (200, 201, 400, 401, 403, 404, 500).
+    6. Formato de error consistente: { code, message, details }.
+    7. HATEOAS cuando agregue valor.
+
+    ## Formato de documentacion
+    Para cada endpoint:
+    - Metodo HTTP + Path
+    - Descripcion
+    - Request: headers, params, body (con schema)
+    - Response: status codes, body (con schema)
+    - Errores posibles
+  guides:
+    - name: naming-conventions
+      content: |
+        - GET /api/v1/users          -> listar usuarios
+        - GET /api/v1/users/:id      -> obtener usuario
+        - POST /api/v1/users         -> crear usuario
+        - PUT /api/v1/users/:id      -> actualizar usuario completo
+        - PATCH /api/v1/users/:id    -> actualizar parcial
+        - DELETE /api/v1/users/:id   -> eliminar usuario

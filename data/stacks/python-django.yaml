@@ -1,0 +1,64 @@
+id: python-django
+name: Python + Django
+description: Framework monolitico Python con Django para aplicaciones web completas con ORM potente, admin integrado y ecosistema maduro
+
+backend:
+  framework: Django
+  language: Python
+  version: "3.12+"
+  build_tool: pip/uv
+  test_framework: pytest, pytest-django
+  orm: Django ORM
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - MySQL
+    - SQLite
+    - MariaDB
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: GitHub Actions/GitLab CI
+  cloud: AWS/GCP/Azure
+
+role_context:
+  developer-backend: |
+    Usa Django 5.x con Python 3.12+. Sigue la convencion Django (MTV).
+    Estructura: models -> views -> serializers -> urls (por app Django).
+    Django REST Framework para APIs REST. Serializers para validacion y DTOs.
+    Django ORM con querysets encadenados. select_related/prefetch_related para N+1.
+    Migraciones con django migrations (makemigrations, migrate).
+    Tests: pytest + pytest-django + factory_boy para fixtures.
+    Celery para tareas asincronas. Django Channels para WebSockets.
+    Async views disponibles en Django 5+ para endpoints I/O-bound.
+  dba: |
+    PostgreSQL como BD principal (o segun proyecto).
+    Django migrations para migraciones versionadas y automaticas.
+    Indices: db_index en fields, Index/UniqueConstraint en Meta.
+    Optimizar queries: select_related (FK), prefetch_related (M2M).
+    django-debug-toolbar para detectar queries lentas en desarrollo.
+    Considerar particionado para tablas grandes. Connection pooling con pgbouncer.
+    Full-text search nativo con django.contrib.postgres.
+  devops: |
+    Dockerfile multi-stage: Python build + Python slim con gunicorn/uvicorn.
+    Staticfiles: collectstatic + whitenoise o CDN externo.
+    docker-compose para desarrollo local con PostgreSQL y Redis.
+    Pipeline: install -> lint (ruff) -> test (pytest) -> build -> docker -> deploy.
+    Gestionar dependencias con uv o pip-compile para lockfiles reproducibles.
+    Variables de entorno con django-environ. Settings por entorno.
+  qa-automation: |
+    Unit: pytest + pytest-django + factory_boy + faker.
+    API: pytest con APIClient de DRF + fixtures transaccionales.
+    E2E: Playwright para flujos completos.
+    CI: pytest con cobertura (pytest-cov). Ruff para linting y formateo.
+    Load testing: Locust para pruebas de carga.
+  solution-architect: |
+    Arquitectura: monolito modular con apps Django desacopladas.
+    Patrones: MTV (Model-Template-View), Service layer opcional, Repository implícito en ORM.
+    Integraciones: REST con DRF y OpenAPI (drf-spectacular), GraphQL con Strawberry.
+    Seguridad: Django auth system, CSRF, CORS-headers, django-allauth para OAuth.
+    Admin integrado para gestion de datos sin desarrollo adicional.
+    Escalabilidad: Celery + Redis para tareas, cache framework, database routing.
+    Ideal para MVPs rapidos, plataformas CRUD-heavy y aplicaciones con admin complejo.

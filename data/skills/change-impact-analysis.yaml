@@ -1,0 +1,65 @@
+id: change-impact-analysis
+name: Analisis de Impacto del Cambio
+description: >
+  Evaluacion sistematica del impacto que un cambio organizacional,
+  tecnologico o de procesos genera en las personas, areas, sistemas
+  y operaciones de la organizacion.
+used_by:
+  - change-manager
+content:
+  when_to_use: |
+    - Al inicio de un proyecto que implique cambios en procesos o sistemas.
+    - Antes de implementar una nueva herramienta o plataforma tecnologica.
+    - Cuando se reestructuran equipos, roles o responsabilidades.
+    - Para evaluar el alcance de una migracion de sistema o actualizacion mayor.
+    - Al preparar la estrategia de gestion del cambio del proyecto.
+  instructions: |
+    ## Dimensiones del Analisis de Impacto
+
+    ### 1. Impacto en Personas
+    - Roles y areas afectadas directa e indirectamente.
+    - Cantidad de usuarios impactados por area.
+    - Cambios en funciones, responsabilidades o competencias requeridas.
+    - Nivel de resistencia esperado (alto, medio, bajo).
+    - Necesidades de capacitacion y acompanamiento.
+
+    ### 2. Impacto en Procesos
+    - Procesos que se modifican, eliminan o crean.
+    - Cambios en flujos de trabajo y procedimientos operativos.
+    - Nuevas politicas o normativas internas requeridas.
+    - Interdependencias con procesos de otras areas.
+
+    ### 3. Impacto en Tecnologia
+    - Sistemas afectados o reemplazados.
+    - Integraciones que deben modificarse.
+    - Datos que requieren migracion o transformacion.
+    - Cambios en infraestructura o licenciamiento.
+
+    ### 4. Impacto en la Organizacion
+    - Alineacion con la estrategia y objetivos corporativos.
+    - Efectos en la cultura organizacional.
+    - Implicaciones legales o regulatorias.
+    - Impacto financiero y en presupuesto operativo.
+
+    ## Matriz de Impacto por Area
+    | Area / Rol | Tipo de Cambio | Nivel de Impacto | Usuarios Afectados | Resistencia Esperada | Acciones Requeridas |
+    |---|---|---|---|---|---|
+    | [Area] | Proceso/Sistema/Rol | Alto/Medio/Bajo | [Cantidad] | Alta/Media/Baja | [Acciones] |
+
+    ## Escala de Evaluacion
+    - **Alto**: Cambio radical en la forma de trabajar. Requiere capacitacion intensiva y acompanamiento continuo.
+    - **Medio**: Cambios significativos pero graduales. Requiere capacitacion y comunicacion planificada.
+    - **Bajo**: Ajustes menores. Requiere comunicacion informativa y soporte bajo demanda.
+
+    ## Entregables del Analisis
+    1. Mapa de stakeholders impactados con nivel de influencia e interes.
+    2. Matriz de impacto detallada por area y dimension.
+    3. Evaluacion de preparacion organizacional (readiness assessment).
+    4. Plan de acciones de mitigacion para impactos altos.
+    5. Insumos para el plan de comunicacion y capacitacion.
+  guides:
+    - name: evaluacion-preparacion-organizacional
+      content: |
+        Metodologia para evaluar que tan preparada esta la organizacion
+        para adoptar el cambio, incluyendo encuestas, entrevistas y
+        analisis de factores culturales y estructurales.

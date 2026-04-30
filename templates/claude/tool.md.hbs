@@ -1,0 +1,27 @@
+# {{name}}
+
+> {{id}}
+
+{{{description}}}
+
+## Argumentos
+
+| Nombre | Tipo | Descripcion |
+|--------|------|-------------|
+{{#each implementation.args}}
+| `{{@key}}` | `{{this.type}}` | {{{this.description}}}{{#if this.default}} (default: `{{this.default}}`){{/if}} |
+{{/each}}
+
+## Retorno
+
+- Tipo: `{{implementation.returns}}`
+
+## Lenguaje de implementacion
+
+`{{implementation.language}}`
+
+## Notas de uso
+
+```
+{{{implementation.body}}}
+```

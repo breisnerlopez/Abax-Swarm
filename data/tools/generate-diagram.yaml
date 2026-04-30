@@ -1,0 +1,26 @@
+id: generate-diagram
+name: Generador de Diagramas
+description: Genera y valida diagramas Mermaid a partir de descripciones textuales de procesos, arquitectura y flujos.
+used_by:
+  - business-analyst
+  - solution-architect
+  - integration-architect
+  - tech-lead
+  - dba
+  - ux-designer
+  - tech-writer
+implementation:
+  language: typescript
+  args:
+    description:
+      type: string
+      description: Descripcion o codigo Mermaid del diagrama a generar
+    diagram_type:
+      type: string
+      description: "Tipo de diagrama: flowchart, sequence, classDiagram, erDiagram, gantt, stateDiagram"
+      default: flowchart
+  returns: string
+  body: |
+    const validTypes = ["flowchart", "sequence", "classDiagram", "erDiagram", "gantt", "stateDiagram"];
+    const type = validTypes.includes(args.diagram_type) ? args.diagram_type : "flowchart";
+    return "```mermaid\n" + type + "\n" + args.description + "\n```";

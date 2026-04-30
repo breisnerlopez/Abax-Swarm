@@ -1,0 +1,13 @@
+import { tool } from "@opencode-ai/plugin";
+
+export default tool({
+  description: "{{oneline description}}",
+  args: {
+{{#each implementation.args}}
+    {{@key}}: tool.schema.{{this.type}}(){{#if this.default}}.default({{#if (eq this.type "string")}}"{{this.default}}"{{else}}{{this.default}}{{/if}}){{/if}}.describe("{{oneline this.description}}"),
+{{/each}}
+  },
+  async execute(args, context) {
+    {{{implementation.body}}}
+  },
+});

@@ -1,0 +1,34 @@
+id: technical-design
+name: Diseno Tecnico
+description: >
+  Elaboracion de documentos de diseno tecnico que transforman
+  requerimientos funcionales en una solucion implementable con
+  arquitectura, componentes, integraciones y modelo de datos.
+used_by:
+  - solution-architect
+  - tech-lead
+content:
+  when_to_use: |
+    - Al recibir un requerimiento funcional aprobado.
+    - Cuando se necesita evaluar impacto tecnico de un cambio.
+    - Al definir arquitectura de un nuevo modulo o sistema.
+  instructions: |
+    ## Estructura del Documento de Diseno Tecnico
+    1. **Contexto**: Requerimiento funcional de origen.
+    2. **Arquitectura**: Diagrama de componentes (Mermaid).
+    3. **Modelo de datos**: Entidades, relaciones, cambios DDL.
+    4. **Integraciones**: Sistemas involucrados, contratos, protocolos.
+    5. **Seguridad**: Controles aplicables.
+    6. **Performance**: Estimaciones de carga y volumetria.
+    7. **Despliegue**: Impacto en ambientes y configuracion.
+    8. **Riesgos tecnicos**: Identificados con mitigacion.
+    9. **Estimacion**: Complejidad por componente.
+  guides:
+    - name: adr-format
+      content: |
+        ## Architecture Decision Record (ADR)
+        # ADR-NNN: [Titulo de la decision]
+        ## Estado: [Propuesto | Aceptado | Deprecado]
+        ## Contexto: [Por que se toma esta decision]
+        ## Decision: [Que se decidio]
+        ## Consecuencias: [Impacto positivo y negativo]

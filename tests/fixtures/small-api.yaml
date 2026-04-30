@@ -1,0 +1,8 @@
+name: api-pagos
+description: API REST de pagos para procesamiento de transacciones
+targetDir: /tmp/test-small
+size: small
+criteria: []
+stackId: python-fastapi
+target: opencode
+teamScope: full

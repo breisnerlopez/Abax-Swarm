@@ -1,0 +1,209 @@
+id: verification-before-completion
+name: Verificacion Antes de Completar
+description: >
+  Verificacion basada en evidencia antes de declarar cualquier tarea como completada.
+  Esta skill obliga a recopilar pruebas tangibles y reproducibles de que el trabajo
+  realmente cumple con los criterios de aceptacion antes de cambiar su estado a
+  completado. Combate la tendencia natural a declarar victoria prematuramente
+  basandose en suposiciones en lugar de hechos verificados.
+used_by:
+  - qa-functional
+  - qa-lead
+  - tech-lead
+  - devops
+content:
+  when_to_use: |
+    - Usar cuando se va a marcar una tarea como completada.
+    - Usar cuando se reporta un bug como resuelto.
+    - Usar cuando se declara un deploy exitoso.
+    - Usar cuando se entrega un componente para integracion.
+    - Usar cuando se cierra un ticket de soporte.
+    - Usar cuando se finaliza una migracion de datos o esquema.
+  instructions: |
+    ## Principio Central
+
+    **"Evidencia antes de afirmaciones, siempre."**
+
+    Ninguna tarea se considera completada hasta que exista evidencia verificable
+    e independiente de que el resultado cumple con lo esperado. Las afirmaciones
+    sin evidencia no tienen valor. "Deberia funcionar" no es evidencia.
+    "Funciona en mi maquina" no es evidencia suficiente. Solo los hechos
+    comprobables y reproducibles cuentan como evidencia valida.
+
+    Este principio aplica sin excepciones, independientemente de:
+    - La urgencia de la entrega.
+    - La experiencia del ejecutor.
+    - La simplicidad aparente del cambio.
+    - La presion del equipo o del negocio.
+
+    ---
+
+    ## Tipos de Verificacion
+
+    ### 1. Verificacion de Build
+    Confirmar que el codigo compila y construye sin errores ni warnings criticos.
+
+    - Ejecutar el comando de build completo (no parcial).
+    - Verificar que no hay warnings nuevos introducidos.
+    - Confirmar que los artefactos generados son los esperados (tamano, nombre, ubicacion).
+    - Revisar que las dependencias se resolvieron correctamente.
+
+    ### 2. Verificacion de Tests
+    Confirmar que la suite de tests pasa completamente.
+
+    - Ejecutar la suite completa de tests, no solo los tests relacionados.
+    - Verificar que no hay tests saltados (skipped) que deberian estar activos.
+    - Confirmar que la cobertura de tests no disminuyo.
+    - Revisar que los tests nuevos realmente validan el comportamiento esperado.
+
+    ### 3. Verificacion de Funcionalidad
+    Confirmar que el comportamiento observable coincide con los requisitos.
+
+    - Probar cada criterio de aceptacion individualmente.
+    - Probar los flujos completos end-to-end afectados.
+    - Verificar casos borde y entradas invalidas.
+    - Confirmar que funcionalidades existentes no se rompieron (regresion).
+
+    ### 4. Verificacion de Deploy
+    Confirmar que el despliegue fue exitoso y el sistema esta operativo.
+
+    - Verificar que la version correcta esta desplegada (hash, tag, numero de version).
+    - Ejecutar health checks contra el entorno desplegado.
+    - Validar que los endpoints criticos responden correctamente.
+    - Confirmar que los logs no muestran errores post-deploy.
+    - Verificar metricas de rendimiento basicas (latencia, uso de recursos).
+
+    ---
+
+    ## Checklist de Verificacion Obligatoria
+
+    Antes de declarar cualquier tarea como completada, completar la siguiente tabla
+    con evidencia real:
+
+    | Tipo               | Comando/Accion              | Evidencia Esperada                   | Resultado         |
+    |--------------------|-----------------------------|--------------------------------------|--------------------|
+    | Build              | `npm run build` / `mvn package` / equivalente | Exit code 0, sin warnings criticos | [PASA/FALLA/N-A]  |
+    | Tests unitarios    | `npm test` / `mvn test` / equivalente         | 100% tests pasando                 | [PASA/FALLA/N-A]  |
+    | Tests integracion  | `npm run test:integration` / equivalente      | Todos los escenarios pasando       | [PASA/FALLA/N-A]  |
+    | Lint/Formato       | `npm run lint` / equivalente                  | Sin errores de estilo              | [PASA/FALLA/N-A]  |
+    | Funcionalidad      | Prueba manual del flujo principal             | Comportamiento segun spec          | [PASA/FALLA/N-A]  |
+    | Regresion          | Prueba de funcionalidades adyacentes          | Sin efectos colaterales            | [PASA/FALLA/N-A]  |
+    | Deploy (si aplica) | Health check post-deploy                      | Servicio respondiendo OK           | [PASA/FALLA/N-A]  |
+
+    **Regla:** Si cualquier fila tiene resultado FALLA, la tarea NO se puede declarar completada.
+
+    ---
+
+    ## Tabla Anti-Racionalizacion
+
+    Estas son excusas comunes que NO son aceptables como justificacion para
+    saltarse la verificacion:
+
+    | Excusa Comun                                    | Realidad                                                     |
+    |-------------------------------------------------|--------------------------------------------------------------|
+    | "Deberia funcionar, el cambio es trivial"       | Los cambios triviales causan el 40% de los incidentes.       |
+    | "Funciona en mi maquina"                        | El entorno local no es representativo del entorno objetivo.  |
+    | "Ya lo probe mentalmente"                       | La revision mental omite interacciones y efectos secundarios.|
+    | "No tengo tiempo para verificar"                | Corregir un bug en produccion toma 10x mas tiempo.          |
+    | "Solo cambie una linea"                         | Una linea puede romper todo el sistema.                      |
+    | "El CI lo va a agarrar"                         | El CI es una red de seguridad, no un sustituto.              |
+    | "Es solo configuracion, no codigo"              | Errores de configuracion causan caidas de produccion.        |
+    | "El reviewer lo va a revisar despues"            | La responsabilidad primaria es del autor, no del reviewer.   |
+
+    Cuando detectes que estas usando alguna de estas frases (o similares),
+    es una senal de alerta de que necesitas DETENERTE y verificar con mas rigor.
+
+    ---
+
+    ## Gate de Completitud
+
+    Antes de marcar cualquier tarea como completada, seguir estos pasos
+    obligatorios en orden:
+
+    1. **Releer los criterios de aceptacion** originales de la tarea.
+    2. **Ejecutar TODOS los comandos de verificacion** aplicables (build, test, lint).
+    3. **Copiar la salida de cada comando** como evidencia (no resumir, copiar textualmente).
+    4. **Mapear cada criterio de aceptacion** a evidencia concreta de que se cumple.
+    5. **Identificar criterios sin evidencia** y obtener esa evidencia antes de continuar.
+    6. **Revisar efectos colaterales**: listar otros componentes que podrian verse afectados
+       y verificar al menos los mas criticos.
+    7. **Documentar la evidencia** en el ticket, PR o canal correspondiente.
+    8. **Solo entonces** cambiar el estado de la tarea a completada.
+
+    Si en cualquier paso se encuentra un problema, la tarea regresa a estado
+    "en progreso" hasta que se resuelva y se repita el gate desde el paso 1.
+
+    ---
+
+    ## Reglas Adicionales
+
+    - **Nunca confiar en la memoria.** Siempre ejecutar los comandos de nuevo,
+      aunque "recuerdes" que pasaron antes.
+    - **Nunca asumir que un fix funciona.** Verificar explicitamente cada fix.
+    - **Ante la duda, verificar.** El costo de verificar de mas es infinitamente
+      menor que el costo de un defecto en produccion.
+    - **La verificacion es parte del trabajo.** No es un paso extra, es parte
+      integral de la tarea. El tiempo de verificacion debe incluirse en la
+      estimacion de esfuerzo.
+  guides:
+    - name: verificacion-por-fase
+      content: |
+        ## Guia de Verificacion por Fase del Proyecto
+
+        ### Fase de Desarrollo
+        - Ejecutar tests unitarios antes de cada commit.
+        - Verificar que el build local pasa antes de pushear.
+        - Correr el linter y corregir todos los errores.
+        - Hacer una prueba manual rapida del flujo modificado.
+        - Revisar el diff completo antes de crear el PR.
+
+        ### Fase de QA
+        - Verificar cada criterio de aceptacion individualmente con evidencia.
+        - Ejecutar la suite completa de tests automatizados.
+        - Realizar pruebas exploratorias en areas adyacentes al cambio.
+        - Documentar cada verificacion con capturas o logs.
+        - Confirmar que los tests de regresion pasan al 100%.
+
+        ### Fase de Deploy
+        - Verificar que el artefacto a desplegar corresponde al commit aprobado.
+        - Ejecutar el deploy en un entorno de staging primero.
+        - Correr health checks automaticos post-deploy.
+        - Verificar manualmente los flujos criticos del negocio.
+        - Monitorear metricas y logs durante los primeros 15 minutos.
+        - Tener plan de rollback listo y verificado antes de desplegar.
+
+        ### Fase de Post-Deploy
+        - Monitorear alertas durante las primeras 2 horas.
+        - Verificar que no hay aumento en tasas de error.
+        - Confirmar que los tiempos de respuesta se mantienen estables.
+        - Validar que los reportes y dashboards reflejan datos correctos.
+    - name: evidencia-reproducible
+      content: |
+        ## Guia de Evidencia Reproducible
+
+        ### Que es Evidencia Reproducible
+        Evidencia reproducible es aquella que un tercero puede verificar de forma
+        independiente siguiendo los mismos pasos. No depende de la interpretacion
+        del autor ni de condiciones especiales de su entorno.
+
+        ### Tipos de Evidencia Valida
+        - **Salida de terminal:** Copiar el comando ejecutado y su salida completa.
+        - **Capturas de pantalla:** Mostrar el estado del sistema con timestamp visible.
+        - **Logs del sistema:** Extractos relevantes con contexto suficiente.
+        - **Resultados de tests:** Reporte completo de la suite ejecutada.
+        - **URLs verificables:** Links a endpoints que demuestren el comportamiento.
+        - **Grabaciones de pantalla:** Para flujos complejos de interfaz de usuario.
+
+        ### Tipos de Evidencia NO Valida
+        - "Lo probe y funciona" (sin detalle de que se probo ni como).
+        - "Los tests pasan" (sin mostrar cuales tests ni su salida).
+        - "Se ve bien" (sin criterio especifico de evaluacion).
+        - Capturas recortadas que no muestran contexto suficiente.
+        - Referencias a pruebas realizadas en el pasado ("la semana pasada funciono").
+
+        ### Como Documentar Evidencia
+        1. Indicar el entorno donde se ejecuto la prueba (local, staging, produccion).
+        2. Listar los pasos exactos para reproducir la verificacion.
+        3. Incluir la salida completa sin editar.
+        4. Indicar la fecha y hora de la verificacion.
+        5. Si la evidencia tiene fecha de expiracion (ej: URL temporal), indicarlo.

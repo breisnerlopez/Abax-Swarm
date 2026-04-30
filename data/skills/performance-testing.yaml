@@ -1,0 +1,55 @@
+id: performance-testing
+name: Pruebas de Rendimiento y Carga
+description: >
+  Planificacion y ejecucion de pruebas de rendimiento, carga
+  y estres para validar el comportamiento del sistema bajo demanda.
+used_by:
+  - qa-performance
+content:
+  when_to_use: |
+    - Antes de un despliegue a produccion con cambios significativos.
+    - Cuando se requiere validar requisitos no funcionales de rendimiento.
+    - Al dimensionar infraestructura para soportar carga esperada.
+    - Cuando se detectan problemas de rendimiento en produccion.
+  instructions: |
+    ## Plan de Pruebas de Rendimiento
+
+    ### 1. Tipos de Pruebas
+    | Tipo | Objetivo | Duracion tipica |
+    |---|---|---|
+    | Carga | Validar comportamiento con carga esperada | 1-2 horas |
+    | Estres | Encontrar el punto de quiebre | 30-60 min |
+    | Resistencia | Verificar estabilidad prolongada | 4-8 horas |
+    | Picos | Evaluar respuesta a incrementos subitos | 15-30 min |
+    | Escalabilidad | Medir capacidad de crecimiento | Variable |
+
+    ### 2. Metricas Clave
+    - Tiempo de respuesta (promedio, percentil 95, percentil 99).
+    - Throughput (transacciones por segundo).
+    - Tasa de errores bajo carga.
+    - Uso de recursos (CPU, memoria, disco, red).
+
+    ### 3. Criterios de Aceptacion
+    - Definir SLAs y umbrales maximos de respuesta.
+    - Establecer porcentaje maximo de errores permitido.
+    - Documentar baseline de rendimiento actual.
+
+    ### 4. Ambiente de Pruebas
+    - Debe ser representativo de produccion.
+    - Datos de prueba realistas en volumen y variedad.
+    - Monitoreo activo durante la ejecucion.
+  guides:
+    - name: seleccion-tipo-prueba-rendimiento
+      content: |
+        ## Guia de Seleccion del Tipo de Prueba
+        - Release nuevo: prueba de carga + resistencia.
+        - Problema reportado: prueba de estres + analisis de recursos.
+        - Evento especial (campana, promocion): prueba de picos.
+        - Migracion de infraestructura: prueba de escalabilidad.
+    - name: configuracion-monitoreo
+      content: |
+        ## Guia de Configuracion de Monitoreo
+        - Activar metricas de APM en el servidor de aplicaciones.
+        - Configurar dashboards de infraestructura en tiempo real.
+        - Habilitar logs detallados durante la ejecucion.
+        - Capturar metricas de base de datos (queries lentas, conexiones).

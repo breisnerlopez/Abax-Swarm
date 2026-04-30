@@ -1,0 +1,119 @@
+id: owasp-review
+name: Revision OWASP Top 10
+description: >
+  Revision exhaustiva de seguridad basada en las diez categorias de
+  vulnerabilidades mas criticas definidas por OWASP, con verificaciones
+  practicas, ejemplos de codigo y recomendaciones de remediacion.
+used_by:
+  - security-architect
+content:
+  when_to_use: |
+    - Al realizar code review de funcionalidades con impacto en seguridad.
+    - Antes de desplegar cambios en produccion.
+    - Al evaluar la postura de seguridad de una aplicacion web o API.
+    - Cuando se integran bibliotecas o frameworks nuevos.
+    - En auditorias de seguridad periodicas o bajo demanda.
+  instructions: |
+    ## Checklist de Revision OWASP Top 10 (2021)
+
+    ### A01: Broken Access Control (Control de Acceso Roto)
+    - Verificar que cada endpoint aplica autorizacion del lado del servidor.
+    - Confirmar que no existen vulnerabilidades IDOR (Insecure Direct Object Reference).
+    - Validar que los metodos HTTP estan restringidos correctamente.
+    - Revisar que CORS esta configurado con origenes especificos, no wildcards.
+    - Asegurar que la navegacion por directorios esta deshabilitada.
+
+    ### A02: Cryptographic Failures (Fallos Criptograficos)
+    - Verificar que datos sensibles se cifran en transito (TLS 1.2+) y en reposo.
+    - Confirmar que no se usan algoritmos obsoletos (MD5, SHA1, DES, RC4).
+    - Validar que las claves se almacenan en vaults seguros, no en codigo fuente.
+    - Revisar que los passwords se almacenan con bcrypt, scrypt o Argon2.
+
+    ### A03: Injection (Inyeccion)
+    - Verificar uso de consultas parametrizadas o prepared statements.
+    - Confirmar sanitizacion de inputs en SQL, NoSQL, LDAP, OS commands.
+    - Validar que los ORM se usan correctamente sin concatenacion directa.
+    - Revisar proteccion contra XSS (encoding de salida, Content-Security-Policy).
+
+    ### A04: Insecure Design (Diseno Inseguro)
+    - Verificar que existe threat modeling para funcionalidades criticas.
+    - Confirmar que se aplican patrones de diseno seguro (defense in depth).
+    - Validar limites de tasa en funcionalidades de negocio criticas.
+    - Revisar que flujos de autenticacion y recuperacion son resistentes a abuso.
+
+    ### A05: Security Misconfiguration (Configuracion Incorrecta)
+    - Verificar que no hay configuraciones por defecto en produccion.
+    - Confirmar que los headers de seguridad estan configurados (HSTS, X-Frame-Options, CSP).
+    - Validar que los mensajes de error no exponen informacion del stack.
+    - Revisar que los servicios innecesarios estan deshabilitados.
+
+    ### A06: Vulnerable and Outdated Components (Componentes Vulnerables)
+    - Ejecutar analisis de dependencias (npm audit, OWASP Dependency-Check, Snyk).
+    - Verificar que no hay componentes con CVEs criticos sin parche.
+    - Confirmar que existe un proceso de actualizacion periodica.
+
+    ### A07: Identification and Authentication Failures (Fallos de Autenticacion)
+    - Verificar politicas de contrasenas robustas y proteccion contra fuerza bruta.
+    - Confirmar implementacion de MFA para operaciones sensibles.
+    - Validar que los tokens de sesion se invalidan al cerrar sesion.
+    - Revisar que los tokens JWT tienen expiracion corta y se validan correctamente.
+
+    ### A08: Software and Data Integrity Failures (Fallos de Integridad)
+    - Verificar integridad de dependencias (lockfiles, checksums).
+    - Confirmar que el pipeline CI/CD esta protegido contra manipulacion.
+    - Validar que la deserializacion de datos no confiables es segura.
+
+    ### A09: Security Logging and Monitoring Failures (Fallos de Monitoreo)
+    - Verificar que login, accesos fallidos y operaciones criticas se registran.
+    - Confirmar que los logs no contienen datos sensibles (passwords, tokens).
+    - Validar que existen alertas para patrones de ataque conocidos.
+
+    ### A10: Server-Side Request Forgery (SSRF)
+    - Verificar que las URLs proporcionadas por usuarios se validan contra whitelist.
+    - Confirmar que las solicitudes internas no pueden alcanzar metadata de cloud.
+    - Validar que las respuestas de servicios internos no se devuelven directamente.
+
+    ## Formato de Reporte
+    | ID OWASP | Hallazgo | Severidad | Evidencia | Remediacion | Plazo |
+    |----------|----------|-----------|-----------|-------------|-------|
+
+  guides:
+    - name: verificacion-por-tecnologia
+      content: |
+        ## Guia de Verificacion por Stack Tecnologico
+
+        ### Aplicaciones .NET / C#
+        - Verificar uso de Entity Framework con parametros, no string interpolation.
+        - Confirmar que AntiForgeryToken se usa en formularios POST.
+        - Revisar configuracion de Identity para politicas de password.
+        - Validar que Data Protection API se usa para cifrado de datos sensibles.
+
+        ### Aplicaciones Node.js / Express
+        - Verificar uso de helmet para headers de seguridad.
+        - Confirmar que express-rate-limit esta configurado.
+        - Revisar que no se usa eval() ni Function() con input de usuario.
+        - Validar configuracion de cors con origenes explicitos.
+
+        ### APIs REST
+        - Verificar autenticacion en cada endpoint (Bearer tokens, API keys).
+        - Confirmar que los endpoints de documentacion (Swagger) estan protegidos.
+        - Revisar que la paginacion tiene limites maximos definidos.
+        - Validar que los errores retornan codigos HTTP apropiados sin detalles internos.
+    - name: herramientas-analisis
+      content: |
+        ## Herramientas Recomendadas para Analisis OWASP
+
+        ### Analisis estatico (SAST)
+        - SonarQube con reglas de seguridad habilitadas.
+        - Semgrep con rulesets de OWASP.
+        - CodeQL para analisis profundo de flujo de datos.
+
+        ### Analisis de dependencias (SCA)
+        - OWASP Dependency-Check para proyectos Java/.NET.
+        - npm audit / yarn audit para proyectos Node.js.
+        - Snyk o Dependabot para monitoreo continuo.
+
+        ### Analisis dinamico (DAST)
+        - OWASP ZAP para escaneo automatizado de aplicaciones web.
+        - Burp Suite para pruebas manuales de penetracion.
+        - Nuclei con templates de OWASP para escaneo de vulnerabilidades.

@@ -1,0 +1,55 @@
+criteria:
+  - id: has_integrations
+    question: "Tiene integraciones con otros sistemas?"
+    adds_roles:
+      - integration-architect
+      - devops
+
+  - id: has_sensitive_data
+    question: "Maneja datos sensibles o personales?"
+    adds_roles:
+      - security-architect
+
+  - id: has_regulatory_compliance
+    question: "Requiere cumplimiento regulatorio (SOX, GDPR, PCI, etc.)?"
+    adds_roles:
+      - security-architect
+
+  - id: has_massive_deployment
+    question: "Tiene despliegue masivo o a multiples sitios?"
+    adds_roles:
+      - devops
+      - change-manager
+
+  - id: has_high_concurrency
+    question: "Tiene alto volumen transaccional o concurrencia?"
+    adds_roles:
+      - qa-performance
+      - dba
+
+  - id: has_mobile_component
+    question: "Tiene componente mobile nativo?"
+    adds_roles:
+      - developer-frontend
+
+  - id: has_user_adoption
+    question: "Requiere adopcion significativa por usuarios finales?"
+    adds_roles:
+      - change-manager
+      - ux-designer
+
+  - id: has_data_migration
+    question: "Incluye migracion de datos desde sistemas legacy?"
+    adds_roles:
+      - dba
+
+  - id: has_user_facing_ui
+    question: "Tiene interfaz de usuario relevante?"
+    adds_roles:
+      - developer-frontend
+      - ux-designer
+
+  - id: has_external_vendors
+    question: "Participan proveedores externos en el desarrollo?"
+    adds_roles:
+      - project-manager

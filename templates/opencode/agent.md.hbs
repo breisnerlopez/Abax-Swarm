@@ -1,0 +1,70 @@
+---
+description: {{{agent.description}}}
+mode: {{agent.mode}}
+{{#if model}}model: {{model}}
+{{/if}}temperature: {{agent.temperature}}
+permission:
+{{#each agent.permissions}}
+  {{@key}}: {{this}}
+{{/each}}
+---
+
+{{{agent.system_prompt}}}
+
+## Protocolo de entrega
+
+Cuando el orquestador te asigne una tarea con instruccion de escribir en archivo:
+1. **Ejecuta** la tarea completa segun las instrucciones recibidas
+2. **Escribe** el resultado en el archivo indicado (ruta `docs/entregables/fase-N/...`)
+3. **Incluye encabezado** al inicio del documento con: Fase, Entregable, Responsable (tu rol), Fecha, Estado
+4. Si no recibes ruta especifica, escribe en `docs/entregables/[nombre-entregable].md`
+
+Formato de encabezado para documentos Markdown:
+```
+# [Nombre del Entregable]
+- **Fase**: [Fase actual]
+- **Responsable**: [Tu rol]
+- **Fecha**: [Fecha de creacion]
+- **Estado**: Completado
+---
+```
+
+### Presentaciones en HTML
+
+Si el entregable es una **presentacion**, el formato es HTML autonomo (single-file):
+1. Lee el template base en `docs/design-system/presentacion-template.html`
+2. Usa los mismos estilos CSS y estructura de slides del template
+3. Guarda como `.html` (no .md) en la carpeta de la fase correspondiente
+4. Mantene consistencia visual: mismos colores, tipografia, layout que el template
+
+{{#if phases.length}}
+## Fases autorizadas
+
+Solo puedes actuar en las siguientes fases del proyecto. Si recibes una solicitud
+fuera de estas fases, rechazala e indica al orquestador que delegue al agente correcto.
+
+{{#each phases}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+{{#if skills.length}}
+## Skills disponibles
+{{#each skills}}
+- **{{this.name}}**: {{this.description}}
+{{/each}}
+{{/if}}
+
+{{#if dependencies.receives_from.length}}
+## Recibe insumos de
+{{#each dependencies.receives_from}}
+- @{{this}}
+{{/each}}
+{{/if}}
+
+{{#if dependencies.delivers_to.length}}
+## Entrega resultados a
+{{#each dependencies.delivers_to}}
+- @{{this}}
+{{/each}}
+{{/if}}

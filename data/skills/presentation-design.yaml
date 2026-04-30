@@ -1,0 +1,257 @@
+id: presentation-design
+name: Diseno y Creacion de Presentaciones Ejecutivas
+description: >
+  Diseno, estructura y creacion de presentaciones profesionales para
+  comunicar avances, decisiones tecnicas, propuestas y resultados del
+  proyecto a diferentes audiencias y niveles organizacionales.
+used_by:
+  - project-manager
+  - business-analyst
+  - change-manager
+  - solution-architect
+  - tech-writer
+  - ux-designer
+content:
+  when_to_use: |
+    - Usar cuando se completa una fase del proyecto y se requiere presentar a sponsors o comite directivo.
+    - Usar cuando se alcanza un hito y se necesita comunicar progreso formal.
+    - Usar cuando se presenta una propuesta tecnica o funcional para aprobacion.
+    - Usar cuando se prepara kickoff, steering committee, o reunion de gobierno.
+    - Usar cuando se necesita presentar resultados de UAT o go-live readiness.
+    - Usar cuando se realiza el cierre formal del proyecto.
+  instructions: |
+    ## Principio Central
+    Toda presentacion debe responder tres preguntas: Que se logro, Que sigue,
+    y Que se necesita del publico (decision, aprobacion, conocimiento).
+
+    ## Gobernanza de Presentaciones por Fase
+
+    Cada fase del flujo cascada requiere presentaciones especificas. Esta tabla
+    define los entregables obligatorios y opcionales:
+
+    | Fase | Presentacion | Audiencia | Responsable | Tipo | Obligatoria |
+    |---|---|---|---|---|---|
+    | Inception | Kickoff del proyecto | Sponsors, equipo, stakeholders | Project Manager | Informativa | Si |
+    | Inception | Vision y alcance | Comite directivo | Product Owner + BA | Decision | Si |
+    | Analisis Funcional | Propuesta funcional | Stakeholders de negocio | Business Analyst | Aprobacion | Si |
+    | Analisis Funcional | Mapeo de procesos | Usuarios clave | Business Analyst | Validacion | Condicional |
+    | Diseno Tecnico | Arquitectura propuesta | Comite tecnico | Solution Architect | Aprobacion | Si |
+    | Diseno Tecnico | Estrategia de pruebas | PM + QA Lead | QA Lead | Informativa | Condicional |
+    | Construccion | Avance de sprint/iteracion | Sponsors | Project Manager | Status | Si (periodica) |
+    | Construccion | Demo tecnica | Equipo + stakeholders | Tech Lead | Demostracion | Condicional |
+    | QA/Testing | Resultados de QA | PM + PO + Sponsors | QA Lead | Status | Si |
+    | UAT | Resultados de UAT | Sponsors + usuarios | Business Analyst | Aprobacion | Si |
+    | Despliegue | Go-Live Readiness | Comite directivo | Project Manager | Decision | Si |
+    | Despliegue | Plan de comunicacion | Lideres de area | Change Manager | Informativa | Si |
+    | Estabilizacion | Soporte post-produccion | Equipo operativo | Tech Lead + PM | Status | Si |
+    | Cierre | Cierre del proyecto | Sponsors, equipo | Project Manager | Cierre | Si |
+    | Cierre | Lecciones aprendidas | Equipo completo | Project Manager | Retrospectiva | Si |
+
+    ## Presentaciones por Hito
+
+    Ademas de las presentaciones por fase, todo hito significativo
+    requiere comunicacion formal:
+
+    | Tipo de Hito | Presentacion Requerida | Audiencia |
+    |---|---|---|
+    | Aprobacion de alcance | Resumen de alcance y criterios de exito | Sponsors |
+    | Aprobacion de diseno | Arquitectura y decisiones tecnicas | Comite tecnico |
+    | Fin de construccion | Demo funcional + metricas de calidad | Sponsors + PO |
+    | QA Sign-off | Reporte ejecutivo de calidad | PM + PO + Sponsors |
+    | UAT Sign-off | Evidencia de aceptacion de usuarios | Comite directivo |
+    | Go-Live | Checklist de readiness + plan de rollback | Comite directivo |
+    | Cierre formal | Resultados, metricas, lecciones aprendidas | Todos los stakeholders |
+
+    ## Tipos de Presentacion
+
+    ### 1. Informativa (Status Update)
+    - **Objetivo**: Comunicar avance, no pedir decision.
+    - **Estructura**: Resumen ejecutivo → Progreso vs plan → Riesgos/Bloqueantes → Proximos pasos.
+    - **Duracion**: 10-15 minutos.
+    - **Slides**: 5-8 maximo.
+
+    ### 2. Decision / Aprobacion
+    - **Objetivo**: Obtener una decision o aprobacion formal.
+    - **Estructura**: Contexto → Propuesta → Alternativas evaluadas → Impacto → Recomendacion → Pregunta explicita de aprobacion.
+    - **Duracion**: 20-30 minutos.
+    - **Slides**: 10-15 maximo.
+    - **Regla**: Siempre cerrar con la pregunta explicita de decision.
+
+    ### 3. Demostracion (Demo)
+    - **Objetivo**: Mostrar funcionalidad implementada.
+    - **Estructura**: Contexto funcional → Demo en vivo o screenshots → Cobertura vs requerimientos → Feedback solicitado.
+    - **Duracion**: 15-25 minutos.
+    - **Slides**: 3-5 (el resto es demo viva).
+
+    ### 4. Retrospectiva / Cierre
+    - **Objetivo**: Documentar resultados y aprendizajes.
+    - **Estructura**: Objetivos originales → Resultados vs plan → Metricas clave → Lecciones aprendidas → Reconocimientos → Recomendaciones futuras.
+    - **Duracion**: 30-45 minutos.
+    - **Slides**: 12-20.
+
+    ## Estructura Base de una Presentacion
+
+    Toda presentacion debe seguir esta estructura minima:
+
+    1. **Portada**: Titulo, proyecto, fecha, autor, audiencia, clasificacion.
+    2. **Agenda**: Temas a cubrir con tiempo estimado.
+    3. **Contexto**: Recordatorio breve de donde venimos.
+    4. **Contenido principal**: Segun tipo de presentacion.
+    5. **Resumen y proximos pasos**: Que sigue y quien es responsable.
+    6. **Pregunta o call-to-action**: Que se espera del publico.
+    7. **Anexo** (opcional): Datos de soporte, detalle tecnico.
+
+    ## Guias Visuales y de Contenido
+
+    ### Visual (coordinar con UX Designer)
+    - Usar SIEMPRE el Design System HTML definido en `docs/design-system/presentacion-template.html`.
+    - Paleta de colores corporativa consistente — paleta reducida con proposito.
+    - Tipografia con jerarquia: titulos sans-serif bold, cuerpo min 18pt, jump ratio 4:1+.
+    - Numeros y metricas destacados a 2-3x el tamanio del cuerpo para impacto visual.
+    - Maximo 5 items por lista, maximo 5 columnas por tabla (regla de simplicidad).
+    - Un concepto por slide. Si necesitas mas, divide. 1 slide = 1 mensaje.
+    - Espacio negativo intencional: minimo 30% del slide debe respirar.
+    - Composicion asimetrica preferida sobre centrado generico.
+    - Diagramas y graficos sobre tablas de texto extensas.
+    - Iconografia consistente, no clip-art generico.
+
+    ### Contenido
+    - Lenguaje ejecutivo: directo, sin jerga tecnica excesiva.
+    - Datos concretos: numeros, porcentajes, fechas, no adjetivos vagos.
+    - Comparar siempre contra el plan original (progreso vs baseline).
+    - Riesgos con impacto cuantificado y mitigacion propuesta.
+    - Nunca sorprender en una presentacion: escalar antes si hay malas noticias.
+
+    ### Anti-patrones
+    - NO leer slides literalmente (slides son soporte visual, no guion).
+    - NO incluir mas de 20 slides en presentacion de status.
+    - NO presentar sin ensayo previo si es para comite directivo.
+    - NO omitir la pregunta o call-to-action al final.
+    - NO usar graficos sin leyenda o sin unidades.
+    - NO presentar riesgos sin propuesta de mitigacion.
+    - NO centrar todo — crear composicion con peso visual intencional.
+    - NO usar mas de 3 colores activos por slide.
+    - NO saturar slides — respetar espacio negativo.
+    - NO usar sombras, gradientes o bordes redondeados excesivos.
+    - NO mezclar estilos: elegir espacio negativo dominante O contenido dominante por slide.
+    - NO gradientes purpura/rosa (default LLM, se ve generico AI-generated).
+    - NO gris puro (#888, #ccc) — siempre tintar neutrales hacia el color primario.
+    - NO cards dentro de cards (anidamiento excesivo de contenedores).
+    - NO bounce/elastic easing en transiciones (se percibe anticuado).
+
+    ## Checklist de Calidad Pre-Entrega
+
+    Antes de entregar cualquier presentacion HTML, verificar:
+
+    ### Estructura
+    - [ ] Portada con titulo, proyecto, fecha, audiencia
+    - [ ] Agenda con temas y tiempos estimados
+    - [ ] Slide de cierre con call-to-action o pregunta explicita
+    - [ ] 1 slide = 1 mensaje (ningun slide con mas de 1 concepto)
+
+    ### Visual
+    - [ ] Usa el Design System del proyecto (docs/design-system/presentacion-template.html)
+    - [ ] Contraste texto/fondo >= 4.5:1 (WCAG AA)
+    - [ ] Neutrales tintados (no gris puro)
+    - [ ] Maximo 3 colores activos por slide
+    - [ ] Tipografia con jerarquia clara (jump ratio 4:1+)
+    - [ ] Espacio negativo >= 30% por slide
+    - [ ] Sin gradientes purpura/rosa ni patrones AI-slop
+
+    ### Contenido
+    - [ ] Datos concretos (numeros, %, fechas) — no adjetivos vagos
+    - [ ] Riesgos con impacto cuantificado y mitigacion
+    - [ ] Progreso comparado contra plan original (baseline)
+    - [ ] Sin jerga tecnica excesiva para audiencia ejecutiva
+
+    ### Tecnico (HTML)
+    - [ ] HTML autonomo (single-file, sin CDN ni dependencias externas)
+    - [ ] Visualizable en navegador (Chrome, Edge, Firefox)
+    - [ ] Imprimible (layout no se rompe en print)
+    - [ ] Heading levels respetados (h1 → h2 → h3, sin saltar)
+    - [ ] Transiciones CSS suaves (200-300ms), sin bounce
+
+    ## Registro de Presentaciones
+
+    Toda presentacion entregada debe quedar registrada:
+
+    | Fecha | Fase/Hito | Tipo | Titulo | Audiencia | Presentador | Decision/Resultado |
+    |---|---|---|---|---|---|---|
+    | [Fecha] | [Fase] | Status/Decision/Demo | [Titulo] | [Audiencia] | [Nombre] | [Aprobado/Pendiente/N-A] |
+
+  guides:
+    - name: plantillas-por-tipo
+      content: |
+        Plantillas base para cada tipo de presentacion (informativa, decision,
+        demo, retrospectiva) con estructura de slides sugerida, notas del
+        presentador y checklist de calidad pre-entrega. Incluye ejemplos
+        de slides efectivos vs inefectivos para cada seccion.
+    - name: adaptacion-por-audiencia
+      content: |
+        Guia para adaptar contenido y nivel de detalle segun la audiencia:
+        comite directivo (alto nivel, metricas, decisiones), equipo tecnico
+        (detalle tecnico, arquitectura, codigo), usuarios finales (impacto
+        operativo, cambios en procesos, soporte disponible). Incluye
+        checklist de revision por audiencia.
+    - name: estilos-visuales-preset
+      content: |
+        Presets de estilo visual para el Design System. El UX Designer elige
+        o adapta uno segun el contexto del proyecto:
+
+        **1. Corporate Minimal (default)**
+        Inspirado en Swiss/International Typographic Style.
+        - Fondo blanco (#FFFFFF) o gris frio (#F5F5F7)
+        - Texto negro (#1a1a2e) con acento rojo (#e94560) o azul (#0066cc)
+        - Sans-serif limpia (Inter, Segoe UI), bold para titulos
+        - Grid estricto, espacio negativo generoso, alineacion asimetrica
+        - Ideal para: comite directivo, sponsors, governance
+
+        **2. Tech Editorial**
+        Inspirado en periodismo digital y dashboards modernos.
+        - Fondo blanco con cards en gris claro (#f0f0f0)
+        - Texto oscuro (#111111) con acento amarillo electrico (#FFCC00)
+        - Titulos extra-bold ocupando 30-50% del slide (alto impacto)
+        - Jump ratio 10:1 entre titulos y cuerpo
+        - Metricas y KPIs como protagonistas visuales
+        - Ideal para: demos tecnicas, reportes de QA, status con datos
+
+        **3. Dark Premium**
+        Inspirado en presentaciones de producto tech (Apple, Stripe).
+        - Fondo oscuro (#1a1a2e o #0d1117) con texto claro (#e0e0e0)
+        - Acento vibrante: cyan (#00d4ff), verde (#00ff88), o naranja (#ff6b35)
+        - Tipografia limpia con alto contraste
+        - Ideal para: kickoff de alto impacto, demos de producto, go-live
+
+        Principios compartidos por todos los presets:
+        - 1 slide = 1 mensaje
+        - Jump ratio minimo 4:1 (titulos vs cuerpo)
+        - Espacio negativo minimo 30%
+        - Maximo 2 familias tipograficas
+        - Contraste WCAG AA (4.5:1 minimo)
+    - name: flujo-calidad-presentacion
+      content: |
+        Flujo de revision de calidad para presentaciones. El UX Designer o
+        el responsable de la presentacion debe aplicar estos 3 pasos antes
+        de entregar:
+
+        **Paso 1: Critique (revision de contenido y UX)**
+        - Jerarquia visual clara? Se entiende el mensaje en 3 segundos?
+        - El call-to-action es explicito y visible?
+        - La narrativa fluye logicamente entre slides?
+        - La audiencia objetivo esta bien atendida (nivel de detalle)?
+
+        **Paso 2: Audit (revision tecnica)**
+        - Contraste de color >= 4.5:1 en todos los textos?
+        - Headings en orden semantico (h1 > h2 > h3)?
+        - HTML valido y autonomo (sin dependencias rotas)?
+        - Responsive: se ve bien en 1024px+ y en impresion?
+        - Sin patrones AI-slop (gradientes purpura, gris puro, cards anidados)?
+
+        **Paso 3: Polish (refinamiento final)**
+        - Transiciones suaves y consistentes (200-300ms)?
+        - Alineacion en grid (nada fuera de lugar)?
+        - Espaciado consistente entre secciones?
+        - Numeros/metricas destacados visualmente?
+        - Slide de cierre impactante (no generico)?
+
+        Solo entregar cuando los 3 pasos pasen sin issues.

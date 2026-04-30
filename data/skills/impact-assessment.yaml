@@ -1,0 +1,118 @@
+id: impact-assessment
+name: Evaluacion de Impacto de Cambios
+description: >
+  Metodologia para evaluar el impacto tecnico, operativo y de negocio
+  de cambios propuestos en sistemas existentes, identificando riesgos,
+  dependencias afectadas y estrategias de mitigacion.
+used_by:
+  - solution-architect
+content:
+  when_to_use: |
+    - Antes de aprobar un cambio significativo en arquitectura o infraestructura.
+    - Al planificar migraciones de tecnologia o plataforma.
+    - Cuando un cambio afecta a multiples servicios o equipos.
+    - Al evaluar el impacto de actualizar dependencias criticas.
+    - Antes de deprecar o eliminar funcionalidades existentes.
+  instructions: |
+    ## Proceso de Evaluacion de Impacto
+
+    ### 1. Definicion del cambio
+    - Describir el cambio propuesto con precision tecnica.
+    - Identificar la motivacion (requisito de negocio, deuda tecnica, seguridad).
+    - Delimitar el alcance del cambio (componentes, servicios, capas).
+    - Clasificar el tipo de cambio: breaking, backward-compatible, transparente.
+
+    ### 2. Analisis de dependencias
+    - Mapear dependencias directas (servicios que consumen o son consumidos).
+    - Identificar dependencias indirectas (transitorias, a traves de otros servicios).
+    - Documentar integraciones con sistemas externos afectados.
+    - Revisar dependencias de datos (esquemas, migraciones, compatibilidad).
+    - Identificar dependencias de infraestructura (DNS, load balancers, certificados).
+
+    ### 3. Evaluacion de impacto por dimension
+
+    #### Impacto tecnico
+    - Componentes que requieren modificacion de codigo.
+    - APIs o contratos que cambian (breaking changes).
+    - Migraciones de datos necesarias.
+    - Cambios en configuracion o infraestructura.
+    - Impacto en rendimiento y escalabilidad.
+
+    #### Impacto operativo
+    - Tiempo de indisponibilidad requerido (downtime).
+    - Cambios en procesos de monitoreo y alertas.
+    - Actualizacion de runbooks y documentacion operativa.
+    - Necesidad de coordinacion entre equipos para el despliegue.
+
+    #### Impacto en negocio
+    - Funcionalidades afectadas para el usuario final.
+    - Ventana de despliegue recomendada (horario de menor uso).
+    - Comunicacion necesaria a clientes o usuarios.
+    - Impacto en SLAs comprometidos.
+
+    #### Impacto en equipos
+    - Equipos que deben realizar cambios en sus servicios.
+    - Esfuerzo estimado por equipo (horas/persona).
+    - Necesidad de capacitacion o transferencia de conocimiento.
+
+    ### 4. Evaluacion de riesgos
+    | Riesgo | Probabilidad | Impacto | Nivel | Mitigacion |
+    |--------|-------------|---------|-------|------------|
+
+    ### 5. Plan de ejecucion
+    - Definir fases del cambio (preparacion, ejecucion, verificacion).
+    - Establecer criterios de go/no-go para cada fase.
+    - Disenar plan de rollback detallado.
+    - Definir metricas de exito post-cambio.
+
+    ### 6. Clasificacion final del cambio
+    - **Bajo impacto**: Un solo servicio, sin breaking changes, rollback simple.
+    - **Medio impacto**: Multiples servicios, cambios coordinados, downtime minimo.
+    - **Alto impacto**: Cambio estructural, migracion de datos, downtime significativo.
+
+  guides:
+    - name: analisis-dependencias
+      content: |
+        ## Guia para Mapeo de Dependencias
+
+        ### Tecnicas de descubrimiento
+        - Revisar imports y referencias en el codigo fuente.
+        - Analizar configuraciones de API gateway y service mesh.
+        - Consultar registros de service discovery (Consul, Eureka).
+        - Revisar logs de comunicacion entre servicios.
+        - Analizar tracing distribuido (Jaeger, Zipkin) para flujos reales.
+
+        ### Matriz de dependencias
+        | Servicio afectado | Tipo de dependencia | Tipo de cambio requerido | Esfuerzo | Equipo responsable |
+        |-------------------|--------------------|--------------------------|---------|--------------------|
+
+        ### Clasificacion de dependencias
+        - **Critica**: El servicio no funciona sin esta dependencia.
+        - **Importante**: Funcionalidad degradada sin esta dependencia.
+        - **Opcional**: Funcionalidad menor o alternativa disponible.
+
+        ### Estrategias de mitigacion por tipo
+        - Dependencia critica: Despliegue coordinado, feature flags, blue-green.
+        - Dependencia importante: Versionado de API, periodo de transicion.
+        - Dependencia opcional: Comunicacion y timeline de deprecacion.
+    - name: plan-rollback
+      content: |
+        ## Guia para Diseno de Plan de Rollback
+
+        ### Principios del rollback
+        - Todo cambio debe tener un plan de rollback documentado antes de ejecutarse.
+        - El rollback debe poder ejecutarse en menos tiempo que el cambio original.
+        - Probar el rollback en entornos no productivos antes del despliegue.
+
+        ### Estrategias de rollback segun el tipo de cambio
+        - **Cambio de codigo**: Revertir despliegue a version anterior (blue-green, canary).
+        - **Cambio de esquema de BD**: Scripts de rollback para migraciones (down migrations).
+        - **Cambio de configuracion**: Restaurar configuracion anterior desde version control.
+        - **Cambio de infraestructura**: Terraform/IaC para revertir a estado anterior.
+
+        ### Checklist de rollback
+        - [ ] Script o procedimiento de rollback documentado paso a paso.
+        - [ ] Tiempo estimado de ejecucion del rollback.
+        - [ ] Criterios que activan el rollback (metricas, errores, timeout).
+        - [ ] Datos creados durante el cambio: como se manejan en rollback.
+        - [ ] Comunicacion: a quien notificar antes y despues del rollback.

@@ -1,0 +1,123 @@
+id: environment-management
+name: Gestion de Ambientes
+description: >
+  Gestion y administracion de ambientes de desarrollo, QA,
+  staging y produccion, incluyendo configuracion, promocion
+  de artefactos, control de acceso y paridad entre entornos.
+used_by:
+  - devops
+content:
+  when_to_use: |
+    - Al configurar o provisionar un nuevo ambiente (dev, QA, staging, produccion).
+    - Al definir pipelines de promocion de artefactos entre ambientes.
+    - Al gestionar configuraciones especificas por ambiente.
+    - Al diagnosticar diferencias de comportamiento entre ambientes.
+    - Al establecer politicas de acceso y gobernanza por ambiente.
+  instructions: |
+    ## Definicion de ambientes estandar
+
+    ### 1. Desarrollo (dev)
+    - Proposito: Desarrollo activo e integracion continua.
+    - Datos: Sinteticos o anonimizados. Base de datos propia.
+    - Despliegue: Automatico en cada push a ramas de desarrollo.
+    - Acceso: Equipo de desarrollo completo.
+
+    ### 2. QA / Testing
+    - Proposito: Pruebas funcionales, de integracion y de regresion.
+    - Datos: Conjunto de datos de prueba controlado y reproducible.
+    - Despliegue: Automatico al mergear a la rama de QA o release.
+    - Acceso: Equipo de QA y desarrollo.
+
+    ### 3. Staging / Pre-produccion
+    - Proposito: Replica fiel de produccion para validacion final.
+    - Datos: Copia anonimizada de produccion o datos representativos.
+    - Despliegue: Manual o con aprobacion (gate de release).
+    - Acceso: Equipo de QA, DevOps y stakeholders clave.
+
+    ### 4. Produccion (prod)
+    - Proposito: Ambiente real con usuarios finales.
+    - Datos: Datos reales. Maximo nivel de proteccion.
+    - Despliegue: Con aprobacion explicita y ventana de cambio.
+    - Acceso: Restringido. Solo personal autorizado con audit log.
+
+    ## Principios de gestion
+
+    1. **Paridad entre ambientes**: Staging debe ser lo mas similar posible
+       a produccion (misma infraestructura, versiones, configuracion).
+    2. **Infraestructura como codigo (IaC)**: Definir toda la infraestructura
+       con Terraform, Pulumi, CloudFormation o similar. Versionar en Git.
+    3. **Configuracion externalizada**: Las diferencias entre ambientes deben
+       limitarse a configuracion (variables de entorno, ConfigMaps, secrets).
+       El codigo y los artefactos deben ser identicos.
+    4. **Promocion de artefactos**: Un artefacto se construye una vez y se
+       promueve entre ambientes. Nunca recompilar para cada ambiente.
+    5. **Secretos seguros**: Usar herramientas como HashiCorp Vault, AWS
+       Secrets Manager o Azure Key Vault. Nunca secretos en repositorios.
+
+    ## Pipeline de promocion
+
+    ```
+    [Build] -> [Dev] -> [QA] -> [Staging] -> [Prod]
+       |          |        |         |           |
+     Commit    Auto     Auto    Aprobacion   Aprobacion
+               deploy   deploy    manual       manual
+    ```
+
+    - Cada transicion debe incluir gates de calidad:
+      tests automatizados, escaneo de seguridad, validacion de performance.
+    - Rollback automatizado si las metricas de salud se degradan
+      despues del despliegue en produccion.
+  guides:
+    - name: configuracion-por-ambiente
+      content: |
+        ## Estrategias de configuracion
+
+        ### Variables de entorno
+        - Metodo mas simple y universal.
+        - Usar archivos .env por ambiente (nunca commitear .env.prod).
+        - En Kubernetes: ConfigMaps para configuracion, Secrets para datos sensibles.
+
+        ### Servidores de configuracion
+        - Spring Cloud Config, Consul, etcd para configuracion centralizada.
+        - Permiten cambiar configuracion sin redesplegar.
+        - Implementar versionado y auditoria de cambios.
+
+        ### Feature flags
+        - Desacoplar el despliegue de la activacion de funcionalidades.
+        - Herramientas: LaunchDarkly, Unleash, Flagsmith.
+        - Permiten activar features por ambiente, usuario o porcentaje.
+
+        ## Que debe variar entre ambientes
+
+        - URLs de APIs y servicios externos.
+        - Credenciales de bases de datos y servicios.
+        - Niveles de logging (DEBUG en dev, WARN/ERROR en prod).
+        - Configuracion de cache y timeouts.
+        - Certificados TLS y dominios.
+        - Feature flags y configuracion de A/B testing.
+
+        ## Que NO debe variar entre ambientes
+
+        - Codigo fuente compilado (artefactos binarios).
+        - Versiones de dependencias.
+        - Esquema de base de datos (aplicar migraciones en todos los ambientes).
+        - Logica de negocio.
+    - name: gobernanza-y-acceso
+      content: |
+        ## Control de acceso por ambiente
+
+        | Ambiente   | Desarrollo | QA         | Staging    | Produccion |
+        |------------|-----------|------------|------------|------------|
+        | Developers | Full      | Read+Deploy| Read       | Read logs  |
+        | QA         | Read      | Full       | Read+Test  | Read logs  |
+        | DevOps     | Full      | Full       | Full       | Full       |
+        | Product    | None      | Read       | Read+Test  | Read       |
+
+        ## Politicas de gobernanza
+
+        - Todo cambio en produccion debe tener un ticket asociado y aprobacion.
+        - Los despliegues a produccion deben registrar: quien, que, cuando.
+        - Los accesos directos a bases de datos de produccion requieren
+          autorizacion temporal (just-in-time access).
+        - Realizar auditorias periodicas de permisos y accesos.
+        - Implementar break-glass procedures para emergencias documentadas.

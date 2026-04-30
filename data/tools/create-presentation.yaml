@@ -1,0 +1,73 @@
+id: create-presentation
+name: Generador de Presentaciones
+description: >
+  Genera presentaciones estructuradas en formato HTML autonomo con estilos CSS
+  inline, estructura de slides, contenido adaptado al tipo de presentacion
+  y audiencia objetivo. Usa el Design System del proyecto para consistencia visual.
+used_by:
+  - project-manager
+  - business-analyst
+  - change-manager
+  - solution-architect
+  - tech-writer
+  - ux-designer
+implementation:
+  language: typescript
+  args:
+    title:
+      type: string
+      description: Titulo de la presentacion
+    presentation_type:
+      type: string
+      description: "Tipo: status, decision, demo, retrospective, kickoff, go-live"
+      default: status
+    audience:
+      type: string
+      description: "Audiencia objetivo: executive, technical, end-users, all-stakeholders"
+      default: executive
+    phase:
+      type: string
+      description: Fase del proyecto asociada a la presentacion
+      required: false
+    milestone:
+      type: string
+      description: Hito del proyecto asociado (si aplica)
+      required: false
+    content:
+      type: string
+      description: Contenido principal de los slides en Markdown
+  returns: string
+  body: |
+    const date = new Date().toISOString().split("T")[0];
+    const typeLabels: Record<string, string> = {
+      status: "Status Update",
+      decision: "Decision / Aprobacion",
+      demo: "Demostracion",
+      retrospective: "Retrospectiva / Cierre",
+      kickoff: "Kickoff",
+      "go-live": "Go-Live Readiness",
+    };
+    const label = typeLabels[args.presentation_type] || args.presentation_type;
+
+    let output = `# ${args.title}\n\n`;
+    output += `| Campo | Valor |\n|---|---|\n`;
+    output += `| Tipo | ${label} |\n`;
+    output += `| Audiencia | ${args.audience} |\n`;
+    output += `| Fecha | ${date} |\n`;
+    if (args.phase) output += `| Fase | ${args.phase} |\n`;
+    if (args.milestone) output += `| Hito | ${args.milestone} |\n`;
+    output += `| Estado | Borrador |\n\n---\n\n`;
+
+    output += `## Agenda\n\n`;
+    output += `1. Contexto\n2. Contenido principal\n3. Proximos pasos\n4. Preguntas / Decision\n\n---\n\n`;
+
+    output += args.content + "\n\n---\n\n";
+
+    output += `## Proximos Pasos\n\n| Accion | Responsable | Fecha |\n|---|---|---|\n| [Pendiente] | [Nombre] | [Fecha] |\n\n`;
+
+    if (args.presentation_type === "decision") {
+      output += `## Decision Solicitada\n\n> **Pregunta**: [Insertar pregunta explicita de aprobacion]\n\n`;
+      output += `| Opcion | Descripcion | Recomendacion |\n|---|---|---|\n| A | [Opcion A] | **Recomendada** |\n| B | [Opcion B] | Alternativa |\n`;
+    }
+
+    return output;

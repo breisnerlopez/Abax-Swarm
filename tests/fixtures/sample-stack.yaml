@@ -1,0 +1,39 @@
+id: angular-springboot
+name: Angular + Spring Boot
+description: Frontend Angular con backend Java Spring Boot para aplicaciones enterprise
+
+frontend:
+  framework: Angular
+  language: TypeScript
+  version: "19+"
+  package_manager: npm
+  test_framework: Jasmine/Karma, Cypress
+  build_tool: Angular CLI
+
+backend:
+  framework: Spring Boot
+  language: Java
+  version: "21+"
+  build_tool: Maven/Gradle
+  test_framework: JUnit 5, Mockito
+  orm: JPA/Hibernate
+
+database:
+  default: PostgreSQL
+  alternatives:
+    - Oracle
+    - MySQL
+    - SQL Server
+
+devops:
+  containerization: Docker
+  orchestration: Kubernetes
+  ci_cd: Jenkins/GitHub Actions
+  cloud: Azure/AWS
+
+role_context:
+  developer-backend: |
+    Usa Spring Boot 3.x con Java 21+. Clean Architecture.
+    Estructura: controller -> service -> repository.
+  developer-frontend: |
+    Usa Angular 19+ con standalone components y Signals.

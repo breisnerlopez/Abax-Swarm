@@ -1,0 +1,99 @@
+red_flag_groups:
+  - category: "Racionalizacion de Testing"
+    applies_to:
+      - developer-backend
+      - developer-frontend
+      - tech-lead
+    red_flags:
+      - thought: "Es muy simple para necesitar test"
+        reality: "Nada es tan simple, los bugs nacen en lo 'simple'"
+        correct_action: "Escribir el test primero"
+      - thought: "Ya se que funciona, lo probe manualmente"
+        reality: "Prueba manual no es evidencia reproducible"
+        correct_action: "Escribir test automatizado"
+      - thought: "Escribo los tests despues"
+        reality: "Despues nunca llega, la deuda se acumula"
+        correct_action: "RED-GREEN-REFACTOR en ese orden"
+      - thought: "Solo es un cambio de una linea"
+        reality: "Cambios pequenos causan bugs grandes"
+        correct_action: "Test primero, cambio despues"
+
+  - category: "Racionalizacion de Debugging"
+    applies_to:
+      - developer-backend
+      - developer-frontend
+      - dba
+    red_flags:
+      - thought: "El fix es obvio"
+        reality: "Los fixes obvios frecuentemente ocultan la causa raiz real"
+        correct_action: "Investigar causa raiz antes de tocar codigo"
+      - thought: "Solo pruebo este parche rapido"
+        reality: "Parches sin diagnostico crean deuda tecnica"
+        correct_action: "Reproducir, diagnosticar, luego corregir"
+      - thought: "Ya intente 3 cosas diferentes"
+        reality: "Intentar sin entender es brute-force, no debugging"
+        correct_action: "Detenerse, analizar logs, trazar el flujo completo"
+
+  - category: "Racionalizacion de Revision"
+    applies_to:
+      - tech-lead
+      - qa-functional
+      - qa-lead
+    red_flags:
+      - thought: "Es un cambio pequeno, no necesita revision"
+        reality: "Todo cambio merece revision, los bugs no miden LOC"
+        correct_action: "Crear PR y solicitar revision"
+      - thought: "Confio en este desarrollador, no reviso a fondo"
+        reality: "Confianza no sustituye verificacion"
+        correct_action: "Revisar con el mismo rigor independientemente del autor"
+      - thought: "Ya aprobe los tests, funciona"
+        reality: "Tests verdes no garantizan calidad de codigo"
+        correct_action: "Revisar legibilidad, patrones, seguridad ademas de tests"
+
+  - category: "Racionalizacion de Despliegue"
+    applies_to:
+      - devops
+      - project-manager
+      - tech-lead
+    red_flags:
+      - thought: "Es viernes pero es urgente"
+        reality: "Los despliegues en viernes tienen mayor riesgo sin soporte"
+        correct_action: "Programar para lunes salvo emergencia critica de produccion"
+      - thought: "No necesitamos rollback, es cambio menor"
+        reality: "Todo despliegue puede fallar"
+        correct_action: "Preparar script de rollback antes de cualquier deploy"
+      - thought: "Solo es un cambio de config, no necesita QA"
+        reality: "Cambios de configuracion causan incidentes en produccion"
+        correct_action: "Validar en ambiente inferior antes de produccion"
+
+  - category: "Racionalizacion de Alcance"
+    applies_to:
+      - business-analyst
+      - product-owner
+      - project-manager
+    red_flags:
+      - thought: "Es solo un detallito extra, no es cambio de alcance"
+        reality: "Alcance no aprobado es alcance no controlado"
+        correct_action: "Registrar solicitud de cambio formal"
+      - thought: "El cliente lo necesita para ayer"
+        reality: "Urgencia no justifica saltarse el proceso"
+        correct_action: "Evaluar impacto, priorizar, aprobar formalmente"
+      - thought: "Lo agregamos y despues formalizamos"
+        reality: "Despues se olvida y el alcance se descontrola"
+        correct_action: "Formalizar ANTES de implementar"
+
+  - category: "Racionalizacion de Documentacion"
+    applies_to:
+      - solution-architect
+      - tech-lead
+      - business-analyst
+    red_flags:
+      - thought: "El codigo se explica solo"
+        reality: "El codigo dice COMO, no POR QUE"
+        correct_action: "Documentar decisiones y razonamiento"
+      - thought: "Despues documento"
+        reality: "Documentar durante, no despues"
+        correct_action: "Documentar como parte del Definition of Done"
+      - thought: "Nadie lee la documentacion"
+        reality: "La falta de documentacion causa re-trabajo"
+        correct_action: "Documentar para el futuro, no solo para hoy"
