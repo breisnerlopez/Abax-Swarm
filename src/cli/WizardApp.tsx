@@ -633,23 +633,37 @@ function ConfirmStep({
         <Text bold>Archivos a generar ({result.files.length}):</Text>
       </Box>
       <Box flexDirection="column" marginBottom={1}>
-        {Array.from(filesByDir).map(([dir, files]) => (
-          <Box flexDirection="column" key={dir}>
-            <Text color="cyan">{dir}/</Text>
-            {files.slice(0, 6).map((f) => (
-              <Text dimColor key={f}>
-                {"  ├─ "}
-                {f}
-              </Text>
-            ))}
-            {files.length > 6 && (
-              <Text dimColor>
-                {"  └─ … y "}
-                {files.length - 6} más
-              </Text>
-            )}
+        {Array.from(filesByDir)
+          .slice(0, 8)
+          .map(([dir, files]) => (
+            <Box flexDirection="column" key={dir}>
+              <Text color="cyan">{dir}/</Text>
+              {files.slice(0, 4).map((f) => (
+                <Text dimColor key={f}>
+                  {"  ├─ "}
+                  {f}
+                </Text>
+              ))}
+              {files.length > 4 && (
+                <Text dimColor>
+                  {"  └─ … y "}
+                  {files.length - 4} más
+                </Text>
+              )}
+            </Box>
+          ))}
+        {filesByDir.size > 8 && (
+          <Box marginTop={1}>
+            <Text dimColor>
+              … y {filesByDir.size - 8} directorios más con{" "}
+              {result.files.length -
+                Array.from(filesByDir)
+                  .slice(0, 8)
+                  .reduce((acc, [, fs]) => acc + fs.length, 0)}{" "}
+              archivos
+            </Text>
           </Box>
-        ))}
+        )}
       </Box>
       {result.orchestratorWarnings.length > 0 && (
         <InfoBox title="Advertencias del orquestador" color="yellow">
