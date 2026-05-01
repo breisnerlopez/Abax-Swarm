@@ -6,6 +6,8 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-01
+
 ### Added
 
 - Expand/collapse del preview de archivos en el paso de Confirmación con tecla `E`.
@@ -65,7 +67,8 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Branch protection en `main` con `validate` como check obligatorio.
 - Default branch en GitHub: `main`.
 
-[Unreleased]: https://github.com/breisnerlopez/Abax-Swarm/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/breisnerlopez/Abax-Swarm/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/breisnerlopez/Abax-Swarm/releases/tag/v0.1.4
 [0.1.3]: https://github.com/breisnerlopez/Abax-Swarm/releases/tag/v0.1.3
 [0.1.2]: https://github.com/breisnerlopez/Abax-Swarm/releases/tag/v0.1.2
 [0.1.1]: https://github.com/breisnerlopez/Abax-Swarm/releases/tag/v0.1.1
