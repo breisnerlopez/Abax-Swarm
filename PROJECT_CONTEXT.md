@@ -229,7 +229,7 @@ gitflow.prefix.support  = support/
 gitflow.prefix.versiontag = v
 ```
 
-La CLI `git-flow` (paquete del sistema) está instalada — los comandos `git flow feature start/finish`, `git flow release start/finish`, etc. funcionan sin más setup.
+Los comandos `git flow ...` requieren la CLI `git-flow` instalada en tu máquina (`apt install git-flow`, `brew install git-flow-avh` o equivalente). Como alternativa, las mismas operaciones se pueden hacer con `git` plano.
 
 ### Comandos típicos
 
@@ -256,30 +256,19 @@ git push origin main develop --tags
 - Tags con prefijo `v` (`v0.1.0`, `v0.2.0`, …).
 - Mantén sincronizada la `version` en `package.json` con el tag de cada release.
 
-### Reglas vigentes en GitHub
+### Pull requests
 
-- **Default branch:** `develop`. Los PRs nuevos se abren contra `develop` por defecto.
-- **Protección de `main`:** PR requerido, linear history, no force-push, no deletion, conversaciones resueltas antes de mergear.
-- **Protección de `develop`:** PR requerido, no force-push, no deletion, conversaciones resueltas antes de mergear.
-- **PR template:** `.github/pull_request_template.md` (alineado con gitflow).
-- Admins exentos para emergencias (`enforce_admins: false`).
+Todos los cambios entran al repo vía pull request. Convenciones:
 
-### Crear y gestionar PRs
+- `feature/*` y `bugfix/*` mergean a `develop` con **squash merge** (un commit limpio por feature).
+- `release/*` y `hotfix/*` mergean a `main` con **merge commit** (preserva la historia de la rama y queda asociada al tag).
+- Las ramas `main` y `develop` están protegidas: PR obligatorio, no force-push, no deletion, conversaciones resueltas antes de mergear.
+- El checklist mínimo del PR vive en `.github/pull_request_template.md`.
 
-Con `gh` autenticado:
+Antes de abrir el PR, asegúrate de que pasen:
 
 ```bash
-# Crear PR (apunta a develop por default branch)
-gh pr create --title "..." --body "..."
-
-# Listar y revisar
-gh pr list
-gh pr view <N>
-gh pr checks <N>
-
-# Mergear (respeta branch protection)
-gh pr merge <N> --squash    # feature/bugfix → develop
-gh pr merge <N> --merge     # release/hotfix → main (preserva historia de la rama)
+npm test
+npm run typecheck
+npm run validate    # solo si tocaste data/
 ```
-
-Convención: `--squash` para `feature/*` y `bugfix/*` que mergean a `develop`. `--merge` (commit de merge) para `release/*` y `hotfix/*` hacia `main`, así queda la historia de la rama de release/hotfix asociada al tag.
