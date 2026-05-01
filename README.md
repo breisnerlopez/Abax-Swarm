@@ -67,6 +67,10 @@ Step 6 — team review. The role editor lists every selected agent with its role
 
 ![Team review with role editor](docs/screenshots/03-team-editor.png)
 
+Step 7 — confirmation and generation. Compact preview of the file groups that will be written, with running summary still visible:
+
+![Confirmation step](docs/screenshots/05-confirmation.png)
+
 End state in `--dry-run` mode, showing how many files the current configuration would generate:
 
 ![Dry-run summary](docs/screenshots/04-dryrun-summary.png)
