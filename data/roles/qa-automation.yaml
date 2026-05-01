@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: mechanical
+  reasoning: none
   description: >
     Especialista en automatizacion de pruebas responsable de
     disenar e implementar frameworks de testing automatizado,

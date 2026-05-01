@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: strategic
+  reasoning: high
   description: >
     Arquitecto de integraciones responsable de disenar contratos,
     APIs, eventos e interfaces entre sistemas, asegurando

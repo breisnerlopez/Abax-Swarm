@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: primary
   temperature: 0.3
+  cognitive_tier: strategic
+  reasoning: high
   description: >
     Orquestador principal del proyecto. Coordina al equipo de agentes
     IA siguiendo el flujo de trabajo cascada, delegando tareas

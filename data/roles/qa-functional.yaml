@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: mechanical
+  reasoning: none
   description: >
     Tester funcional responsable de disenar casos de prueba,
     ejecutar pruebas, reportar defectos y validar que la solucion

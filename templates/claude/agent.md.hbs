@@ -1,6 +1,6 @@
 # {{id}} — {{name}}
 
-> Modo: {{agent.mode}} | Temperatura: {{agent.temperature}}
+> Modo: {{agent.mode}} | Temperatura: {{agent.temperature}}{{#if model}} | Modelo: {{model}}{{/if}}
 >
 > Herramientas: {{#each agent.tools_enabled}}{{#if this}}{{@key}}{{/if}}{{#unless @last}}, {{/unless}}{{/each}}
 >

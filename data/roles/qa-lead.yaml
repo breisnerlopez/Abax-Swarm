@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: implementation
+  reasoning: medium
   description: >
     Lider de QA responsable de definir estrategia de pruebas,
     plan de calidad, metricas y coordinacion del equipo de testing.

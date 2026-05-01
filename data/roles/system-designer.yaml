@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: strategic
+  reasoning: high
   description: >
     Meta-rol responsable de disenar, refinar y mantener la consistencia
     del sistema Abax Swarm (agentes, skills, tools y rules), asegurando que toda

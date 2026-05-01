@@ -106,6 +106,7 @@ program
         stackId: manifest.project.stack,
         target: manifest.project.target ?? "opencode",
         teamScope: manifest.project.team_scope ?? "full",
+        provider: manifest.project.provider ?? "anthropic",
       };
 
       const selection = runSelection(config, ctx);

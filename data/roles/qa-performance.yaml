@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.1
+  cognitive_tier: mechanical
+  reasoning: low
   description: >
     Especialista en pruebas de rendimiento responsable de
     disenar y ejecutar pruebas de carga, estres y escalabilidad

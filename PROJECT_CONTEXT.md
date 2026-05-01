@@ -146,52 +146,24 @@ npm run dev -- regenerate --dir /path/to/project
 
 Sección viva. Al cerrar un punto, muévelo a un changelog o elimínalo.
 
-### Pendiente: pruebas en Claude Code de selección fina de modelos y parámetros
+### Pendiente: validar el target Claude Code con el mix de modelos
 
-Hoy la investigación sobre configuración por agente se hizo solo contra el target **OpenCode** (ver `src/generator/opencode/`). Falta validar el equivalente en el target **Claude Code** (`src/generator/claude/`):
+La selección fina de modelo por agente está implementada para OpenCode (model + thinking/reasoningEffort en `opencode.json` y en el frontmatter de cada `.opencode/agents/*.md`). Para Claude Code, la línea `> Modelo: ...` aparece en el header del archivo `.claude/agents/*.md` como documentación, pero falta validar:
 
-- Confirmar qué soporta Claude Code en el frontmatter de cada agente generado bajo `.claude/agents/*.md` (modelo por agente, thinking/reasoning, tools, permissions).
-- Mapear las equivalencias entre OpenCode y Claude Code para los parámetros que decidamos exponer en los YAML de roles.
-- Decidir si la abstracción provider-agnóstica (`cognitive_tier`, `reasoning`) en `AgentConfigSchema` se traduce correctamente a ambos targets.
-
-**Por qué importa:** Abax-Swarm genera para los dos targets desde la misma data; cualquier campo nuevo en `AgentConfigSchema` debe poder traducirse a ambos sin acoplarse a un proveedor.
-
-**Cómo aplicar cuando se retome:** crear un `model-mapping` por target (uno en `src/generator/opencode/`, otro en `src/generator/claude/`) y tests en `tests/unit/generator/` que verifiquen que cada `cognitive_tier` y nivel de `reasoning` produce el frontmatter esperado en cada target.
-
-Parámetros confirmados en OpenCode pendientes de evaluar en Claude Code:
-- `model` (override por agente).
-- `thinking: { type: "enabled", budgetTokens }` (Anthropic).
-- `reasoningEffort: high|medium|low|minimal` (OpenAI, vía OpenCode).
-- `top_p`, `steps` (max iteraciones agénticas), `disable`, `hidden`, `color`.
+- Si Claude Code consume frontmatter YAML por agente o requiere otra forma de declarar el modelo.
+- Si soporta `thinking` / `reasoningEffort` por agente.
+- Si conviene mover el modelo a una config global (`claude.config` o equivalente) en lugar de por agente.
 
 ### Mejoras detectadas
 
-#### 1. Código muerto en plantilla de agente OpenCode
-- **Archivo:** `templates/opencode/agent.md.hbs:4`
-- El condicional `{{#if model}}model: {{model}}{{/if}}` nunca dispara porque `src/generator/opencode/agent-generator.ts:14-25` no pasa la variable `model` al `renderTemplate`.
-- **Acción:** o bien activar el flujo (cuando se implemente la selección por agente) o eliminar el condicional para no inducir a error.
-
-#### 2. `AgentConfigSchema` carece de campos de modelo y reasoning
-- **Archivo:** `src/loader/schemas.ts:58-67`
-- Solo expone `mode`, `temperature`, `description`, `system_prompt`, `permissions`, `tools_enabled`.
-- **Acción propuesta:** añadir `cognitive_tier` (`strategic | implementation | mechanical`) y `reasoning` (`none | low | medium | high`) como campos provider-agnósticos. La traducción a `model`/`thinking`/`reasoningEffort` vive en cada generador.
-
-#### 3. `opencode.json` no emite `tools` por agente
-- **Archivo:** `src/generator/opencode/config-generator.ts:11-50`
-- El `AgentConfigSchema` declara `tools_enabled`, pero el `config-generator` no lo incluye en el JSON. Solo `description`, `mode`, `temperature`, `permission`.
+#### 1. `opencode.json` no emite `tools_enabled` por agente
+- **Archivo:** `src/generator/opencode/config-generator.ts`
+- El `AgentConfigSchema` declara `tools_enabled`, pero el `config-generator` no lo incluye en el JSON. Solo emite `description`, `mode`, `temperature`, `permission`, `model` y `thinking`/`reasoningEffort`.
 - **Acción:** verificar si es intencional (tal vez se delega a la plantilla `.md` del agente) o un olvido. Documentar la decisión.
 
-#### 4. Falta capa de mapeo provider-agnóstica
-- No existe un módulo tipo `model-mapping` que traduzca un concepto abstracto del rol (tier, reasoning) a la sintaxis de cada target.
-- **Acción:** introducirlo cuando se aborde la mejora #2 para evitar que cada generador hardcodee nombres de modelo.
-
-#### 5. Defaults globales en `opencode.json`
+#### 2. Defaults globales en `opencode.json`
 - El `opencode.json` generado no emite `model` ni `small_model` a nivel raíz como fallback.
 - **Acción:** considerar emitirlos para que agentes sin override usen un default consistente y para abaratar tareas mecánicas vía `small_model`.
-
-#### 6. Test de integración con timeouts conocidos
-- `tests/integration/e2e-interface.test.ts` está documentado como "puede dar timeout bajo carga, safe to retry".
-- **Acción:** investigar la causa raíz (¿I/O sincrónico, tamaño del fixture, retries internos?) en lugar de normalizar el reintento.
 
 ---
 

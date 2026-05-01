@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import type { Role, Skill } from "../../loader/schemas.js";
+import type { ModelMix, ModelSpec } from "../../engine/types.js";
 import { renderTemplate } from "./template-engine.js";
 
 export interface GeneratedFile {
@@ -9,13 +10,17 @@ export interface GeneratedFile {
 }
 
 /**
- * Generates an agent .md file for OpenCode.
+ * Generates an agent .md file for OpenCode. If a spec is supplied, the
+ * frontmatter includes model + thinking/reasoningEffort.
  */
-export function generateAgentFile(role: Role, skills: Skill[]): GeneratedFile {
+export function generateAgentFile(role: Role, skills: Skill[], spec?: ModelSpec): GeneratedFile {
   const roleSkills = skills.filter((s) => s.used_by.includes(role.id));
   const content = renderTemplate("agent.md.hbs", {
     ...role,
     skills: roleSkills,
+    model: spec?.model,
+    thinking: spec?.thinking,
+    reasoningEffort: spec?.reasoningEffort,
   });
 
   return {
@@ -25,10 +30,10 @@ export function generateAgentFile(role: Role, skills: Skill[]): GeneratedFile {
 }
 
 /**
- * Generates all agent files for a set of roles.
+ * Generates all agent files for a set of roles, optionally per-role specs.
  */
-export function generateAllAgentFiles(roles: Role[], skills: Skill[]): GeneratedFile[] {
-  return roles.map((role) => generateAgentFile(role, skills));
+export function generateAllAgentFiles(roles: Role[], skills: Skill[], mix?: ModelMix): GeneratedFile[] {
+  return roles.map((role) => generateAgentFile(role, skills, mix?.[role.id]));
 }
 
 /**

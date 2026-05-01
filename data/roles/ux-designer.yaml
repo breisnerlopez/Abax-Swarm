@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.5
+  cognitive_tier: implementation
+  reasoning: low
   description: >
     Disenador UX/UI responsable de definir guias de experiencia
     de usuario, wireframes textuales, flujos de navegacion

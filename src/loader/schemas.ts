@@ -55,6 +55,12 @@ const StackOverrideSchema = z.object({
   tools_remove: z.array(z.string()).optional(),
 });
 
+export const CognitiveTier = z.enum(["strategic", "implementation", "mechanical"]);
+export type CognitiveTier = z.infer<typeof CognitiveTier>;
+
+export const ReasoningLevel = z.enum(["none", "low", "medium", "high"]);
+export type ReasoningLevel = z.infer<typeof ReasoningLevel>;
+
 const AgentConfigSchema = z.object({
   mode: AgentMode.default("subagent"),
   temperature: z.number().min(0).max(1).default(0.3),
@@ -64,6 +70,8 @@ const AgentConfigSchema = z.object({
     .record(z.string(), PermissionLevel)
     .default({ read: "allow", edit: "allow", bash: "deny" }),
   tools_enabled: z.record(z.string(), z.boolean()).default({}),
+  cognitive_tier: CognitiveTier.default("implementation"),
+  reasoning: ReasoningLevel.default("none"),
 });
 
 const DependencyBlockSchema = z.object({

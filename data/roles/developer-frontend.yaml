@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: implementation
+  reasoning: low
   description: >
     Desarrollador frontend especializado en implementar interfaces
     de usuario, componentes, navegacion y consumo de APIs
