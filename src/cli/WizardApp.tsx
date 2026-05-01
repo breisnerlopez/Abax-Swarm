@@ -1,5 +1,5 @@
-import { Box, Text, useApp } from "ink";
-import { useState, useEffect, useMemo } from "react";
+import { Box, Text, useApp, useInput } from "ink";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { resolve, basename } from "path";
 import { existsSync, readFileSync, mkdirSync } from "fs";
 import { execSync } from "child_process";
@@ -24,6 +24,9 @@ import { ConfirmInput } from "./components/ConfirmInput.js";
 import { Spinner } from "./components/Spinner.js";
 import { InfoBox } from "./components/InfoBox.js";
 import { RoleEditor } from "./components/RoleEditor.js";
+import { ProgressBar } from "./components/ProgressBar.js";
+import { Sidebar } from "./components/Sidebar.js";
+import type { SidebarItem } from "./components/Sidebar.js";
 
 interface ExistingManifest {
   project: { name: string; description?: string; size: ProjectSize; stack: string };
@@ -80,10 +83,108 @@ function loadExistingManifest(targetDir: string): ExistingManifest | null {
   }
 }
 
+function stepNumber(step: StepName): number | null {
+  switch (step) {
+    case "target-dir":
+    case "existing-confirm":
+      return 1;
+    case "platform":
+      return 2;
+    case "description":
+      return 3;
+    case "size":
+    case "criteria":
+      return 4;
+    case "stack":
+      return 5;
+    case "role-scope":
+    case "role-edit":
+      return 6;
+    case "confirm":
+      return 7;
+    default:
+      return null;
+  }
+}
+
+const SIZE_LABELS: Record<ProjectSize, string> = {
+  small: "Pequeño",
+  medium: "Mediano",
+  large: "Grande",
+};
+
+function buildSidebarItems(data: WizardData, ctx: DataContext): SidebarItem[] {
+  return [
+    { label: "Directorio", value: data.targetDir ?? null },
+    {
+      label: "Plataforma",
+      value: data.target
+        ? data.target === "opencode"
+          ? "OpenCode"
+          : "Claude Code"
+        : null,
+    },
+    { label: "Descripción", value: data.description ?? null },
+    { label: "Tamaño", value: data.size ? SIZE_LABELS[data.size] : null },
+    {
+      label: "Criterios",
+      value: data.criteria
+        ? data.criteria.length === 0
+          ? "ninguno"
+          : `${data.criteria.length} seleccionados`
+        : null,
+    },
+    {
+      label: "Stack",
+      value: data.stackId
+        ? (ctx.stacks.get(data.stackId)?.name ?? data.stackId)
+        : null,
+    },
+    {
+      label: "Equipo",
+      value: data.selection ? `${data.selection.roles.length} roles` : null,
+    },
+  ];
+}
+
 export function WizardApp({ ctx, options }: Props) {
   const { exit } = useApp();
   const [step, setStep] = useState<StepName>("target-dir");
+  const [history, setHistory] = useState<StepName[]>([]);
   const [data, setData] = useState<WizardData>({});
+
+  const go = useCallback(
+    (next: StepName, pushHistory = true) => {
+      if (pushHistory) setHistory((h) => [...h, step]);
+      setStep(next);
+    },
+    [step],
+  );
+
+  const back = useCallback(() => {
+    setHistory((h) => {
+      if (h.length === 0) return h;
+      const prev = h[h.length - 1]!;
+      setStep(prev);
+      return h.slice(0, -1);
+    });
+  }, []);
+
+  // Global Ctrl+B for back
+  useInput((input, key) => {
+    if (key.ctrl && input === "b" && history.length > 0) {
+      // No back from terminal/transient steps
+      if (
+        step === "generating" ||
+        step === "done" ||
+        step === "cancelled" ||
+        step === "post-launch"
+      ) {
+        return;
+      }
+      back();
+    }
+  });
 
   // Auto-exit when reaching terminal states
   useEffect(() => {
@@ -105,10 +206,9 @@ export function WizardApp({ ctx, options }: Props) {
         generated: result,
         finalMessage: `Modo dry-run: ${result.files.length} archivos se generarían. Ejecuta sin --dry-run para escribir.`,
       }));
-      setStep("done");
+      go("done", false);
       return;
     }
-    // async tick so spinner has a chance to render
     const t = setTimeout(() => {
       try {
         writePipeline(result, false);
@@ -117,19 +217,46 @@ export function WizardApp({ ctx, options }: Props) {
           generated: result,
           finalMessage: `${result.files.length} archivos escritos en ${config.targetDir}`,
         }));
-        setStep("post-launch");
+        go("post-launch", false);
       } catch (err) {
         setData((d) => ({ ...d, generationError: (err as Error).message }));
-        setStep("cancelled");
+        go("cancelled", false);
       }
     }, 100);
     return () => clearTimeout(t);
-  }, [step, data, ctx, options]);
+  }, [step, data, ctx, options, go]);
+
+  const stepNum = stepNumber(step);
+  const showChrome = stepNum !== null;
+  const showSidebar = showChrome && step !== "target-dir";
+  const canGoBack =
+    history.length > 0 &&
+    step !== "generating" &&
+    step !== "done" &&
+    step !== "cancelled" &&
+    step !== "post-launch";
 
   return (
     <Box flexDirection="column" paddingX={1}>
       <Header />
-      {renderStep(step, data, setData, setStep, ctx, options)}
+      {showChrome && stepNum !== null && (
+        <ProgressBar current={stepNum} total={TOTAL_STEPS} />
+      )}
+      <Box flexDirection="row">
+        <Box flexGrow={1} flexDirection="column">
+          {renderStep(step, data, setData, go, ctx, options)}
+        </Box>
+        {showSidebar && (
+          <Box marginLeft={2}>
+            <Sidebar items={buildSidebarItems(data, ctx)} />
+          </Box>
+        )}
+      </Box>
+      <Box marginTop={1}>
+        <Text dimColor>
+          {canGoBack ? "Ctrl+B volver  ·  " : ""}Ctrl+C salir
+        </Text>
+      </Box>
     </Box>
   );
 }
@@ -152,7 +279,7 @@ function renderStep(
   step: StepName,
   data: WizardData,
   setData: (fn: (d: WizardData) => WizardData) => void,
-  setStep: (s: StepName) => void,
+  go: (next: StepName, pushHistory?: boolean) => void,
   ctx: DataContext,
   options: { dryRun: boolean },
 ) {
@@ -163,6 +290,7 @@ function renderStep(
           <StepHeader step={1} total={TOTAL_STEPS} title="Directorio del proyecto" />
           <TextInput
             label="Ruta del proyecto destino:"
+            initialValue={data.rawPath}
             placeholder="/ruta/a/mi/proyecto"
             validate={(v) => (!v.trim() ? "Debes ingresar una ruta" : null)}
             onSubmit={(rawPath) => {
@@ -170,7 +298,7 @@ function renderStep(
               if (!existsSync(targetDir)) mkdirSync(targetDir, { recursive: true });
               const existing = loadExistingManifest(targetDir);
               setData((d) => ({ ...d, rawPath, targetDir, existing }));
-              setStep(existing ? "existing-confirm" : "platform");
+              go(existing ? "existing-confirm" : "platform");
             }}
           />
         </Box>
@@ -197,9 +325,9 @@ function renderStep(
             onSubmit={(yes) => {
               if (!yes) {
                 setData((d) => ({ ...d, finalMessage: "Cancelado." }));
-                setStep("cancelled");
+                go("cancelled", false);
               } else {
-                setStep("platform");
+                go("platform");
               }
             }}
           />
@@ -219,7 +347,7 @@ function renderStep(
             ]}
             onSubmit={(target) => {
               setData((d) => ({ ...d, target }));
-              setStep("description");
+              go("description");
             }}
           />
         </Box>
@@ -236,10 +364,10 @@ function renderStep(
           </Box>
           <TextInput
             label="Descripción breve:"
-            initialValue={defaultDesc}
+            initialValue={data.description ?? defaultDesc}
             onSubmit={(description) => {
               setData((d) => ({ ...d, description: description || defaultDesc }));
-              setStep("size");
+              go("size");
             }}
           />
         </Box>
@@ -259,7 +387,7 @@ function renderStep(
             ]}
             onSubmit={(size) => {
               setData((d) => ({ ...d, size }));
-              setStep("criteria");
+              go("criteria");
             }}
           />
         </Box>
@@ -278,7 +406,7 @@ function renderStep(
             options={opts}
             onSubmit={(criteria) => {
               setData((d) => ({ ...d, criteria }));
-              setStep("stack");
+              go("stack");
             }}
           />
         </Box>
@@ -298,7 +426,7 @@ function renderStep(
             options={opts}
             onSubmit={(stackId) => {
               setData((d) => ({ ...d, stackId }));
-              setStep("role-scope");
+              go("role-scope");
             }}
           />
         </Box>
@@ -318,7 +446,6 @@ function renderStep(
             onSubmit={(scope) => {
               const cfg = { ...buildConfig(data), teamScope: scope };
               const sel = runSelection(cfg, ctx);
-              // merge previously configured roles from existing manifest
               if (data.existing?.team?.roles) {
                 const currentIds = new Set(sel.roles.map((s) => s.roleId));
                 for (const prev of data.existing.team.roles) {
@@ -329,7 +456,7 @@ function renderStep(
                 }
               }
               setData((d) => ({ ...d, scope, selection: sel }));
-              setStep("role-edit");
+              go("role-edit");
             }}
           />
         </Box>
@@ -377,7 +504,7 @@ function renderStep(
                   governanceModel: sel.governanceModel,
                 },
               }));
-              setStep("confirm");
+              go("confirm");
             }}
           />
         </Box>
@@ -385,7 +512,7 @@ function renderStep(
     }
 
     case "confirm":
-      return <ConfirmStep data={data} setStep={setStep} options={options} ctx={ctx} />;
+      return <ConfirmStep data={data} go={go} options={options} ctx={ctx} setData={setData} />;
 
     case "generating":
       return (
@@ -410,6 +537,19 @@ function renderStep(
               <Text dimColor>{data.finalMessage}</Text>
             </Box>
           )}
+          {data.generated && data.generated.files.length > 0 && (
+            <Box flexDirection="column" marginBottom={1}>
+              <Text bold>Archivos generados ({data.generated.files.length}):</Text>
+              {data.generated.files.slice(0, 8).map((f) => (
+                <Text dimColor key={f.path}>
+                  · {f.path}
+                </Text>
+              ))}
+              {data.generated.files.length > 8 && (
+                <Text dimColor>… y {data.generated.files.length - 8} más</Text>
+              )}
+            </Box>
+          )}
           <ConfirmInput
             label={`¿Abrir ${cliName} en ${data.targetDir}?`}
             defaultValue={false}
@@ -421,10 +561,10 @@ function renderStep(
                     { stdio: "ignore" },
                   );
                 } catch {
-                  // silently ignore on non-Windows or if it fails
+                  // ignore on non-Windows or if it fails
                 }
               }
-              setStep("done");
+              go("done", false);
             }}
           />
         </Box>
@@ -434,9 +574,7 @@ function renderStep(
     case "done":
       return (
         <Box marginTop={1}>
-          <Text color="green">
-            {data.finalMessage ?? "Listo."}
-          </Text>
+          <Text color="green">{data.finalMessage ?? "Listo."}</Text>
         </Box>
       );
 
@@ -455,14 +593,16 @@ function renderStep(
 
 function ConfirmStep({
   data,
-  setStep,
+  go,
   options,
   ctx,
+  setData,
 }: {
   data: WizardData;
-  setStep: (s: StepName) => void;
+  go: (next: StepName, pushHistory?: boolean) => void;
   options: { dryRun: boolean };
   ctx: DataContext;
+  setData: (fn: (d: WizardData) => WizardData) => void;
 }) {
   const result = useMemo(() => {
     const config = buildConfig(data);
@@ -525,10 +665,11 @@ function ConfirmStep({
         defaultValue={true}
         onSubmit={(yes) => {
           if (!yes) {
-            setStep("cancelled");
+            setData((d) => ({ ...d, finalMessage: "Cancelado. No se modificaron archivos." }));
+            go("cancelled", false);
             return;
           }
-          setStep("generating");
+          go("generating");
         }}
       />
     </Box>

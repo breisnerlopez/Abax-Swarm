@@ -10,3 +10,6 @@ export { StepHeader } from "./StepHeader.js";
 export { Header } from "./Header.js";
 export { RoleEditor } from "./RoleEditor.js";
 export type { RoleEntry, AvailableRole } from "./RoleEditor.js";
+export { ProgressBar } from "./ProgressBar.js";
+export { Sidebar } from "./Sidebar.js";
+export type { SidebarItem } from "./Sidebar.js";
