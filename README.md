@@ -1,367 +1,339 @@
 # Abax Swarm
 
-**AI agent orchestration for software projects.**
+**Genera un equipo de agentes de IA listo para llevar tu proyecto de software de la idea al despliegue.**
 
-Abax Swarm generates a coordinated team of AI agents — each with a specialized role, skills, and tools — that work together following a waterfall methodology to deliver software projects. One CLI command sets up an orchestrator that delegates work across agents, tracks deliverables, and enforces governance.
+Abax Swarm te crea un equipo coordinado de agentes especializados — un Project Manager, un Business Analyst, un Solution Architect, desarrolladores, QA y más — que trabajan juntos siguiendo una metodología en cascada. Tú describes tu proyecto en un asistente interactivo (siete preguntas), y la herramienta produce los archivos que tu cliente de IA (OpenCode o Claude Code) necesita para poner a ese equipo a trabajar.
 
-## How it works
+---
 
-```
-You describe your project
-        │
-        ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   TUI Wizard    │────▶│     Engine       │────▶│    Generator     │
-│  7-step config  │     │  Role selection  │     │  Agents, skills  │
-│                 │     │  Dependencies    │     │  tools, config   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-                                                         │
-                                                         ▼
-                                                 .opencode/ or .claude/
-                                                 Ready to orchestrate
-```
+## ¿Esta guía es para mí?
 
-1. **Configure** — The TUI wizard asks about your project (size, stack, team needs)
-2. **Select** — The engine picks the right agents, resolves dependencies, adapts to your tech stack
-3. **Generate** — Agents, skills, tools, and an orchestrator are written as Markdown/config files
-4. **Run** — Open the project in OpenCode or Claude Code. The orchestrator coordinates the team
+Hay tres caminos en este README según qué quieras hacer. **No tienes que leerlo todo.**
 
-## Quick start
+| Si lo que quieres es… | Ve a |
+|---|---|
+| Usarlo rápido sin saber programación | [Empezar en 2 minutos](#empezar-en-2-minutos) |
+| Personalizar el equipo: agregar tu propio rol, otro stack, etc. | [Personalizar tu equipo](#personalizar-tu-equipo) |
+| Contribuir al código del propio Abax Swarm | [Para desarrolladores](#para-desarrolladores) |
+
+---
+
+## Empezar en 2 minutos
+
+### 1. Instalar
+
+Necesitas Node.js 20 o superior. Si no lo tienes, instálalo desde [nodejs.org](https://nodejs.org).
 
 ```bash
-# Install
 npm install -g abax-swarm
-
-# Initialize a project (interactive wizard)
-abax-swarm init
-
-# Or run directly
-npx abax-swarm init
 ```
 
-The wizard guides you through 7 steps:
-
-| Step | What it does |
-|------|-------------|
-| 1. Directory | Target project folder (creates if needed) |
-| 2. Platform | OpenCode or Claude Code |
-| 3. Project info | Name and description |
-| 4. Classification | Size (small/medium/large) + project criteria |
-| 5. Tech stack | 13 stacks available (React+Next.js, Angular+Spring, Python+FastAPI, etc.) |
-| 6. Team review | Add/remove agents from the auto-selected team |
-| 7. Confirmation | Preview files and generate |
-
-## Screenshots
-
-The wizard renders as a single-page Ink app with a progress bar, a 2-column layout (active step on the left, running summary on the right) and `Ctrl+B` to step back at any point.
-
-Step 1 — directory input, before any context is set:
-
-![Wizard initial screen](docs/screenshots/01-wizard-start.png)
-
-Step 4 — project criteria multi-select. The sidebar shows what was chosen in earlier steps:
-
-![Criteria multi-select with sidebar](docs/screenshots/02-criteria-multiselect.png)
-
-Step 6 — team review. The role editor lists every selected agent with its role type (indispensable, recommended, criteria-driven) and lets you add or remove roles:
-
-![Team review with role editor](docs/screenshots/03-team-editor.png)
-
-Step 7 — confirmation and generation. Compact preview of the file groups that will be written, with running summary still visible:
-
-![Confirmation step](docs/screenshots/05-confirmation.png)
-
-End state in `--dry-run` mode, showing how many files the current configuration would generate:
-
-![Dry-run summary](docs/screenshots/04-dryrun-summary.png)
-
-## What gets generated
-
-```
-your-project/
-├── .opencode/
-│   ├── agents/
-│   │   ├── orchestrator.md        ← Coordinates all agents
-│   │   ├── project-manager.md     ← Planning, tracking, risks
-│   │   ├── business-analyst.md    ← Requirements, user stories
-│   │   ├── solution-architect.md  ← Architecture, design decisions
-│   │   ├── developer-backend.md   ← Backend implementation
-│   │   ├── developer-frontend.md  ← Frontend implementation
-│   │   ├── qa-lead.md             ← Test strategy, quality gates
-│   │   └── ...                    ← More agents based on project size
-│   ├── skills/                    ← Reusable skill instructions
-│   └── tools/                     ← Tool implementations (TypeScript)
-├── opencode.json                  ← Platform configuration
-└── project-manifest.yaml          ← Project metadata
-```
-
-## Agents
-
-20 specialized roles organized in 3 tiers:
-
-### Tier 1 — Core agents (always available)
-
-| Agent | Role |
-|-------|------|
-| `project-manager` | Planning, tracking, risks, governance |
-| `product-owner` | Vision, backlog, prioritization |
-| `business-analyst` | Requirements, process mapping, user stories |
-| `solution-architect` | Architecture, ADRs, technical decisions |
-| `tech-lead` | Technical guidance, code standards, reviews |
-| `developer-backend` | Backend implementation, APIs, services |
-| `developer-frontend` | Frontend implementation, components, state |
-| `qa-lead` | Test strategy, quality metrics |
-| `qa-functional` | Test cases, manual testing, defect reporting |
-| `devops` | CI/CD, containers, deployments, environments |
-
-### Tier 2 — Specialized agents (added by project size/criteria)
-
-| Agent | When added |
-|-------|-----------|
-| `dba` | Projects with complex data models |
-| `security-architect` | Regulatory compliance, sensitive data |
-| `integration-architect` | Multiple system integrations |
-| `qa-automation` | Large test suites requiring automation |
-| `qa-performance` | Performance-critical systems |
-| `ux-designer` | User-facing applications |
-| `tech-writer` | Documentation-heavy projects |
-| `change-manager` | Organizational change management |
-
-### Special roles
-
-| Role | Purpose |
-|------|---------|
-| `orchestrator` | Coordinates all agents, enforces phase flow, delegates via Task tool |
-| `system-designer` | Meta-role for modifying Abax Swarm itself (not part of projects) |
-
-## Project phases
-
-The orchestrator follows a waterfall methodology with mandatory gates:
-
-```
-Phase 0: Discovery          ← Iterative: epics, features, user stories, backlog
-Phase 1: Inception          ← Charter, kickoff, stakeholder registry
-Phase 2: Functional Analysis ← Specs, process maps, business rules
-Phase 3: Technical Design    ← Architecture, data model, task decomposition
-Phase 4: Construction        ← Sprint-based implementation
-Phase 5: QA / Testing        ← Test execution, defect resolution
-Phase 6: UAT                 ← User acceptance, sign-off
-Phase 7: Deployment          ← Go-live readiness, rollback plan
-Phase 8: Stabilization       ← Post-production support
-Phase 9: Closure             ← Lessons learned, project close
-```
-
-Each phase has mandatory deliverables, a RACI matrix, and a gate approver. The orchestrator will not advance to the next phase until all deliverables are complete and approved.
-
-## Tech stacks
-
-13 pre-configured stacks that adapt agent prompts with stack-specific context:
-
-| Stack | Frontend | Backend |
-|-------|----------|---------|
-| `react-nextjs` | React + Next.js | Next.js API Routes |
-| `react-nestjs` | React | NestJS |
-| `vue-nuxt` | Vue + Nuxt | Nuxt Server |
-| `angular-springboot` | Angular | Spring Boot |
-| `angular-quarkus` | Angular | Quarkus |
-| `astro-hono` | Astro | Hono |
-| `python-fastapi` | — | FastAPI |
-| `python-django` | — | Django |
-| `dotnet-blazor` | Blazor | .NET |
-| `go-fiber` | — | Go Fiber |
-| `rust-axum` | — | Rust Axum |
-| `flutter-dart` | Flutter | Dart |
-| `react-native-expo` | React Native | Expo |
-
-## Skills & tools
-
-**70 skills** — Reusable instruction sets that agents reference (functional analysis, test strategy, risk matrix, presentation design, etc.)
-
-**7 tools** — TypeScript implementations agents can execute (create-document, generate-diagram, create-presentation, run-tests, lint-code, db-migrate, create-dashboard)
-
-## Governance models
-
-Automatically selected based on project size:
-
-| Size | Team | Model | Characteristics |
-|------|------|-------|----------------|
-| Small | 5-7 agents | Lightweight | Minimal ceremony, PM approves gates |
-| Medium | 10-12 agents | Controlled | Formal deliverables, PO + PM gates |
-| Large | 14-18 agents | Corporate | Full RACI, steering committee, change control |
-
-## Key features
-
-- **Iterative discovery** — Phase 0 loops until the user approves the backlog (epics → features → user stories → prioritized backlog)
-- **HTML presentations** — All presentations are autonomous HTML files with a consistent Design System created by the UX designer in Phase 0
-- **Documentation trail** — Every deliverable is written to `docs/entregables/`, with a project log (`docs/bitacora.md`) and deliverable registry (`docs/registro-entregables.md`)
-- **Anti-AI-slop design** — Presentation guidelines include rules against common LLM visual defaults (purple gradients, pure grays, nested cards)
-- **Stack-aware prompts** — Agent instructions are enriched with stack-specific context (frameworks, conventions, tooling)
-- **Dependency resolution** — Hard dependencies are auto-included; soft dependencies generate warnings
-
-## Other commands
+### 2. Ejecutar el asistente
 
 ```bash
-# List all available roles
-abax-swarm roles
-
-# List all available stacks
-abax-swarm stacks
-
-# Validate all YAML data files
-abax-swarm validate
-
-# Regenerate files from existing project-manifest.yaml
-abax-swarm regenerate --dir /path/to/project
+abax-swarm init
 ```
 
-## Project structure
+Aparece un wizard en tu terminal con barra de progreso, resumen lateral y la posibilidad de volver atrás con `Ctrl+B`.
 
-```
-abax-swarm/
-├── src/
-│   ├── cli/                    ← TUI wizard, commands, formatting
-│   │   ├── app.ts              ← Commander entry point
-│   │   ├── wizard.ts           ← 7-step interactive wizard
-│   │   ├── pipeline.ts         ← Orchestrates engine + generator
-│   │   ├── prompts.ts          ← readline-based prompts
-│   │   └── format.ts           ← Terminal output formatting
-│   ├── engine/                 ← Core logic (pure functions, no I/O)
-│   │   ├── role-selector.ts    ← Size + criteria → role selection
-│   │   ├── dependency-resolver.ts ← Transitive dependency resolution
-│   │   ├── skill-resolver.ts   ← Roles → skills deduction
-│   │   ├── tool-resolver.ts    ← Roles → tools deduction
-│   │   ├── stack-adapter.ts    ← Merges stack context into prompts
-│   │   ├── governance-resolver.ts ← Size → governance model
-│   │   └── types.ts            ← Core type definitions
-│   ├── generator/              ← File generation (Handlebars templates)
-│   │   ├── opencode/           ← OpenCode target (.opencode/)
-│   │   └── claude/             ← Claude Code target (.claude/)
-│   ├── loader/                 ← YAML loading + Zod validation
-│   │   ├── schemas.ts          ← Zod schemas for all entities
-│   │   ├── role-loader.ts      ← Role YAML → typed objects
-│   │   ├── skill-loader.ts     ← Skill YAML → typed objects
-│   │   └── ...
-│   └── validator/              ← Post-generation validation
-│       ├── orchestrator-validator.ts ← Agent references, sections
-│       └── raci-validator.ts   ← RACI completeness
-├── data/                       ← Canonical YAML data (decoupled from code)
-│   ├── roles/                  ← 20 role definitions
-│   ├── skills/                 ← 70 skill definitions
-│   ├── tools/                  ← 7 tool definitions
-│   ├── stacks/                 ← 13 stack configurations
-│   └── rules/                  ← 7 rule sets (size matrix, RACI, deps, etc.)
-├── templates/                  ← Handlebars templates
-│   ├── opencode/               ← .md.hbs templates for OpenCode
-│   └── claude/                 ← .md.hbs templates for Claude Code
-├── tests/                      ← 212 tests (Vitest)
-│   ├── unit/                   ← Unit tests per module
-│   ├── integration/            ← Cross-module, pipeline, data consistency
-│   └── fixtures/               ← Test data
-├── docs/                       ← Documentation
-│   ├── architecture.md         ← System layers, data flow
-│   ├── data-model.md           ← YAML schemas and entity relationships
-│   ├── guides/                 ← How-to guides
-│   │   ├── adding-roles.md     ← Create a new agent role
-│   │   ├── adding-skills.md    ← Create a new skill
-│   │   ├── adding-stacks.md    ← Add a tech stack
-│   │   └── orchestrator-flow.md ← Runtime orchestration behavior
-│   └── internal/               ← Development history (not product docs)
-└── examples/
-    └── test-prompts.md         ← Validation prompts for testing agents
+![Pantalla inicial del wizard](docs/screenshots/01-wizard-start.png)
+
+### 3. Responder las 7 preguntas
+
+No hace falta conocimiento técnico para responder. Cada paso te explica las opciones.
+
+| Paso | Qué te pregunta | Cómo responder |
+|---|---|---|
+| 1. Directorio | ¿Dónde quieres tu proyecto? | Una ruta de carpeta. Si no existe, se crea. |
+| 2. Plataforma | ¿OpenCode o Claude Code? | Lo que uses tú habitualmente. |
+| 3. Información | Nombre y descripción breve. | Para que los agentes sepan de qué va el proyecto. |
+| 4. Tamaño | ¿Pequeño, mediano o grande? | Pequeño = 3-6 personas, < 6 meses. Mediano = 7-15 / 6-12 meses. Grande = 15+ personas. |
+| 4b. Características | ¿El proyecto tiene datos sensibles? ¿integraciones? ¿móvil? | Marca con `Espacio` lo que aplique. Esto añade roles especialistas (security, integrations, mobile, etc). |
+| 5. Stack | ¿Qué tecnología usarán? | React, Angular, Python, .NET y 9 más. Si no estás seguro, pregunta a tu equipo técnico. |
+| 6. Equipo | Revisa el equipo propuesto. | Puedes quitar o agregar roles. El asistente te avisa si quitas uno indispensable. |
+| 7. Confirmación | Última vista previa. | Pulsa Enter para generar los archivos. |
+
+![Asistente preguntando por criterios del proyecto](docs/screenshots/02-criteria-multiselect.png)
+
+![Editor del equipo](docs/screenshots/03-team-editor.png)
+
+![Confirmación con vista previa de archivos](docs/screenshots/05-confirmation.png)
+
+### 4. Abrir tu proyecto en OpenCode o Claude Code
+
+Una vez generados los archivos, ve a la carpeta del proyecto y abre tu cliente de IA. El **orquestador** ya está listo para coordinar al equipo.
+
+```bash
+cd ruta/a/tu-proyecto
+opencode --agent orchestrator    # si elegiste OpenCode
+# o:
+claude                            # si elegiste Claude Code
 ```
 
-## Documentation
+### 5. Hablar con el orquestador
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/architecture.md) | System layers, data flow, component overview |
-| [Data Model](docs/data-model.md) | YAML schemas for roles, skills, tools, stacks, rules |
-| [Adding Roles](docs/guides/adding-roles.md) | How to create a new agent role |
-| [Adding Skills](docs/guides/adding-skills.md) | How to create a new skill |
-| [Adding Stacks](docs/guides/adding-stacks.md) | How to add a tech stack |
-| [Orchestrator Flow](docs/guides/orchestrator-flow.md) | How the orchestrator coordinates agents at runtime |
+El orquestador te recibirá con una **fase de descubrimiento** — preguntas sobre épicas, funcionalidades y prioridades. A partir de tus respuestas:
 
-## Architecture
+- Delega trabajo a los agentes adecuados (PM, BA, arquitecto, devs, QA…).
+- Lleva un registro de cada entregable en `docs/entregables/`.
+- No deja avanzar a la siguiente fase sin tener cerrada la actual.
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Data Layer │     │   Engine    │     │  Generator  │
-│  YAML + Zod │────▶│  Selection  │────▶│  Handlebars │
-│  20 roles   │     │  Resolution │     │  OpenCode   │
-│  70 skills  │     │  Adaptation │     │  Claude     │
-│  7 tools    │     │             │     │             │
-│  13 stacks  │     │             │     │             │
-│  7 rules    │     │             │     │             │
-└─────────────┘     └─────────────┘     └─────────────┘
-                          │
-                    ┌─────────────┐
-                    │  Validators │
-                    │  RACI       │
-                    │  Orchestr.  │
-                    └─────────────┘
+Tú actúas como **Product Owner / dueño del proyecto**: revisas entregables, apruebas pasos, das contexto. El orquestador y los agentes se encargan del flujo.
+
+### Modo dry-run (sin escribir archivos)
+
+Si quieres ver lo que se generaría **sin tocar disco**, agrega `--dry-run`:
+
+```bash
+abax-swarm init --dry-run
 ```
 
-**Data flow:**
+![Resumen modo dry-run](docs/screenshots/04-dryrun-summary.png)
+
+---
+
+## ¿Qué se genera?
+
+Cuando confirmas, Abax Swarm escribe esta estructura en tu carpeta:
 
 ```
-ProjectConfig (name, size, criteria, stack, target)
-  │
-  ├─▶ selectRoles(size, criteria)         → RoleSelection[]
-  │     └─▶ resolveDependencies()         → SelectionResult
-  │
-  ├─▶ resolveSkills(roleIds)              → Skill[]
-  ├─▶ resolveTools(roleIds)               → Tool[]
-  ├─▶ adaptAllRolesToStack(roles, stack)  → Role[] (with stack context)
-  │
-  └─▶ generate*Files()                    → GeneratedFile[]
-        └─▶ writeGeneratedFiles(files, dir)
+tu-proyecto/
+├── .opencode/                    (o .claude/, según la plataforma elegida)
+│   ├── agents/
+│   │   ├── orchestrator.md       ← Coordina a todos los agentes
+│   │   ├── project-manager.md
+│   │   ├── business-analyst.md
+│   │   ├── solution-architect.md
+│   │   ├── developer-backend.md
+│   │   └── …                     (entre 5 y 18 agentes según tamaño)
+│   ├── skills/                   ← Conocimientos reutilizables
+│   └── tools/                    ← Herramientas que los agentes pueden ejecutar
+├── opencode.json                 ← Configuración de la plataforma
+└── project-manifest.yaml         ← Metadata del proyecto
 ```
 
-## Requirements
+Los agentes son archivos Markdown con instrucciones claras de qué hacer, qué entregar, cuándo intervenir y a quién consultar.
+
+---
+
+## El equipo y las fases
+
+### Roles base (siempre presentes)
+
+Project Manager, Product Owner, Business Analyst, Solution Architect, Tech Lead, Backend Developer, Frontend Developer, QA Lead, QA Funcional, DevOps.
+
+### Roles especializados (se añaden según las características marcadas)
+
+DBA · Security Architect · Integration Architect · QA Automation · QA Performance · UX Designer · Tech Writer · Change Manager.
+
+### Fases del proyecto (cascada)
+
+```
+0. Descubrimiento     → épicas, features, historias, backlog
+1. Inception          → charter, kickoff, stakeholders
+2. Análisis funcional → especificaciones, reglas de negocio
+3. Diseño técnico     → arquitectura, modelo de datos, tareas
+4. Construcción       → implementación por sprints
+5. QA / Testing       → ejecución, defectos
+6. UAT                → aceptación del usuario
+7. Despliegue         → puesta en producción, rollback
+8. Estabilización     → soporte post-producción
+9. Cierre             → lecciones aprendidas
+```
+
+Cada fase tiene entregables obligatorios y una persona/rol que la aprueba. El orquestador no avanza si la fase actual no está completa.
+
+### Stacks tecnológicos (13 disponibles)
+
+`react-nextjs` · `react-nestjs` · `vue-nuxt` · `angular-springboot` · `angular-quarkus` · `astro-hono` · `python-fastapi` · `python-django` · `dotnet-blazor` · `go-fiber` · `rust-axum` · `flutter-dart` · `react-native-expo`
+
+Lista completa: `abax-swarm stacks`.
+
+---
+
+## Personalizar tu equipo
+
+Esta sección es para usuarios con algo de manejo de archivos YAML. Si nunca has tocado un YAML, mira [este tutorial corto](https://learnxinyminutes.com/docs/yaml/) (10 minutos) y vuelve.
+
+**Lo importante:** Abax Swarm guarda **toda** su definición de roles, habilidades, herramientas, stacks y reglas en archivos YAML dentro de `data/`. Para personalizar **no necesitas tocar TypeScript** — basta editar YAML.
+
+### Agregar un rol propio
+
+1. **Clona el repo** (si vas a contribuir tu rol al proyecto) o trabaja sobre tu copia local.
+
+   ```bash
+   git clone https://github.com/breisnerlopez/Abax-Swarm.git
+   cd Abax-Swarm
+   npm install
+   ```
+
+2. **Crea el archivo del rol** en `data/roles/mi-rol.yaml`:
+
+   ```yaml
+   id: mi-rol
+   name: Mi Rol Personalizado
+   tier: 2                        # 1 = core, 2 = especializado
+   category: technical            # functional, technical, support, governance
+   description: Una línea explicando qué hace.
+   responsibilities:
+     - Una lista de responsabilidades.
+     - Lo que entrega y cuándo.
+   skills:
+     - skill-id-existente         # IDs de data/skills/*.yaml
+   tools:
+     - tool-id-existente          # IDs de data/tools/*.yaml
+   phases:
+     - construction               # En qué fases participa
+     - qa-testing
+   prompt_extra: |
+     Instrucciones adicionales que se añaden al system prompt del agente.
+   ```
+
+3. **Regístralo en las reglas:**
+   - `data/rules/size-matrix.yaml` — para qué tamaños aplica el rol.
+   - `data/rules/dependency-graph.yaml` — si depende de otros roles.
+   - `data/rules/raci-matrix.yaml` — su responsabilidad en cada actividad.
+   - `data/rules/criteria-rules.yaml` (opcional) — si solo aplica cuando se marcan ciertos criterios.
+
+4. **Validar y probar:**
+
+   ```bash
+   npm run validate    # verifica que los YAML son válidos
+   npm test            # corre los tests de consistencia entre entidades
+   ```
+
+   Si validate o test fallan, te dirán exactamente qué referencia rota hay (skill inexistente, fase desconocida, etc.).
+
+5. **Probarlo en un proyecto:**
+
+   ```bash
+   npm run dev -- init
+   ```
+
+Guía detallada: [docs/guides/adding-roles.md](docs/guides/adding-roles.md).
+
+### Agregar una habilidad o herramienta
+
+Mismo patrón:
+- `data/skills/mi-skill.yaml` — guía para [agregar skill](docs/guides/adding-skills.md).
+- `data/tools/mi-tool.yaml` — guía similar.
+
+### Agregar un stack tecnológico
+
+Si tu equipo usa una combinación distinta (p.ej. Svelte + Rails), crea `data/stacks/svelte-rails.yaml` con la información del framework, convenciones y contexto que se inyecta en los prompts. Detalle: [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md).
+
+### Modificar el comportamiento de un rol existente
+
+Edita el YAML del rol en `data/roles/<rol>.yaml`. Cambia `responsibilities`, `skills`, `tools`, `phases` o `prompt_extra`. Corre `npm run validate` y `npm test` para asegurar consistencia.
+
+---
+
+## Para desarrolladores
+
+Esta sección es para quien quiera trabajar en el código de Abax Swarm (no solo en sus datos).
+
+### Arquitectura
+
+Cuatro capas con flujo unidireccional:
+
+```
+data/ (YAML)  →  loader/  →  engine/  →  generator/  →  .opencode/ ó .claude/
+                  (Zod)     (puro)      (Handlebars)
+```
+
+- **Loader**: lee YAML, valida con Zod, devuelve mapas tipados.
+- **Engine**: funciones puras (sin I/O). Selecciona roles, resuelve dependencias, deduce skills/tools, adapta al stack, escoge gobernanza.
+- **Generator**: dos targets paralelos (OpenCode, Claude Code) que comparten la misma salida del engine pero producen estructuras de archivo distintas.
+- **Validator**: chequeos post-generación (referencias del orquestador, completitud RACI).
+
+Documentación detallada: [docs/architecture.md](docs/architecture.md) y [docs/data-model.md](docs/data-model.md).
+
+### Comandos de desarrollo
+
+```bash
+npm install                       # instalar dependencias
+npm test                          # 216 tests (Vitest)
+npm run test:watch                # modo watch
+npm run typecheck                 # tsc --noEmit
+npm run lint                      # ESLint sobre src/ y tests/
+npm run validate                  # validar todos los YAML de data/
+npm run dev -- init               # ejecutar el wizard en modo dev
+npm run build                     # compilar TypeScript a dist/
+```
+
+### Workflow de Git
+
+GitHub Flow simple:
+
+- Trunk: `main`. Es la rama que se publica.
+- Trabajo en ramas cortas con prefijo: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `chore/`.
+- Squash merge a `main` vía PR. CI corre `validate` + auto-label como required checks.
+- Releases: tag `vX.Y.Z` sobre `main`. Esto dispara `release.yml`, que builda, empaqueta con `npm pack` y publica un GitHub Release con `.tgz` adjunto y notas auto-generadas.
+
+Más detalle en [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+
+### Convenciones
+
+- **Código en inglés**, **contenido y UI en español** (variables y funciones en inglés; YAML, prompts y textos del wizard en español).
+- IDs en `kebab-case`: `developer-backend`, `react-nextjs`.
+- Esquemas Zod en `src/loader/schemas.ts` son la única fuente de verdad para los tipos.
+
+### Estructura del repo
+
+```
+src/
+├── cli/         ← TUI Ink (WizardApp.tsx) + comandos
+├── engine/      ← Selección, dependencias, adaptación al stack
+├── generator/   ← Generadores OpenCode y Claude
+├── loader/      ← Carga + validación Zod de YAML
+└── validator/   ← Validación post-generación
+
+data/            ← Datos canónicos (YAML, fuente de verdad)
+├── roles/       ← 20 roles
+├── skills/      ← 70 habilidades
+├── tools/       ← 7 herramientas
+├── stacks/      ← 13 stacks
+└── rules/       ← Matrices (size, RACI, dependencies, criteria)
+
+templates/       ← Plantillas Handlebars (.md.hbs) para cada target
+tests/           ← Vitest, unit + integración (216 tests)
+docs/            ← Documentación detallada
+```
+
+---
+
+## Comandos disponibles
+
+```bash
+abax-swarm init                              # asistente interactivo
+abax-swarm init --dry-run                    # vista previa sin escribir
+abax-swarm roles                             # listar roles disponibles
+abax-swarm stacks                            # listar stacks
+abax-swarm validate                          # validar los YAML de data/
+abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest existente
+```
+
+---
+
+## Recursos
+
+| Documento | Para qué |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Capas del sistema, flujo de datos |
+| [docs/data-model.md](docs/data-model.md) | Esquemas YAML de cada entidad |
+| [docs/guides/adding-roles.md](docs/guides/adding-roles.md) | Cómo agregar un rol |
+| [docs/guides/adding-skills.md](docs/guides/adding-skills.md) | Cómo agregar una habilidad |
+| [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) | Cómo agregar un stack |
+| [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) | Cómo opera el orquestador en runtime |
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Resumen del sistema, convenciones, workflow Git |
+
+---
+
+## Requisitos
 
 - Node.js >= 20
 - npm
 
-## Development
+## Licencia
 
-```bash
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Type check
-npm run typecheck
-
-# Validate YAML data
-npm run validate
-
-# Run the wizard in dev mode
-npm run dev -- init
-```
-
-## Dependencies
-
-### Runtime
-| Package | Purpose |
-|---------|---------|
-| `commander` | CLI framework (commands, options, help) |
-| `handlebars` | Template engine for agent/skill/tool generation |
-| `yaml` | YAML parsing for canonical data files |
-| `zod` | Schema validation and TypeScript type inference |
-
-### Dev
-| Package | Purpose |
-|---------|---------|
-| `typescript` | TypeScript 6 compiler |
-| `vitest` | Test runner (212 tests, >90% coverage) |
-| `tsx` | TypeScript execution for dev mode |
-| `eslint` + `prettier` | Linting and formatting |
-
-## License
-
-MIT
+MIT.
