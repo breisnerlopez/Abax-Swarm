@@ -189,10 +189,86 @@ Parámetros confirmados en OpenCode pendientes de evaluar en Claude Code:
 - El `opencode.json` generado no emite `model` ni `small_model` a nivel raíz como fallback.
 - **Acción:** considerar emitirlos para que agentes sin override usen un default consistente y para abaratar tareas mecánicas vía `small_model`.
 
-#### 6. `PROJECT_CONTEXT.md` es propiedad de `root`
-- El repo entero está bajo `root:root` mientras el usuario habitual es `terminaladmin`. Cada edición requiere `sudo`.
-- **Acción:** si es un entorno personal, considerar `sudo chown -R terminaladmin:terminaladmin .` para evitar fricción. Verificar antes que no haya razón deliberada.
-
-#### 7. Test de integración con timeouts conocidos
+#### 6. Test de integración con timeouts conocidos
 - `tests/integration/e2e-interface.test.ts` está documentado como "puede dar timeout bajo carga, safe to retry".
 - **Acción:** investigar la causa raíz (¿I/O sincrónico, tamaño del fixture, retries internos?) en lugar de normalizar el reintento.
+
+---
+
+## Workflow Git (gitflow)
+
+El repo sigue el modelo **gitflow** estándar.
+
+### Ramas permanentes
+
+- `main` — código en producción; refleja la última release.
+- `develop` — rama de integración; base para todas las features y bugfixes.
+
+### Ramas efímeras
+
+| Tipo | Prefijo | Origen | Destino al cerrar |
+|---|---|---|---|
+| Feature | `feature/<nombre>` | `develop` | merge a `develop` |
+| Bugfix no urgente | `bugfix/<nombre>` | `develop` | merge a `develop` |
+| Release | `release/<x.y.z>` | `develop` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
+| Hotfix urgente | `hotfix/<x.y.z>` | `main` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
+| Support | `support/<x.y>` | `main` | mantenimiento de mainlines antiguas |
+
+### Configuración aplicada en el repo
+
+Las claves `gitflow.*` están en `.git/config` (`--local`):
+
+```
+gitflow.branch.master   = main
+gitflow.branch.develop  = develop
+gitflow.prefix.feature  = feature/
+gitflow.prefix.bugfix   = bugfix/
+gitflow.prefix.release  = release/
+gitflow.prefix.hotfix   = hotfix/
+gitflow.prefix.support  = support/
+gitflow.prefix.versiontag = v
+```
+
+Los comandos `git flow ...` requieren la CLI `git-flow` instalada en tu máquina (`apt install git-flow`, `brew install git-flow-avh` o equivalente). Como alternativa, las mismas operaciones se pueden hacer con `git` plano.
+
+### Comandos típicos
+
+```bash
+# Feature
+git flow feature start mi-feature       # crea feature/mi-feature desde develop
+git flow feature finish mi-feature      # mergea a develop, borra la rama
+
+# Release
+git flow release start 0.2.0            # crea release/0.2.0 desde develop
+# (bump de version en package.json, CHANGELOG, etc.)
+git flow release finish 0.2.0           # mergea a main, crea tag v0.2.0, mergea a develop
+git push origin main develop --tags
+
+# Hotfix
+git flow hotfix start 0.1.1             # crea hotfix/0.1.1 desde main
+git flow hotfix finish 0.1.1            # mergea a main, tag v0.1.1, mergea a develop
+git push origin main develop --tags
+```
+
+### Versionado
+
+- **SemVer** (`MAJOR.MINOR.PATCH`).
+- Tags con prefijo `v` (`v0.1.0`, `v0.2.0`, …).
+- Mantén sincronizada la `version` en `package.json` con el tag de cada release.
+
+### Pull requests
+
+Todos los cambios entran al repo vía pull request. Convenciones:
+
+- `feature/*` y `bugfix/*` mergean a `develop` con **squash merge** (un commit limpio por feature).
+- `release/*` y `hotfix/*` mergean a `main` con **merge commit** (preserva la historia de la rama y queda asociada al tag).
+- Las ramas `main` y `develop` están protegidas: PR obligatorio, no force-push, no deletion, conversaciones resueltas antes de mergear.
+- El checklist mínimo del PR vive en `.github/pull_request_template.md`.
+
+Antes de abrir el PR, asegúrate de que pasen:
+
+```bash
+npm test
+npm run typecheck
+npm run validate    # solo si tocaste data/
+```
