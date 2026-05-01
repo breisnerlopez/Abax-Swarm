@@ -665,6 +665,11 @@ function ConfirmStep({
     return groups;
   }, [result]);
 
+  const [showAllDirs, setShowAllDirs] = useState(false);
+  useInput((input) => {
+    if (input.toLowerCase() === "e") setShowAllDirs((v) => !v);
+  });
+
   const isUpdate = existsSync(resolve(data.targetDir!, "project-manifest.yaml"));
   const confirmMsg = options.dryRun
     ? "(dry-run) ¿Continuar para mostrar resumen?"
@@ -700,18 +705,17 @@ function ConfirmStep({
         <Text bold>Archivos a generar ({result.files.length}):</Text>
       </Box>
       <Box flexDirection="column" marginBottom={1}>
-        {Array.from(filesByDir)
-          .slice(0, 8)
+        {(showAllDirs ? Array.from(filesByDir) : Array.from(filesByDir).slice(0, 8))
           .map(([dir, files]) => (
             <Box flexDirection="column" key={dir}>
               <Text color="cyan">{dir}/</Text>
-              {files.slice(0, 4).map((f) => (
+              {(showAllDirs ? files : files.slice(0, 4)).map((f) => (
                 <Text dimColor key={f}>
                   {"  ├─ "}
                   {f}
                 </Text>
               ))}
-              {files.length > 4 && (
+              {!showAllDirs && files.length > 4 && (
                 <Text dimColor>
                   {"  └─ … y "}
                   {files.length - 4} más
@@ -719,7 +723,7 @@ function ConfirmStep({
               )}
             </Box>
           ))}
-        {filesByDir.size > 8 && (
+        {!showAllDirs && filesByDir.size > 8 && (
           <Box marginTop={1}>
             <Text dimColor>
               … y {filesByDir.size - 8} directorios más con{" "}
@@ -727,8 +731,13 @@ function ConfirmStep({
                 Array.from(filesByDir)
                   .slice(0, 8)
                   .reduce((acc, [, fs]) => acc + fs.length, 0)}{" "}
-              archivos
+              archivos · pulsa [E] para ver todo
             </Text>
+          </Box>
+        )}
+        {showAllDirs && (
+          <Box marginTop={1}>
+            <Text dimColor>[E] colapsar</Text>
           </Box>
         )}
       </Box>
