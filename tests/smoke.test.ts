@@ -9,7 +9,7 @@ import {
   CriteriaRulesSchema,
   DependencyGraphSchema,
 } from "../src/loader/schemas.js";
-import { loadYamlFile, YamlValidationError } from "../src/loader/yaml-loader.js";
+import { loadYamlFile } from "../src/loader/yaml-loader.js";
 
 const FIXTURES = join(__dirname, "fixtures");
 

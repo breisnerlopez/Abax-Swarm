@@ -87,7 +87,6 @@ describe("selectBySize", () => {
     const full = selectBySize("medium", sizeMatrix, "full");
     const lean = selectBySize("medium", sizeMatrix, "lean");
 
-    const fullRecommended = full.filter((r) => r.reason === "recommended");
     const leanRecommended = lean.filter((r) => r.reason === "recommended");
 
     expect(leanRecommended.length).toBe(0);
