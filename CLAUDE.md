@@ -95,4 +95,4 @@ After changing any YAML in `data/`:
 - `tests/unit/cli/` — Pipeline orchestration, data context loading
 - `tests/integration/data-consistency.test.ts` — Cross-entity validation (skills↔roles, deps↔roles, RACI↔roles)
 - `tests/integration/full-pipeline.test.ts` — End-to-end: config → selection → generation → validation
-- `tests/integration/e2e-interface.test.ts` — Write → read → regenerate cycle (may timeout under load, safe to retry)
+- `tests/integration/e2e-interface.test.ts` — Write → read → regenerate cycle
