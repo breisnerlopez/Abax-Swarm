@@ -227,6 +227,10 @@ Si tu equipo usa una combinación distinta (p.ej. Svelte + Rails), crea `data/st
 
 Edita el YAML del rol en `data/roles/<rol>.yaml`. Cambia `responsibilities`, `skills`, `tools`, `phases` o `prompt_extra`. Corre `npm run validate` y `npm test` para asegurar consistencia.
 
+### Cambiar el modelo o thinking de un rol
+
+Cada rol declara `cognitive_tier` (`strategic` / `implementation` / `mechanical`) y `reasoning` (`none` / `low` / `medium` / `high`) en su YAML. El motor traduce eso a un modelo concreto del proveedor elegido. La tabla completa por rol con justificación, los tradeoffs considerados y las tres formas de override viven en [docs/model-mix.md](docs/model-mix.md).
+
 ---
 
 ## Para desarrolladores

@@ -37,6 +37,7 @@
    - `data/rules/dependency-graph.yaml` (si depende de otros)
    - `data/rules/raci-matrix.yaml` (su responsabilidad por actividad)
    - `data/rules/criteria-rules.yaml` (si aplica solo bajo ciertos criterios)
+   - Asigna `cognitive_tier` y `reasoning` siguiendo la heurística de [docs/model-mix.md](docs/model-mix.md).
 
 ## Flujo de PR
 
