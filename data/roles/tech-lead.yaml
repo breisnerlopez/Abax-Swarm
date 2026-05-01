@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: implementation
+  reasoning: medium
   description: >
     Lider tecnico responsable de traducir arquitectura en tareas
     ejecutables, establecer estandares de codigo, realizar code review

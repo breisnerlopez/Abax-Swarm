@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.1
+  cognitive_tier: implementation
+  reasoning: low
   description: >
     Ingeniero DevOps responsable de pipelines CI/CD, ambientes,
     contenedorizacion, infraestructura como codigo y procesos

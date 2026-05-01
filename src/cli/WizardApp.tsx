@@ -15,6 +15,7 @@ import type { ProjectSize } from "../loader/schemas.js";
 import { runSelection, runPipeline, writePipeline } from "./pipeline.js";
 import type { PipelineResult } from "./pipeline.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
+import { buildModelMix, groupMixBySpec } from "../engine/model-mapping.js";
 import { Header } from "./components/Header.js";
 import { StepHeader } from "./components/StepHeader.js";
 import { TextInput } from "./components/TextInput.js";
@@ -38,6 +39,7 @@ type StepName =
   | "target-dir"
   | "existing-confirm"
   | "platform"
+  | "provider"
   | "description"
   | "size"
   | "criteria"
@@ -60,6 +62,8 @@ interface WizardData {
   criteria?: string[];
   stackId?: string;
   scope?: TeamScope;
+  provider?: "anthropic" | "openai";
+  modelOverrides?: Record<string, { cognitive_tier?: "strategic" | "implementation" | "mechanical"; reasoning?: "none" | "low" | "medium" | "high" }>;
   selection?: SelectionResult;
   generated?: PipelineResult;
   generationError?: string;
@@ -71,7 +75,7 @@ interface Props {
   options: { dryRun: boolean };
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 function loadExistingManifest(targetDir: string): ExistingManifest | null {
   const manifestPath = resolve(targetDir, "project-manifest.yaml");
@@ -90,18 +94,20 @@ function stepNumber(step: StepName): number | null {
       return 1;
     case "platform":
       return 2;
-    case "description":
+    case "provider":
       return 3;
+    case "description":
+      return 4;
     case "size":
     case "criteria":
-      return 4;
-    case "stack":
       return 5;
+    case "stack":
+      return 6;
     case "role-scope":
     case "role-edit":
-      return 6;
-    case "confirm":
       return 7;
+    case "confirm":
+      return 8;
     default:
       return null;
   }
@@ -122,6 +128,14 @@ function buildSidebarItems(data: WizardData, ctx: DataContext): SidebarItem[] {
         ? data.target === "opencode"
           ? "OpenCode"
           : "Claude Code"
+        : null,
+    },
+    {
+      label: "Proveedor",
+      value: data.provider
+        ? data.provider === "anthropic"
+          ? "Anthropic (Claude)"
+          : "OpenAI (GPT)"
         : null,
     },
     { label: "Descripción", value: data.description ?? null },
@@ -272,6 +286,8 @@ function buildConfig(data: WizardData): ProjectConfig {
     stackId: data.stackId!,
     target: data.target!,
     teamScope: data.scope ?? "full",
+    provider: data.provider ?? "anthropic",
+    modelOverrides: data.modelOverrides,
   };
 }
 
@@ -347,6 +363,30 @@ function renderStep(
             ]}
             onSubmit={(target) => {
               setData((d) => ({ ...d, target }));
+              go("provider");
+            }}
+          />
+        </Box>
+      );
+
+    case "provider":
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={3} total={TOTAL_STEPS} title="Proveedor de IA" />
+          <Box marginBottom={1}>
+            <Text dimColor>
+              Cada rol del equipo tendrá un modelo del mismo proveedor según su nivel
+              cognitivo (estratégico / implementación / mecánico).
+            </Text>
+          </Box>
+          <SelectInput<"anthropic" | "openai">
+            label="¿Qué proveedor usarás?"
+            options={[
+              { label: "Anthropic (Claude opus / sonnet / haiku)", value: "anthropic" },
+              { label: "OpenAI (GPT-5 / mini / nano)", value: "openai" },
+            ]}
+            onSubmit={(provider) => {
+              setData((d) => ({ ...d, provider }));
               go("description");
             }}
           />
@@ -358,7 +398,7 @@ function renderStep(
       const defaultDesc = data.existing?.project.description ?? `Proyecto ${name}`;
       return (
         <Box flexDirection="column">
-          <StepHeader step={3} total={TOTAL_STEPS} title="Información del proyecto" />
+          <StepHeader step={4} total={TOTAL_STEPS} title="Información del proyecto" />
           <Box marginBottom={1}>
             <Text>Proyecto: <Text bold>{name}</Text></Text>
           </Box>
@@ -377,7 +417,7 @@ function renderStep(
     case "size":
       return (
         <Box flexDirection="column">
-          <StepHeader step={4} total={TOTAL_STEPS} title="Clasificación del proyecto" />
+          <StepHeader step={5} total={TOTAL_STEPS} title="Clasificación del proyecto" />
           <SelectInput<ProjectSize>
             label="Tamaño del proyecto:"
             options={[
@@ -400,7 +440,7 @@ function renderStep(
       }));
       return (
         <Box flexDirection="column">
-          <StepHeader step={4} total={TOTAL_STEPS} title="Características del proyecto" />
+          <StepHeader step={5} total={TOTAL_STEPS} title="Características del proyecto" />
           <MultiSelectInput<string>
             label="Selecciona las que apliquen:"
             options={opts}
@@ -420,7 +460,7 @@ function renderStep(
       }));
       return (
         <Box flexDirection="column">
-          <StepHeader step={5} total={TOTAL_STEPS} title="Selección de stack tecnológico" />
+          <StepHeader step={6} total={TOTAL_STEPS} title="Selección de stack tecnológico" />
           <SelectInput<string>
             label="Stack tecnológico:"
             options={opts}
@@ -436,7 +476,7 @@ function renderStep(
     case "role-scope":
       return (
         <Box flexDirection="column">
-          <StepHeader step={6} total={TOTAL_STEPS} title="Revisión de equipo — alcance" />
+          <StepHeader step={7} total={TOTAL_STEPS} title="Revisión de equipo — alcance" />
           <SelectInput<TeamScope>
             label="¿Qué roles incluir?"
             options={[
@@ -479,7 +519,7 @@ function renderStep(
 
       return (
         <Box flexDirection="column">
-          <StepHeader step={6} total={TOTAL_STEPS} title="Revisión de equipo — edición" />
+          <StepHeader step={7} total={TOTAL_STEPS} title="Revisión de equipo — edición" />
           <RoleEditor
             roles={roleDetails}
             availableRoles={availableRoles}
@@ -609,6 +649,12 @@ function ConfirmStep({
     return runPipeline(config, data.selection!, ctx);
   }, [data, ctx]);
 
+  const mixGroups = useMemo(() => {
+    const provider = data.provider ?? "anthropic";
+    const mix = buildModelMix(provider, result.project.roles, data.modelOverrides ?? {});
+    return groupMixBySpec(mix);
+  }, [data, result]);
+
   const filesByDir = useMemo(() => {
     const groups = new Map<string, string[]>();
     for (const f of result.files) {
@@ -628,7 +674,28 @@ function ConfirmStep({
 
   return (
     <Box flexDirection="column">
-      <StepHeader step={7} total={TOTAL_STEPS} title="Confirmación y generación" />
+      <StepHeader step={8} total={TOTAL_STEPS} title="Confirmación y generación" />
+      <Box marginBottom={1} flexDirection="column">
+        <Text bold>
+          Mix de modelos ({data.provider === "openai" ? "OpenAI" : "Anthropic"}):
+        </Text>
+        {mixGroups.map((g, i) => (
+          <Box key={i} flexDirection="column" marginLeft={2}>
+            <Text>
+              <Text color="cyan">{g.spec.model}</Text>
+              {g.spec.thinking ? (
+                <Text dimColor>
+                  {" "}· thinking {g.spec.thinking.budgetTokens / 1000}k
+                </Text>
+              ) : null}
+              {g.spec.reasoningEffort ? (
+                <Text dimColor> · reasoning {g.spec.reasoningEffort}</Text>
+              ) : null}
+            </Text>
+            <Text dimColor>{"  "}{g.roleIds.join(", ")}</Text>
+          </Box>
+        ))}
+      </Box>
       <Box marginBottom={1}>
         <Text bold>Archivos a generar ({result.files.length}):</Text>
       </Box>

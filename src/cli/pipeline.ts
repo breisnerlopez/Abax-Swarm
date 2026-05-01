@@ -1,5 +1,6 @@
-import type { ProjectConfig, DataContext, RoleSelection, SelectionResult, ResolvedProject } from "../engine/types.js";
+import type { ProjectConfig, DataContext, ModelMix, RoleSelection, SelectionResult, ResolvedProject } from "../engine/types.js";
 import type { GeneratedFile } from "../generator/opencode/agent-generator.js";
+import { buildModelMix } from "../engine/model-mapping.js";
 import { selectRoles } from "../engine/role-selector.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
 import { resolveSkills, filterSkills } from "../engine/skill-resolver.js";
@@ -53,13 +54,14 @@ function generateFiles(
   skills: Skill[],
   tools: Tool[],
   governance: GovernanceDetails,
+  mix: ModelMix,
   ctx: DataContext,
 ): { files: GeneratedFile[]; orchestratorFile: GeneratedFile } {
   const stack = ctx.stacks.get(config.stackId)!;
   const files: GeneratedFile[] = [];
 
   if (target === "claude") {
-    files.push(...cc.generateAllAgentFiles(adaptedRoles, skills));
+    files.push(...cc.generateAllAgentFiles(adaptedRoles, skills, mix));
     files.push(...cc.generateAllSkillFiles(skills));
     files.push(...cc.generateAllToolFiles(tools));
 
@@ -74,7 +76,7 @@ function generateFiles(
   }
 
   // Default: opencode
-  files.push(...oc.generateAllAgentFiles(adaptedRoles, skills));
+  files.push(...oc.generateAllAgentFiles(adaptedRoles, skills, mix));
   files.push(...oc.generateAllSkillFiles(skills));
   files.push(...oc.generateAllToolFiles(tools));
 
@@ -82,7 +84,7 @@ function generateFiles(
     config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables,
   );
   files.push(orchestratorFile);
-  files.push(oc.generateOpenCodeConfig(adaptedRoles));
+  files.push(oc.generateOpenCodeConfig(adaptedRoles, mix));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
   return { files, orchestratorFile };
@@ -106,8 +108,13 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
   const toolIds = resolveTools(roleIds, ctx.roles);
   const { found: tools } = filterTools(toolIds, ctx.tools);
 
+  const provider = config.provider ?? "anthropic";
+  const orchRole = ctx.roles.get("orchestrator");
+  const rolesForMix = orchRole ? [...adaptedRoles, orchRole] : adaptedRoles;
+  const mix = buildModelMix(provider, rolesForMix, config.modelOverrides ?? {});
+
   const { files, orchestratorFile } = generateFiles(
-    config.target, config, selection, adaptedRoles, skills, tools, governance, ctx,
+    config.target, config, selection, adaptedRoles, skills, tools, governance, mix, ctx,
   );
 
   // Validate orchestrator

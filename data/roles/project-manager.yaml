@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.3
+  cognitive_tier: strategic
+  reasoning: medium
   description: >
     Project Manager responsable de planificacion, seguimiento,
     gestion de riesgos, dependencias y reporte de avance

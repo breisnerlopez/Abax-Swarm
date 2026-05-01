@@ -2,6 +2,10 @@
 description: {{{agent.description}}}
 mode: {{agent.mode}}
 {{#if model}}model: {{model}}
+{{/if}}{{#if thinking}}thinking:
+  type: {{thinking.type}}
+  budgetTokens: {{thinking.budgetTokens}}
+{{/if}}{{#if reasoningEffort}}reasoningEffort: {{reasoningEffort}}
 {{/if}}temperature: {{agent.temperature}}
 permission:
 {{#each agent.permissions}}

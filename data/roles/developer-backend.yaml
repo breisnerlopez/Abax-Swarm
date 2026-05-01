@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: implementation
+  reasoning: low
   description: >
     Desarrollador backend especializado en implementar servicios,
     APIs, logica de negocio y componentes del lado servidor

@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.1
+  cognitive_tier: strategic
+  reasoning: high
   description: >
     Arquitecto de seguridad responsable de definir controles,
     analizar vulnerabilidades, validar cumplimiento y asegurar

@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.4
+  cognitive_tier: mechanical
+  reasoning: none
   description: >
     Documentador tecnico y funcional responsable de crear y mantener
     documentacion del proyecto, manuales operativos, guias de usuario

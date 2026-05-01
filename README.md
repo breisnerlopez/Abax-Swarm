@@ -46,12 +46,13 @@ No hace falta conocimiento técnico para responder. Cada paso te explica las opc
 |---|---|---|
 | 1. Directorio | ¿Dónde quieres tu proyecto? | Una ruta de carpeta. Si no existe, se crea. |
 | 2. Plataforma | ¿OpenCode o Claude Code? | Lo que uses tú habitualmente. |
-| 3. Información | Nombre y descripción breve. | Para que los agentes sepan de qué va el proyecto. |
-| 4. Tamaño | ¿Pequeño, mediano o grande? | Pequeño = 3-6 personas, < 6 meses. Mediano = 7-15 / 6-12 meses. Grande = 15+ personas. |
-| 4b. Características | ¿El proyecto tiene datos sensibles? ¿integraciones? ¿móvil? | Marca con `Espacio` lo que aplique. Esto añade roles especialistas (security, integrations, mobile, etc). |
-| 5. Stack | ¿Qué tecnología usarán? | React, Angular, Python, .NET y 9 más. Si no estás seguro, pregunta a tu equipo técnico. |
-| 6. Equipo | Revisa el equipo propuesto. | Puedes quitar o agregar roles. El asistente te avisa si quitas uno indispensable. |
-| 7. Confirmación | Última vista previa. | Pulsa Enter para generar los archivos. |
+| 3. Proveedor de IA | ¿Anthropic (Claude) u OpenAI (GPT)? | El asistente eligirá automáticamente un mix de modelos del mismo proveedor según la complejidad de cada rol (estratégico → opus / gpt-5, implementación → sonnet / mini, mecánico → haiku / nano). |
+| 4. Información | Nombre y descripción breve. | Para que los agentes sepan de qué va el proyecto. |
+| 5. Tamaño | ¿Pequeño, mediano o grande? | Pequeño = 3-6 personas, < 6 meses. Mediano = 7-15 / 6-12 meses. Grande = 15+ personas. |
+| 5b. Características | ¿El proyecto tiene datos sensibles? ¿integraciones? ¿móvil? | Marca con `Espacio` lo que aplique. Esto añade roles especialistas (security, integrations, mobile, etc). |
+| 6. Stack | ¿Qué tecnología usarán? | React, Angular, Python, .NET y 9 más. Si no estás seguro, pregunta a tu equipo técnico. |
+| 7. Equipo | Revisa el equipo propuesto. | Puedes quitar o agregar roles. El asistente te avisa si quitas uno indispensable. |
+| 8. Confirmación | Última vista previa con mix de modelos sugerido. | Pulsa Enter para generar los archivos. |
 
 ![Asistente preguntando por criterios del proyecto](docs/screenshots/02-criteria-multiselect.png)
 

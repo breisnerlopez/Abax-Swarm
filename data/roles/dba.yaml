@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.1
+  cognitive_tier: implementation
+  reasoning: low
   description: >
     Especialista en base de datos responsable de disenar modelos
     de datos, escribir scripts DDL/DML, optimizar consultas

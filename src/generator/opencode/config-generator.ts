@@ -1,18 +1,29 @@
 import { stringify } from "yaml";
 import type { Role, Skill, Tool, Stack } from "../../loader/schemas.js";
-import type { ProjectConfig, SelectionResult } from "../../engine/types.js";
+import type { ModelMix, ModelSpec, ProjectConfig, SelectionResult } from "../../engine/types.js";
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import type { GeneratedFile } from "./agent-generator.js";
+
+function applySpec(target: Record<string, unknown>, spec: ModelSpec | undefined): void {
+  if (!spec) return;
+  target.model = spec.model;
+  if (spec.thinking) target.thinking = spec.thinking;
+  if (spec.reasoningEffort) target.reasoningEffort = spec.reasoningEffort;
+}
 
 /**
  * Generates opencode.json configuration file.
  * Built programmatically to ensure valid JSON (templates break with multiline strings).
  */
-export function generateOpenCodeConfig(agents: Role[], orchestratorDescription?: string): GeneratedFile {
+export function generateOpenCodeConfig(
+  agents: Role[],
+  mix?: ModelMix,
+  orchestratorDescription?: string,
+): GeneratedFile {
   const agentConfig: Record<string, unknown> = {};
 
   // Add orchestrator entry (primary agent)
-  agentConfig["orchestrator"] = {
+  const orch: Record<string, unknown> = {
     description: orchestratorDescription ?? "Orquestador principal del proyecto. Coordina agentes siguiendo flujo cascada.",
     mode: "primary",
     temperature: 0.3,
@@ -28,14 +39,19 @@ export function generateOpenCodeConfig(agents: Role[], orchestratorDescription?:
       todowrite: "deny",
     },
   };
+  applySpec(orch, mix?.["orchestrator"]);
+  agentConfig["orchestrator"] = orch;
 
   for (const agent of agents) {
-    agentConfig[agent.id] = {
+    if (agent.id === "orchestrator") continue;
+    const entry: Record<string, unknown> = {
       description: agent.agent.description.replace(/\s+/g, " ").trim(),
       mode: agent.agent.mode,
       temperature: agent.agent.temperature,
       permission: agent.agent.permissions,
     };
+    applySpec(entry, mix?.[agent.id]);
+    agentConfig[agent.id] = entry;
   }
 
   const config = {
@@ -69,6 +85,7 @@ export function generateProjectManifest(
       stack: stack.id,
       target: config.target,
       team_scope: config.teamScope,
+      provider: config.provider ?? "anthropic",
       governance_model: governance.model,
       governance_name: governance.name_es,
     },

@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.4
+  cognitive_tier: strategic
+  reasoning: medium
   description: >
     Product Owner que representa al negocio, define prioridades,
     valida requerimientos, establece criterios de aceptacion

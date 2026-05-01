@@ -11,6 +11,8 @@ size_classification:
 agent:
   mode: subagent
   temperature: 0.2
+  cognitive_tier: strategic
+  reasoning: high
   description: >
     Arquitecto de solucion responsable de transformar requerimientos
     funcionales en disenos tecnicos implementables, seguros,
