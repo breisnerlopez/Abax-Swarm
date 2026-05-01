@@ -195,74 +195,40 @@ Parámetros confirmados en OpenCode pendientes de evaluar en Claude Code:
 
 ---
 
-## Workflow Git (gitflow)
+## Workflow Git
 
-El repo sigue el modelo **gitflow** estándar.
+El repo sigue **GitHub Flow**: una sola rama larga, PRs cortos, releases por tag.
 
-### Ramas permanentes
+### Ramas
 
-- `main` — código en producción; refleja la última release.
-- `develop` — rama de integración; base para todas las features y bugfixes.
+- **`main`** — única rama larga. Es la verdad y la que se publica como release.
+- **Ramas cortas** que mergean a `main` vía PR (squash merge):
+  - `feature/<nombre>` — funcionalidad nueva.
+  - `bugfix/<nombre>` — corrección de bug no urgente.
+  - `hotfix/<nombre>` — fix urgente para producción.
+  - `docs/<nombre>` — solo documentación.
+  - `chore/<nombre>` — mantenimiento (deps, refactor, CI, build).
 
-### Ramas efímeras
+El prefijo de la rama determina la label que se aplica automáticamente al PR (vía `.github/workflows/auto-label.yml`), y esa label categoriza las release notes.
 
-| Tipo | Prefijo | Origen | Destino al cerrar |
-|---|---|---|---|
-| Feature | `feature/<nombre>` | `develop` | merge a `develop` |
-| Bugfix no urgente | `bugfix/<nombre>` | `develop` | merge a `develop` |
-| Release | `release/<x.y.z>` | `develop` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
-| Hotfix urgente | `hotfix/<x.y.z>` | `main` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
-| Support | `support/<x.y>` | `main` | mantenimiento de mainlines antiguas |
+### Crear un release
 
-### Configuración aplicada en el repo
-
-Las claves `gitflow.*` están en `.git/config` (`--local`):
-
-```
-gitflow.branch.master   = main
-gitflow.branch.develop  = develop
-gitflow.prefix.feature  = feature/
-gitflow.prefix.bugfix   = bugfix/
-gitflow.prefix.release  = release/
-gitflow.prefix.hotfix   = hotfix/
-gitflow.prefix.support  = support/
-gitflow.prefix.versiontag = v
-```
-
-Los comandos `git flow ...` requieren la CLI `git-flow` instalada en tu máquina (`apt install git-flow`, `brew install git-flow-avh` o equivalente). Como alternativa, las mismas operaciones se pueden hacer con `git` plano.
-
-### Comandos típicos
+Versionado SemVer (`MAJOR.MINOR.PATCH`), tags con prefijo `v`.
 
 ```bash
-# Feature
-git flow feature start mi-feature       # crea feature/mi-feature desde develop
-git flow feature finish mi-feature      # mergea a develop, borra la rama
-
-# Release
-git flow release start 0.2.0            # crea release/0.2.0 desde develop
-# (bump de version en package.json, CHANGELOG, etc.)
-git flow release finish 0.2.0           # mergea a main, crea tag v0.2.0, mergea a develop
-git push origin main develop --tags
-
-# Hotfix
-git flow hotfix start 0.1.1             # crea hotfix/0.1.1 desde main
-git flow hotfix finish 0.1.1            # mergea a main, tag v0.1.1, mergea a develop
-git push origin main develop --tags
+git checkout main && git pull
+# bump version en package.json (p.ej. 0.1.1 → 0.1.2)
+git commit -am "chore: bump version to 0.1.2"
+git tag -a v0.1.2 -m "Release 0.1.2"
+git push origin main --tags
 ```
 
-### Versionado
-
-- **SemVer** (`MAJOR.MINOR.PATCH`).
-- Tags con prefijo `v` (`v0.1.0`, `v0.2.0`, …).
-- Mantén sincronizada la `version` en `package.json` con el tag de cada release.
+El push del tag dispara `release.yml`, que builda, empaqueta con `npm pack` y publica una GitHub Release con el `.tgz` adjunto y notas auto-generadas.
 
 ### Pull requests
 
-Todos los cambios entran al repo vía pull request. Convenciones:
-
-- `feature/*` y `bugfix/*` mergean a `develop` con **squash merge** (un commit limpio por feature).
-- `release/*` y `hotfix/*` mergean a `main` con **merge commit** (preserva la historia de la rama y queda asociada al tag).
-- Las ramas `main` y `develop` están protegidas: PR obligatorio, no force-push, no deletion, conversaciones resueltas antes de mergear.
+- **Squash merge** para todo PR a `main`.
+- `main` está protegida: PR obligatorio, no force-push, no deletion, conversaciones resueltas, status check `validate` requerido.
 - El checklist mínimo del PR vive en `.github/pull_request_template.md`.
 
 Antes de abrir el PR, asegúrate de que pasen:
