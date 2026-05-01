@@ -1,0 +1,36 @@
+name: Auto-label PR
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply label based on source branch prefix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.head_ref }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          case "$BRANCH" in
+            feature/*)  LABEL=feature ;;
+            bugfix/*)   LABEL=bugfix ;;
+            hotfix/*)   LABEL=hotfix ;;
+            release/*)  LABEL=chore ;;
+            docs/*)     LABEL=docs ;;
+            chore/*)    LABEL=chore ;;
+            *)          LABEL="" ;;
+          esac
+          if [ -z "$LABEL" ]; then
+            echo "No matching prefix for branch '$BRANCH'; skipping."
+            exit 0
+          fi
+          echo "Branch '$BRANCH' -> label '$LABEL'"
+          gh pr edit "$PR" --repo "$REPO" --add-label "$LABEL"
