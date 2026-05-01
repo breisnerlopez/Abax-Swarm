@@ -196,3 +196,76 @@ Parámetros confirmados en OpenCode pendientes de evaluar en Claude Code:
 #### 7. Test de integración con timeouts conocidos
 - `tests/integration/e2e-interface.test.ts` está documentado como "puede dar timeout bajo carga, safe to retry".
 - **Acción:** investigar la causa raíz (¿I/O sincrónico, tamaño del fixture, retries internos?) en lugar de normalizar el reintento.
+
+---
+
+## Workflow Git (gitflow)
+
+El repo sigue el modelo **gitflow** estándar.
+
+### Ramas permanentes
+
+- `main` — código en producción; refleja la última release.
+- `develop` — rama de integración; base para todas las features y bugfixes.
+
+### Ramas efímeras
+
+| Tipo | Prefijo | Origen | Destino al cerrar |
+|---|---|---|---|
+| Feature | `feature/<nombre>` | `develop` | merge a `develop` |
+| Bugfix no urgente | `bugfix/<nombre>` | `develop` | merge a `develop` |
+| Release | `release/<x.y.z>` | `develop` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
+| Hotfix urgente | `hotfix/<x.y.z>` | `main` | merge a `main` (tag `v<x.y.z>`) **y** a `develop` |
+| Support | `support/<x.y>` | `main` | mantenimiento de mainlines antiguas |
+
+### Configuración aplicada en el repo
+
+Las claves `gitflow.*` están en `.git/config` (`--local`):
+
+```
+gitflow.branch.master   = main
+gitflow.branch.develop  = develop
+gitflow.prefix.feature  = feature/
+gitflow.prefix.bugfix   = bugfix/
+gitflow.prefix.release  = release/
+gitflow.prefix.hotfix   = hotfix/
+gitflow.prefix.support  = support/
+gitflow.prefix.versiontag = v
+```
+
+La CLI `git-flow` (paquete del sistema) está instalada — los comandos `git flow feature start/finish`, `git flow release start/finish`, etc. funcionan sin más setup.
+
+### Comandos típicos
+
+```bash
+# Feature
+git flow feature start mi-feature       # crea feature/mi-feature desde develop
+git flow feature finish mi-feature      # mergea a develop, borra la rama
+
+# Release
+git flow release start 0.2.0            # crea release/0.2.0 desde develop
+# (bump de version en package.json, CHANGELOG, etc.)
+git flow release finish 0.2.0           # mergea a main, crea tag v0.2.0, mergea a develop
+git push origin main develop --tags
+
+# Hotfix
+git flow hotfix start 0.1.1             # crea hotfix/0.1.1 desde main
+git flow hotfix finish 0.1.1            # mergea a main, tag v0.1.1, mergea a develop
+git push origin main develop --tags
+```
+
+### Versionado
+
+- **SemVer** (`MAJOR.MINOR.PATCH`).
+- Tags con prefijo `v` (`v0.1.0`, `v0.2.0`, …).
+- Mantén sincronizada la `version` en `package.json` con el tag de cada release.
+
+### Pendiente en la UI de GitHub
+
+No se puede configurar desde CLI sin `gh` autenticado. Hacerlo manualmente en https://github.com/breisnerlopez/Abax-Swarm/settings:
+
+1. **Default branch → `develop`** (Settings → Branches → Default branch). Así los PRs nuevos se abren contra `develop` por defecto.
+2. **Branch protection** en `main` y `develop` (Settings → Branches → Add rule):
+   - `main`: require PR + require linear history; merge solo desde `release/*` o `hotfix/*`.
+   - `develop`: require PR; require status checks (cuando haya CI).
+3. (Opcional) Plantilla de PR en `.github/pull_request_template.md` y de issues en `.github/ISSUE_TEMPLATE/`.
