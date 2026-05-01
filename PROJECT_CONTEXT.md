@@ -189,11 +189,7 @@ Parámetros confirmados en OpenCode pendientes de evaluar en Claude Code:
 - El `opencode.json` generado no emite `model` ni `small_model` a nivel raíz como fallback.
 - **Acción:** considerar emitirlos para que agentes sin override usen un default consistente y para abaratar tareas mecánicas vía `small_model`.
 
-#### 6. `PROJECT_CONTEXT.md` es propiedad de `root`
-- El repo entero está bajo `root:root` mientras el usuario habitual es `terminaladmin`. Cada edición requiere `sudo`.
-- **Acción:** si es un entorno personal, considerar `sudo chown -R terminaladmin:terminaladmin .` para evitar fricción. Verificar antes que no haya razón deliberada.
-
-#### 7. Test de integración con timeouts conocidos
+#### 6. Test de integración con timeouts conocidos
 - `tests/integration/e2e-interface.test.ts` está documentado como "puede dar timeout bajo carga, safe to retry".
 - **Acción:** investigar la causa raíz (¿I/O sincrónico, tamaño del fixture, retries internos?) en lugar de normalizar el reintento.
 
@@ -260,12 +256,30 @@ git push origin main develop --tags
 - Tags con prefijo `v` (`v0.1.0`, `v0.2.0`, …).
 - Mantén sincronizada la `version` en `package.json` con el tag de cada release.
 
-### Pendiente en la UI de GitHub
+### Reglas vigentes en GitHub
 
-No se puede configurar desde CLI sin `gh` autenticado. Hacerlo manualmente en https://github.com/breisnerlopez/Abax-Swarm/settings:
+- **Default branch:** `develop`. Los PRs nuevos se abren contra `develop` por defecto.
+- **Protección de `main`:** PR requerido, linear history, no force-push, no deletion, conversaciones resueltas antes de mergear.
+- **Protección de `develop`:** PR requerido, no force-push, no deletion, conversaciones resueltas antes de mergear.
+- **PR template:** `.github/pull_request_template.md` (alineado con gitflow).
+- Admins exentos para emergencias (`enforce_admins: false`).
 
-1. **Default branch → `develop`** (Settings → Branches → Default branch). Así los PRs nuevos se abren contra `develop` por defecto.
-2. **Branch protection** en `main` y `develop` (Settings → Branches → Add rule):
-   - `main`: require PR + require linear history; merge solo desde `release/*` o `hotfix/*`.
-   - `develop`: require PR; require status checks (cuando haya CI).
-3. (Opcional) Plantilla de PR en `.github/pull_request_template.md` y de issues en `.github/ISSUE_TEMPLATE/`.
+### Crear y gestionar PRs
+
+Con `gh` autenticado:
+
+```bash
+# Crear PR (apunta a develop por default branch)
+gh pr create --title "..." --body "..."
+
+# Listar y revisar
+gh pr list
+gh pr view <N>
+gh pr checks <N>
+
+# Mergear (respeta branch protection)
+gh pr merge <N> --squash    # feature/bugfix → develop
+gh pr merge <N> --merge     # release/hotfix → main (preserva historia de la rama)
+```
+
+Convención: `--squash` para `feature/*` y `bugfix/*` que mergean a `develop`. `--merge` (commit de merge) para `release/*` y `hotfix/*` hacia `main`, así queda la historia de la rama de release/hotfix asociada al tag.
