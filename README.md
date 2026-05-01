@@ -51,6 +51,26 @@ The wizard guides you through 7 steps:
 | 6. Team review | Add/remove agents from the auto-selected team |
 | 7. Confirmation | Preview files and generate |
 
+## Screenshots
+
+The wizard renders as a single-page Ink app with a progress bar, a 2-column layout (active step on the left, running summary on the right) and `Ctrl+B` to step back at any point.
+
+Step 1 — directory input, before any context is set:
+
+![Wizard initial screen](docs/screenshots/01-wizard-start.png)
+
+Step 4 — project criteria multi-select. The sidebar shows what was chosen in earlier steps:
+
+![Criteria multi-select with sidebar](docs/screenshots/02-criteria-multiselect.png)
+
+Step 6 — team review. The role editor lists every selected agent with its role type (indispensable, recommended, criteria-driven) and lets you add or remove roles:
+
+![Team review with role editor](docs/screenshots/03-team-editor.png)
+
+End state in `--dry-run` mode, showing how many files the current configuration would generate:
+
+![Dry-run summary](docs/screenshots/04-dryrun-summary.png)
+
 ## What gets generated
 
 ```

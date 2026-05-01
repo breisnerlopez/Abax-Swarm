@@ -1,7 +1,7 @@
 {
   "name": "abax-swarm",
   "version": "0.1.1",
-  "description": "Abax Swarm \u2014 AI agent orchestration for software projects",
+  "description": "Abax Swarm — AI agent orchestration for software projects",
   "type": "module",
   "main": "dist/cli/app.js",
   "bin": {
@@ -21,8 +21,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "validate": "tsx src/cli/app.ts validate",
-    "lint": "eslint src/ tests/ --ext .ts",
-    "lint:fix": "eslint src/ tests/ --ext .ts --fix",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit"
   },
@@ -42,6 +42,9 @@
     "commander": "^14.0.3",
     "handlebars": "^4.7.9",
     "ink": "^7.0.1",
+    "ink-select-input": "^6.2.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
     "react": "^19.2.5",
     "typescript": "^6.0.3",
     "yaml": "^2.8.3",
