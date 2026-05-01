@@ -47,14 +47,14 @@ describe("Role Loader", () => {
 
   it("should have valid tier for each role", () => {
     const map = loadRolesAsMap(join(DATA_DIR, "roles"));
-    for (const [id, role] of map) {
+    for (const [_id, role] of map) {
       expect(["1", "2", "3"]).toContain(role.tier);
     }
   });
 
   it("should have size classification for each role", () => {
     const map = loadRolesAsMap(join(DATA_DIR, "roles"));
-    for (const [id, role] of map) {
+    for (const [_id, role] of map) {
       expect(role.size_classification).toHaveProperty("small");
       expect(role.size_classification).toHaveProperty("medium");
       expect(role.size_classification).toHaveProperty("large");
@@ -63,7 +63,7 @@ describe("Role Loader", () => {
 
   it("should have non-empty system prompt for each role", () => {
     const map = loadRolesAsMap(join(DATA_DIR, "roles"));
-    for (const [id, role] of map) {
+    for (const [_id, role] of map) {
       expect(role.agent.system_prompt.length).toBeGreaterThan(50);
     }
   });
@@ -92,7 +92,7 @@ describe("Skill Loader", () => {
 
   it("should have at least one used_by for each skill", () => {
     const map = loadSkillsAsMap(join(DATA_DIR, "skills"));
-    for (const [id, skill] of map) {
+    for (const [_id, skill] of map) {
       expect(skill.used_by.length).toBeGreaterThanOrEqual(1);
     }
   });
@@ -131,7 +131,7 @@ describe("Stack Loader", () => {
 
   it("should have role_context for key roles", () => {
     const map = loadStacksAsMap(join(DATA_DIR, "stacks"));
-    for (const [id, stack] of map) {
+    for (const [_id, stack] of map) {
       expect(Object.keys(stack.role_context).length).toBeGreaterThanOrEqual(2);
     }
   });
@@ -172,7 +172,7 @@ describe("Rule Loader", () => {
 
   it("should have RACI activities with at least R and A", () => {
     const rules = loadAllRules(join(DATA_DIR, "rules"));
-    for (const [activity, roles] of Object.entries(rules.raci.activities)) {
+    for (const [_activity, roles] of Object.entries(rules.raci.activities)) {
       const values = Object.values(roles);
       const hasResponsible = values.some((v) => v === "R" || v === "A/R");
       expect(hasResponsible).toBe(true);
@@ -186,7 +186,7 @@ describe("Cross-validation: Roles reference valid skills", () => {
     const skills = loadSkillsAsMap(join(DATA_DIR, "skills"));
 
     const missingSkills: string[] = [];
-    for (const [id, role] of roles) {
+    for (const [_id, role] of roles) {
       for (const skillId of role.skills) {
         if (!skills.has(skillId)) {
           missingSkills.push(`${id} -> ${skillId}`);
@@ -209,7 +209,7 @@ describe("Cross-validation: Roles reference valid tools", () => {
     const roles = loadRolesAsMap(join(DATA_DIR, "roles"));
     const tools = loadToolsAsMap(join(DATA_DIR, "tools"));
 
-    for (const [id, role] of roles) {
+    for (const [_id, role] of roles) {
       for (const toolId of role.tools) {
         expect(tools.has(toolId)).toBe(true);
       }
