@@ -5,11 +5,11 @@ export default defineConfig({
   test: {
     globals: true,
     root: ".",
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.ts"],
-      exclude: ["src/cli/app.ts", "src/cli/prompts.ts", "src/cli/wizard.ts", "src/cli/format.ts"],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      exclude: ["src/cli/app.ts", "src/cli/wizard.tsx", "src/cli/WizardApp.tsx", "src/cli/format.ts"],
       thresholds: {
         statements: 90,
         branches: 85,
