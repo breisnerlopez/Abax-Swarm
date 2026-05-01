@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { join } from "path";
-import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync } from "fs";
+import { tmpdir } from "os";
 import { stringify, parse as yamlParse } from "yaml";
 import { loadRolesAsMap } from "../../src/loader/role-loader.js";
 import { loadSkillsAsMap } from "../../src/loader/skill-loader.js";
@@ -12,7 +13,7 @@ import { runSelection, runPipeline, writePipeline } from "../../src/cli/pipeline
 import { resolveDependencies } from "../../src/engine/dependency-resolver.js";
 
 const DATA_DIR = join(__dirname, "../../data");
-const TMP_DIR = join(__dirname, "../../.tmp-e2e");
+let TMP_DIR: string;
 let ctx: DataContext;
 
 beforeAll(() => {
@@ -23,7 +24,8 @@ beforeAll(() => {
     stacks: loadStacksAsMap(join(DATA_DIR, "stacks")),
     ...loadAllRules(join(DATA_DIR, "rules")),
   };
-  mkdirSync(TMP_DIR, { recursive: true });
+  // Each run uses an isolated temp dir so parallel CI invocations cannot collide.
+  TMP_DIR = mkdtempSync(join(tmpdir(), "abax-e2e-"));
 });
 
 afterAll(() => {
@@ -47,7 +49,10 @@ function makeConfig(overrides: Partial<ProjectConfig> = {}): ProjectConfig {
 // E2E-1: Init generates manifest, re-init detects it
 // =========================================
 describe("E2E: Init → detect existing → update roundtrip", () => {
-  const roundtripDir = join(TMP_DIR, "roundtrip");
+  let roundtripDir: string;
+  beforeAll(() => {
+    roundtripDir = join(TMP_DIR, "roundtrip");
+  });
 
   it("should generate all files on first init", () => {
     const config = makeConfig({ targetDir: roundtripDir, size: "medium", criteria: ["has_sensitive_data"] });
@@ -266,7 +271,10 @@ describe("E2E: Existing manifest role merge", () => {
 // E2E-4: Full write → re-read → regenerate cycle
 // =========================================
 describe("E2E: Write → read → regenerate consistency", () => {
-  const cycleDir = join(TMP_DIR, "cycle");
+  let cycleDir: string;
+  beforeAll(() => {
+    cycleDir = join(TMP_DIR, "cycle");
+  });
 
   it("should survive full regeneration cycle for each size", () => {
     for (const size of ["small", "medium", "large"] as const) {
