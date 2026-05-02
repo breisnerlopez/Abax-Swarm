@@ -42,6 +42,27 @@ Si el entregable es una **presentacion**, el formato es HTML autonomo (single-fi
 3. Guarda como `.html` (no .md) en la carpeta de la fase correspondiente
 4. Mantene consistencia visual: mismos colores, tipografia, layout que el template
 
+### Glosario al cierre
+
+Si en el entregable usas **3 o mas acronimos o terminos especificos** de tu disciplina
+(p. ej. RACI, SLA, BPMN, OWASP, CI/CD, RFC, SLO, MVP, OKR, SBOM, RTO/RPO,
+DDD, CQRS, etc.), incluye al final una seccion `## Glosario` con definiciones
+muy cortas para que un lector no especialista entienda. Reglas:
+
+- **Maximo 7 terminos**: si necesitas mas, prioriza los menos comunes.
+- **1 linea por termino**, formato `**SIGLA / Termino**: definicion en una frase.`
+- Si todos los terminos son de uso comun en cualquier proyecto, **omite la seccion**.
+
+Ejemplo:
+```
+## Glosario
+- **SLA**: Acuerdo formal sobre el nivel minimo de servicio (tiempo de respuesta, disponibilidad, etc.).
+- **BPMN**: Notacion estandar para diagramar procesos de negocio.
+- **OWASP**: Organizacion que publica las principales amenazas de seguridad web (Top 10).
+```
+
+Para presentaciones HTML, agrega un slide final `<section class="slide">` con el mismo glosario.
+
 {{#if phases.length}}
 ## Fases autorizadas
 

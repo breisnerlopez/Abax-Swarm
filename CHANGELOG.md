@@ -6,6 +6,17 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.10] — 2026-05-01
+
+### Added
+
+- Cada agente generado (excepto el orquestador, que no escribe entregables) ahora incluye una **regla de Glosario al cierre** en su prompt:
+  - Si un entregable usa **3 o más acrónimos / términos específicos** de la disciplina del rol (RACI, SLA, BPMN, OWASP, CI/CD, SLO, RTO/RPO, DDD, CQRS, etc.), el agente añade una sección final `## Glosario` con definiciones cortas (máx 7 términos, 1 línea por término).
+  - Si todos los términos son de uso común, omite la sección.
+  - Aplica también a presentaciones HTML (slide final con el glosario).
+  - Objetivo: hacer los entregables comprensibles para usuarios no técnicos / no especialistas.
+- Ambas plantillas de agente (OpenCode y Claude) llevan la misma regla.
+
 ## [0.1.9] — 2026-05-01
 
 ### Added
