@@ -30,5 +30,6 @@ export function loadDataContext(): DataContext {
     dependencies: rules.dependencies,
     raci: rules.raci,
     phaseDeliverables: rules.phaseDeliverables,
+    documentMode: rules.documentMode,
   };
 }

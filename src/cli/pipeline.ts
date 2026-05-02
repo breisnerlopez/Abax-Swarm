@@ -1,12 +1,12 @@
 import type { ProjectConfig, DataContext, ModelMix, RoleSelection, SelectionResult, ResolvedProject } from "../engine/types.js";
 import type { GeneratedFile } from "../generator/opencode/agent-generator.js";
 import { buildModelMix } from "../engine/model-mapping.js";
-import { selectRoles } from "../engine/role-selector.js";
+import { selectRoles, selectRolesForDocumentMode } from "../engine/role-selector.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
 import { resolveSkills, filterSkills } from "../engine/skill-resolver.js";
 import { resolveTools, filterTools } from "../engine/tool-resolver.js";
 import { adaptAllRolesToStack } from "../engine/stack-adapter.js";
-import { resolveGovernance } from "../engine/governance-resolver.js";
+import { resolveGovernance, resolveDocumentGovernance } from "../engine/governance-resolver.js";
 import { writeGeneratedFiles } from "../generator/opencode/agent-generator.js";
 import { validateOrchestrator } from "../validator/orchestrator-validator.js";
 
@@ -19,6 +19,7 @@ import * as oc from "../generator/opencode/index.js";
 import * as cc from "../generator/claude/index.js";
 // Shared generators
 import { generatePresentationTemplate, teamUsesPresentations } from "../generator/design-system-generator.js";
+import { generateDocsSiteFiles } from "../generator/docs-site-generator.js";
 
 export interface PipelineResult {
   project: ResolvedProject;
@@ -28,8 +29,18 @@ export interface PipelineResult {
 
 /**
  * Runs the full selection pipeline: size → criteria → dependencies → skills/tools → stack adapt.
+ * In "document" mode, branches to the curated team from data/rules/document-mode.yaml.
  */
 export function runSelection(config: ProjectConfig, ctx: DataContext): SelectionResult {
+  if (config.mode === "document" && ctx.documentMode) {
+    // `criteria` is reused to pass enabled optional roles in document mode.
+    const enabledOptional = config.criteria;
+    const initial = selectRolesForDocumentMode(ctx.documentMode, enabledOptional);
+    const { selections, warnings } = resolveDependencies(initial, ctx.dependencies);
+    const governance = resolveDocumentGovernance();
+    return { roles: selections, warnings, governanceModel: governance.model };
+  }
+
   const initial = selectRoles(config.size, config.criteria, ctx.sizeMatrix, ctx.criteria, config.teamScope);
   const { selections, warnings } = resolveDependencies(initial, ctx.dependencies);
   const governance = resolveGovernance(config.size);
@@ -62,19 +73,27 @@ function generateFiles(
   const stack = ctx.stacks.get(config.stackId)!;
   const files: GeneratedFile[] = [];
 
+  const orchFlags = {
+    mode: config.mode,
+    existingDocs: config.detection?.existingDocs,
+    hasGit: config.detection?.hasGit,
+    documentPhases: ctx.documentMode?.phases,
+  };
+
   if (target === "claude") {
     files.push(...cc.generateAllAgentFiles(adaptedRoles, skills, mix));
     files.push(...cc.generateAllSkillFiles(skills));
     files.push(...cc.generateAllToolFiles(tools));
 
     const orchestratorFile = cc.generateOrchestratorFile(
-      config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables,
+      config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
     );
     files.push(orchestratorFile);
     files.push(cc.generateClaudeConfig(adaptedRoles));
     files.push(cc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
     if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
+    if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
 
     return { files, orchestratorFile };
   }
@@ -85,13 +104,14 @@ function generateFiles(
   files.push(...oc.generateAllToolFiles(tools));
 
   const orchestratorFile = oc.generateOrchestratorFile(
-    config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables,
+    config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
   );
   files.push(orchestratorFile);
   files.push(oc.generateOpenCodeConfig(adaptedRoles, mix));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
   if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
+  if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
 
   return { files, orchestratorFile };
 }
@@ -102,13 +122,16 @@ function generateFiles(
 export function runPipeline(config: ProjectConfig, selection: SelectionResult, ctx: DataContext): PipelineResult {
   const roleIds = selection.roles.map((s) => s.roleId);
   const stack = ctx.stacks.get(config.stackId)!;
-  const governance = resolveGovernance(config.size);
+  const governance = config.mode === "document" ? resolveDocumentGovernance() : resolveGovernance(config.size);
 
   // Resolve roles, skills, tools
   const rawRoles = roleIds.map((id) => ctx.roles.get(id)!).filter(Boolean);
   const adaptedRoles = adaptAllRolesToStack(rawRoles, stack);
 
-  const skillIds = resolveSkills(roleIds, ctx.roles);
+  // In document mode, fold extra_skills (e.g. reverse-engineering) into the resolved set.
+  const baseSkillIds = resolveSkills(roleIds, ctx.roles);
+  const extraSkillIds = config.mode === "document" && ctx.documentMode ? ctx.documentMode.extra_skills : [];
+  const skillIds = Array.from(new Set([...baseSkillIds, ...extraSkillIds]));
   const { found: skills } = filterSkills(skillIds, ctx.skills);
 
   const toolIds = resolveTools(roleIds, ctx.roles);

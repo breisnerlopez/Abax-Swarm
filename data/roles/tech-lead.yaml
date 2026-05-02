@@ -79,6 +79,7 @@ skills:
   - verification-before-completion
   - systematic-debugging
   - project-tracking
+  - reverse-engineering
 
 tools:
   - lint-code

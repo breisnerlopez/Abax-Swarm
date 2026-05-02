@@ -6,6 +6,27 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.11] — 2026-05-01
+
+### Added
+
+- **Modos de proyecto** — el wizard ahora pregunta al inicio qué quieres hacer:
+  - **Implementar algo nuevo** (`new`): flujo cascada completo (sin cambios respecto a versiones previas).
+  - **Documentar algo existente** (`document`): equipo curado de 9 roles fijos (tech-writer, business-analyst, product-owner, solution-architect, tech-lead, dba, integration-architect, ux-designer, change-manager) + security-architect opcional. Cubre 4 ejes: técnico, funcional, negocio, operativo. Flujo de 5 fases (`discovery → inventory → documentation → review → publication`) en vez de la cascada de 10. Genera scaffold MkDocs Material (`mkdocs.yml`, `requirements.txt`, `docs/index.md` + seeds por fase) listo para ejecutar `mkdocs serve`.
+  - **Continuar / partir de proyecto previo** (`continue`): detector ejecuta sobre el `targetDir` y muestra al usuario el stack detectado para que elija mantener o cambiar. Si no detecta ninguno conocido, muestra evidencia parcial y ofrece elegir manualmente o continuar sin stack adapter.
+- Nuevo skill `reverse-engineering` (en `data/skills/`): instrucciones detalladas para inventariar componentes, extraer reglas de negocio del código, identificar gaps y verificar contra runtime. Asociado a tech-lead, solution-architect, business-analyst, dba, integration-architect y tech-writer.
+- Nuevo módulo `src/engine/stack-detector.ts` con 13 heurísticas (Next.js, Nuxt, NestJS, Astro+Hono, Expo, Spring Boot, Quarkus, FastAPI, Django, Fiber, Axum, Flutter, Blazor) + detección de evidencia parcial cuando no hay match.
+- Nuevos detectores `docs-detector.ts` (busca `docs/*.md` recursivo) y `git-detector.ts` (busca `.git/`).
+- Sección **"Protocolo de actualización de documentación existente"** en el orchestrator: si detectamos `docs/` con `.md`, el orquestador delega "actualizar X" en vez de "crear X". Cada agente recibe la regla "leer primero, conservar estructura, modificar solo lo cambiado".
+- Sección **"Protocolo de commits por fase"** en el orchestrator: si detectamos `.git/`, al cierre de cada fase emite un bloque `git add docs/<fase>/ && git commit -m "docs(<fase>): ..."` listo para que el usuario ejecute. **No ejecuta commits automáticamente** (orchestrator tiene `bash: deny` por diseño); es una sugerencia.
+- Tests: 19 unit del detector de stack (13 fixtures + caso desconocido) + integration de modo document, MkDocs scaffold, secciones condicionales del orchestrator.
+
+### Changed
+
+- 6 roles (tech-lead, solution-architect, business-analyst, dba, integration-architect, tech-writer) ahora declaran el skill `reverse-engineering` para el modo `document`.
+- `ProjectConfig` admite `mode: "new" | "document" | "continue"` y `detection: ProjectContextDetection` (flags hasGit, existingDocs, stackId detectado).
+- Nuevo modelo de governance `documentation` (cuarto valor además de lightweight/controlled/corporate) con cierres editoriales en lugar de comités.
+
 ## [0.1.10] — 2026-05-01
 
 ### Added

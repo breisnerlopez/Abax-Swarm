@@ -70,6 +70,7 @@ skills:
   - api-design
   - integration-patterns
   - contract-first-design
+  - reverse-engineering
 
 tools:
   - generate-diagram

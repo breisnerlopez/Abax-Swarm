@@ -26,6 +26,13 @@ interface PhaseGateInfo {
   deliverables: Array<{ name: string; responsible: string; mandatory: boolean }>;
 }
 
+export interface OrchestratorFlags {
+  mode?: "new" | "document" | "continue";
+  existingDocs?: boolean;
+  hasGit?: boolean;
+  documentPhases?: Array<{ id: string; name: string; description: string }>;
+}
+
 /**
  * Generates the orchestrator file (CLAUDE.md) at project root with dynamic team knowledge.
  */
@@ -36,6 +43,7 @@ export function generateOrchestratorFile(
   raciMatrix: RaciMatrix,
   governance: GovernanceDetails,
   phaseDeliverables?: PhaseDeliverables,
+  flags: OrchestratorFlags = {},
 ): GeneratedFile {
   const phases = buildPhases(agents, raciMatrix);
   const dependencyChain = buildDependencyChain(agents, depGraph);
@@ -50,15 +58,24 @@ export function generateOrchestratorFile(
     hasProductOwner: agentIds.has("product-owner"),
   };
 
+  const isDocumentMode = flags.mode === "document";
+  const description = isDocumentMode
+    ? `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo de documentacion (5 fases).`
+    : `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`;
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
-    description: `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`,
+    description,
     agents,
     phases,
     dependencyChain,
     governance,
     phaseGates,
     discovery,
+    isDocumentMode,
+    existingDocs: !!flags.existingDocs,
+    hasGit: !!flags.hasGit,
+    documentPhases: flags.documentPhases ?? [],
   });
 
   return {

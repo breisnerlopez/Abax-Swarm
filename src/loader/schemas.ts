@@ -311,3 +311,24 @@ export const PhaseDeliverablesSchema = z.object({
   phases: z.array(PhaseGateSchema).min(1),
 });
 export type PhaseDeliverables = z.infer<typeof PhaseDeliverablesSchema>;
+
+// ============================================================
+// Document Mode Schema
+// ============================================================
+// Curated team and 5-phase flow used when ProjectMode === "document".
+
+const DocumentModePhaseSchema = z.object({
+  id: z.string(),
+  name: z.string().min(3),
+  description: z.string().min(10),
+});
+
+export const DocumentModeSchema = z.object({
+  id: z.literal("document-mode"),
+  name: z.string().min(3),
+  roles: z.array(z.string()).min(1),
+  optional_roles: z.record(z.string(), z.object({ question: z.string().min(10) })).default({}),
+  extra_skills: z.array(z.string()).default([]),
+  phases: z.array(DocumentModePhaseSchema).min(1),
+});
+export type DocumentModeData = z.infer<typeof DocumentModeSchema>;

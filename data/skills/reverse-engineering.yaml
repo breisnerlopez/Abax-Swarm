@@ -1,0 +1,99 @@
+id: reverse-engineering
+name: Lectura y Reconstruccion de Sistemas Existentes
+description: >
+  Analiza un codebase, una base de datos o un conjunto de configuraciones
+  existentes y reconstruye su comportamiento, arquitectura y reglas de
+  negocio implicitas para producir documentacion verificable. Indispensable
+  cuando hay que documentar un sistema que ya esta en produccion y la
+  documentacion original es inexistente, parcial o esta desactualizada.
+used_by:
+  - tech-lead
+  - solution-architect
+  - business-analyst
+  - dba
+  - integration-architect
+  - tech-writer
+content:
+  when_to_use: |
+    - Usar al inicio de un proyecto en modo "document" para inventariar el sistema.
+    - Usar cuando un cliente solicita modernizar un sistema legacy y la documentacion existente esta desactualizada o incompleta.
+    - Usar cuando un nuevo equipo asume el mantenimiento de un proyecto y necesita un onboarding kit basado en evidencia, no en suposiciones.
+    - Usar cuando se debe extraer reglas de negocio que viven solo en el codigo o en queries SQL.
+    - Usar cuando se debe reconstruir el contrato de una API observando el codigo de los controllers o middleware.
+  instructions: |
+    ## Principio Central
+    Toda afirmacion sobre el sistema existente debe estar respaldada por evidencia
+    concreta del codigo, configuracion o base de datos. Nunca inferir comportamiento
+    sin citar el archivo y la linea exacta. Si la evidencia no alcanza para concluir,
+    documentarlo como "comportamiento por confirmar" en lugar de inventar.
+
+    ## Flujo de trabajo
+
+    ### Paso 1 - Reconocimiento
+    - Listar la estructura de directorios principal (sin entrar a node_modules, dist, build).
+    - Identificar lenguajes principales y frameworks por el contenido de package.json, pom.xml, requirements.txt, etc.
+    - Localizar entry points (main, index, app, App.tsx, manage.py, etc.).
+    - Detectar la presencia de tests; los tests existentes son la mejor fuente de "comportamiento esperado documentado".
+
+    ### Paso 2 - Mapeo de componentes
+    - Para cada modulo significativo, escribir 3 lineas: que hace, de quien recibe input, a quien le entrega output.
+    - Construir un grafo de dependencias entre modulos (puede ser texto o Mermaid).
+    - Identificar puntos de entrada externos: endpoints HTTP, jobs programados, listeners de eventos, comandos CLI.
+
+    ### Paso 3 - Extraccion de reglas
+    - Las reglas de negocio viven en: validaciones, condiciones if/else, schemas Zod/Joi/Pydantic, queries SQL con WHERE complejos, funciones de calculo.
+    - Documentar cada regla extraida con: ID, condicion, accion, excepciones, archivo:linea.
+    - Si una regla parece incompleta, marcarla como "regla parcial - confirmar con negocio".
+
+    ### Paso 4 - Identificacion de gaps
+    - Comparar lo encontrado contra lo "esperado" segun el dominio: pagos sin idempotencia, autenticacion sin refresh, sin manejo de timezone, sin logs estructurados, etc.
+    - Listar los gaps como "deuda de documentacion" o "deuda tecnica" segun corresponda.
+
+    ### Paso 5 - Verificacion
+    - Cuando posible, ejecutar el sistema localmente para validar las reglas extraidas con casos reales.
+    - Si no es posible, marcar las reglas como "extraidas estaticamente" para que el siguiente lector sepa que no estan validadas en runtime.
+
+    ## Anti-patrones a evitar
+    - NO documentar "lo que el codigo deberia hacer" - solo lo que hace.
+    - NO eliminar codigo durante el analisis (no eres developer en este momento, eres documentador).
+    - NO asumir que un comentario en el codigo es verdad - validarlo contra el comportamiento real.
+    - NO usar tu conocimiento de "como se suele hacer" para llenar huecos - marcalos como gaps.
+
+    ## Formato de salida
+    - Inventario de componentes: tabla con nombre, ruta, responsabilidad, dependencias.
+    - Reglas extraidas: tabla con ID, condicion, accion, archivo:linea, estado (extraida estaticamente / validada en runtime / pendiente).
+    - Diagramas: Mermaid (flowchart o sequenceDiagram).
+    - Gaps detectados: lista priorizada con impacto y propuesta de mitigacion.
+
+    ## Coordinacion en equipo
+    - El tech-lead lidera la lectura del codigo de aplicacion.
+    - El dba lidera la lectura del esquema de BD y queries.
+    - El integration-architect lidera el mapeo de APIs e integraciones externas.
+    - El business-analyst recibe el output de los tres anteriores y consolida las reglas de negocio.
+    - El solution-architect ensambla la vista arquitectural y los ADRs reconstruidos.
+    - El tech-writer asegura coherencia editorial y publica el resultado.
+
+  guides:
+    - name: extraccion-de-reglas-desde-codigo
+      content: |
+        Patrones comunes para encontrar reglas de negocio escondidas:
+
+        - **Validaciones de input**: Zod schemas, Joi schemas, Pydantic models, class-validator decorators, validators Django.
+        - **Condiciones de flujo**: branches if/else con literales del dominio (estados, tipos, categorias).
+        - **Queries SQL**: WHERE con calculos, CASE WHEN, vistas, stored procedures, triggers.
+        - **Calculos**: funciones puras que combinan inputs (precios, descuentos, impuestos, comisiones).
+        - **Configuracion declarativa**: feature flags, archivos JSON/YAML que parametrizan comportamiento.
+        - **Tests existentes**: cada test "it(...)" describe un comportamiento esperado - es regla documentada implicitamente.
+
+        Para cada regla extraida, capturar siempre: condicion (cuando aplica), accion (que hace), excepciones (cuando NO aplica), evidencia (archivo:linea).
+    - name: priorizacion-de-areas-a-documentar
+      content: |
+        No toda parte del sistema merece el mismo nivel de detalle. Prioriza por:
+
+        - **Riesgo**: lo que si falla, falla caro (pagos, autenticacion, datos personales).
+        - **Frecuencia de cambio**: lo que se toca a menudo necesita docs vivas.
+        - **Onboarding**: lo que un nuevo desarrollador toca el primer dia.
+        - **Integraciones externas**: contratos con sistemas que no controlamos - cambios cuestan.
+        - **Reglas de negocio criticas**: las que el negocio consultaria si las pierde.
+
+        Documenta primero el 20% de los componentes que cubren el 80% del riesgo y la actividad.
