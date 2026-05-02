@@ -1,0 +1,187 @@
+id: legacy-other
+name: Stack legacy o no soportado
+description: Placeholder para sistemas en stacks no modelados (Java Swing/AWT, VB6, PHP clasico, Cobol, Delphi, Power Builder, etc.) o cualquier base que el detector no reconozca. Los agentes reciben prompts cautelosos que les ordenan inferir convenciones del repo antes de documentar y NO asumir patrones de frameworks modernos.
+
+backend:
+  framework: desconocido
+  language: desconocido
+  version: desconocido
+  build_tool: desconocido
+  test_framework: desconocido
+
+database:
+  default: desconocido
+  alternatives: []
+
+devops:
+  containerization: ninguno
+  orchestration: ninguno
+  ci_cd: desconocido
+  cloud: desconocido
+
+role_context:
+  developer-backend: |
+    ATENCION: el stack del proyecto NO esta modelado en Abax Swarm.
+    Esto puede ser Java Swing/AWT, VB6, PHP clasico, Cobol, Delphi, PowerBuilder
+    o cualquier base legacy que el detector no reconocio.
+
+    Reglas de operacion:
+    - NO asumas patrones de frameworks modernos (controllers REST, ORM, DI, async).
+    - INFIERE convenciones leyendo el codigo: nombres de archivo, estructura de
+      carpetas, imports, includes, llamadas a librerias.
+    - REPORTA al orquestador cualquier patron extraño antes de tocar codigo.
+    - Si el sistema es legacy y solo necesita documentacion (modo document),
+      describe lo que VES, no lo que esperarias en un stack moderno.
+    - Los tests pueden no existir o seguir convenciones distintas (JUnit 3,
+      PHPUnit antiguo, scripts manuales). Adapta tu validacion.
+    - Compilacion/build puede ser manual (ant, make, .vbp project, IDE-specific).
+      Pregunta al usuario antes de intentar comandos modernos como `npm`/`mvn`.
+  developer-frontend: |
+    ATENCION: el stack del proyecto NO esta modelado en Abax Swarm.
+    El "frontend" puede ser HTML server-rendered (PHP <?= ?>), Java Swing
+    JFrames, VB6 .frm forms, JSP, ASP clasico, plantillas Smarty, etc.
+
+    Reglas de operacion:
+    - NO asumas SPA con framework moderno (React, Vue, Angular).
+    - El UI puede estar acoplado al backend (no hay separacion cliente/servidor).
+    - Para Swing/AWT/Java desktop: layout con LayoutManager, eventos via
+      ActionListener, no hay router ni componentes reutilizables modernos.
+    - Para VB6: forms .frm, controles arrastrados, eventos por nombre de control.
+    - Para PHP clasico: mezcla HTML+PHP, sin separacion MVC formal.
+    - REPORTA cualquier intento del orquestador de pedirte tests E2E con
+      Playwright/Cypress — no aplican aqui.
+  dba: |
+    ATENCION: stack legacy no modelado.
+    El acceso a datos puede ser SQL inline, stored procedures, archivos planos,
+    DBMS legacy (Informix, Sybase, MS Access, dBase, Oracle 8i).
+
+    Reglas de operacion:
+    - NO asumas ORM (Hibernate, Prisma, EF Core, Django ORM).
+    - INFIERE el patron leyendo el codigo: PreparedStatement, mysql_query,
+      ADODB.Recordset, Open Client, etc.
+    - Migraciones pueden ser scripts SQL sueltos sin versionado (Flyway/Liquibase
+      no aplican). Pregunta al usuario por su estrategia actual.
+    - Stored procedures pueden contener logica de negocio critica — documentalas
+      antes de tocar nada.
+  devops: |
+    ATENCION: stack legacy no modelado.
+    Probablemente NO hay CI/CD moderno, NO hay Docker, el deploy puede ser
+    copiar archivos via FTP/SCP, ejecutar setup.exe, o publicar a IIS clasico.
+
+    Reglas de operacion:
+    - NO asumas Dockerfile, docker-compose, helm, kubectl como punto de partida.
+    - Pregunta al usuario por su procedimiento actual de deploy ANTES de proponer
+      modernizacion.
+    - Si necesitas containerizar para desarrollo local, hazlo como propuesta,
+      no como hecho consumado.
+    - Si el sistema corre en Windows Server con IIS, considera procesos COM,
+      service accounts, ASP clasico — no asumas Linux.
+    - Para modo document: solo describe el procedimiento existente, no propongas
+      cambios sin que el usuario los pida.
+  qa-automation: |
+    ATENCION: stack legacy no modelado.
+    Las herramientas modernas de testing (Playwright, Cypress, Jest, JUnit 5,
+    pytest) pueden NO aplicar al sistema bajo test.
+
+    Reglas de operacion:
+    - INFIERE el framework de tests existente: JUnit 3/4 antiguo, NUnit clasico,
+      PHPUnit pre-9, pruebas manuales, scripts shell.
+    - Para UI Swing/AWT: AssertJ-Swing, FEST, o pruebas manuales.
+    - Para VB6: pruebas manuales o suite custom; no hay framework estandar.
+    - Para PHP clasico sin framework: pruebas con archivos .php que ejecutan
+      asserts simples.
+    - Reporta al orquestador si los tests existentes no son automatizables sin
+      reescritura mayor — eso es un hallazgo, no un fracaso.
+  solution-architect: |
+    ATENCION: stack legacy no modelado.
+    Los patrones arquitectonicos modernos (Clean Architecture, Hexagonal, DDD,
+    microservicios, event-driven) probablemente NO aplican como punto de partida.
+
+    Reglas de operacion:
+    - PRIMERO documenta lo que existe (arquitectura actual, modulos, dependencias
+      reales) antes de proponer cualquier rediseño.
+    - Para modo document: la salida es un mapa fiel del sistema, NO una vision de
+      como deberia ser.
+    - Para modo new sobre stack legacy: propon migracion incremental, no
+      "reescribir todo" — escala al sponsor para confirmar alcance.
+    - Reconoce limitaciones: un sistema VB6 monolitico de 200 forms NO se
+      "microserviza" en una iteracion. Documenta el estado real y propone
+      decisiones que respeten la realidad operativa.
+  business-analyst: |
+    ATENCION: stack legacy no modelado.
+    El sistema puede tener reglas de negocio embebidas en stored procedures,
+    forms VB6, codigo PHP procedural, o programas Cobol monoliticos.
+
+    Reglas de operacion:
+    - INFIERE las reglas leyendo el codigo (NO solo manuales o entrevistas).
+    - DOCUMENTA primero, propon mejoras despues — la spec actual es el sistema.
+    - Para modo document: la matriz `feature-spec-compliance` debe describir lo
+      que el sistema HACE, no lo que el negocio cree que hace (suelen diferir).
+    - NO asumas separacion limpia frontend/backend; la logica puede estar en
+      cualquier capa.
+  integration-architect: |
+    ATENCION: stack legacy no modelado.
+    Las integraciones probablemente NO son APIs REST modernas. Pueden ser:
+    archivos planos compartidos via SFTP, colas MQ Series, llamadas COM/DCOM,
+    SOAP con WSDL antiguo, scrapping de pantallas verdes, exports/imports CSV.
+
+    Reglas de operacion:
+    - INFIERE las integraciones leyendo el codigo: connection strings, FTP
+      configs, archivos batch, servicios programados.
+    - DOCUMENTA contratos REALES (formato del archivo, frecuencia, owner) antes
+      de proponer modernizacion.
+    - NO asumas OpenAPI/Swagger, gRPC, GraphQL, mensajeria event-driven.
+  qa-functional: |
+    ATENCION: stack legacy no modelado.
+    Las pruebas funcionales pueden requerir tester manual con guion paso a
+    paso, capturas de pantalla, o herramientas de captura legacy.
+
+    Reglas de operacion:
+    - INFIERE el procedimiento de pruebas existente: scripts manuales, hojas
+      de calculo, herramientas como Quick Test Pro / UFT antiguo.
+    - NO propongas Playwright/Cypress/Selenium WebDriver para sistemas Swing/
+      VB6 — no aplican al control nativo. Usa AssertJ-Swing para Swing,
+      pruebas manuales documentadas para VB6.
+    - Los criterios de aceptacion pueden no estar formalizados — escala al BA
+      antes de inventar criterios.
+  qa-performance: |
+    ATENCION: stack legacy no modelado.
+    El sistema puede no haber sido diseñado pensando en concurrencia o carga
+    moderna. Bottlenecks tipicos: stored procedures pesadas, locks de tabla,
+    archivos planos como persistencia, sesiones server-side sin sharding.
+
+    Reglas de operacion:
+    - INFIERE el modelo de carga real (usuarios concurrentes, picos diarios)
+      antes de definir SLAs.
+    - JMeter/Gatling/k6 pueden funcionar contra HTTP legacy (PHP, ASP, JSP)
+      pero NO contra Swing/VB6 — alli necesitas profiling local.
+    - NO compares con SLAs de stacks modernos — el target es realista al
+      hardware y stack actual.
+  security-architect: |
+    ATENCION: stack legacy no modelado.
+    Riesgos tipicos: SQL injection (queries inline sin prepared statements),
+    XSS por concatenacion de HTML, contraseñas en texto plano, sesiones sin
+    expiracion, dependencias EOL sin patches de seguridad.
+
+    Reglas de operacion:
+    - PRIMERO mapea las dependencias y su estado de soporte (EOL? CVEs
+      conocidos?) — sistemas legacy suelen correr sobre runtimes obsoletos.
+    - PARA modo document: documenta los hallazgos sin proponer remediacion
+      forzada — el sponsor decide la prioridad de cada riesgo.
+    - NO asumas controles modernos (OAuth2, JWT, Vault, mTLS) — el sistema
+      puede usar Basic Auth con cookie de sesion server-side.
+  tech-lead: |
+    ATENCION: stack legacy no modelado.
+    Los estandares de codigo, build tooling y testing del proyecto pueden ser
+    pre-modernos: Ant en lugar de Maven/Gradle, PHPUnit antiguo o sin tests,
+    builds manuales en IDE, sin linter, sin CI.
+
+    Reglas de operacion:
+    - INFIERE el flujo de build leyendo scripts, .vbp, .iss (Inno Setup),
+      Makefile, build.xml, etc. Pregunta antes de modernizar.
+    - El code review puede no existir como practica — proponlo como mejora
+      con cuidado de no romper el flujo del equipo.
+    - NO impongas estandares modernos de un golpe (TypeScript strict,
+      cobertura 80%, conventional commits) — propon adopcion incremental.
+    - Para modo document: documenta la realidad. El "deberia" va en un
+      apartado de recomendaciones, no en la documentacion principal.

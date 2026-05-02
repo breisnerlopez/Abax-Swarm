@@ -512,18 +512,34 @@ function renderStep(
     case "stack-detected": {
       const det = data.detection!;
       const detectedStack = det.stackId ? ctx.stacks.get(det.stackId) : undefined;
+      const isLegacy = det.stackId === "legacy-other";
       const opts: Array<{ label: string; value: string }> = [];
-      if (detectedStack) opts.push({ label: `Mantener: ${detectedStack.name}`, value: det.stackId! });
+      if (detectedStack && !isLegacy) {
+        opts.push({ label: `Mantener: ${detectedStack.name}`, value: det.stackId! });
+      }
+      // The legacy option is always available — the explicit, NON-silent fallback
+      // for any stack the catalog doesn't model. Replaced the historical
+      // "Continuar sin stack adapter" which silently mapped to angular-springboot.
+      opts.push({
+        label: isLegacy
+          ? `Confirmar: ${ctx.stacks.get("legacy-other")?.name ?? "Stack legacy o no soportado"}`
+          : "Usar 'Stack legacy o no soportado' (prompts cautelosos)",
+        value: "legacy-other",
+      });
       opts.push({ label: "Elegir otro stack manualmente", value: "__pick__" });
-      opts.push({ label: "Continuar sin stack adapter", value: "__none__" });
       return (
         <Box flexDirection="column">
           <StepHeader step={6} total={TOTAL_STEPS} title="Stack tecnológico (detección)" />
           <Box marginBottom={1} flexDirection="column">
-            {det.stackId ? (
+            {isLegacy ? (
+              <Text>Detecté un stack <Text bold>legacy o no modelado</Text>:</Text>
+            ) : det.stackId ? (
               <Text>Detecté <Text bold>{detectedStack?.name ?? det.stackId}</Text>:</Text>
             ) : (
-              <Text>No detecté un stack soportado. Evidencia parcial:</Text>
+              <>
+                <Text>No detecté un stack soportado. Evidencia parcial:</Text>
+                <Text dimColor>  · Si tu sistema es Java desktop, VB6, PHP clasico, Cobol, Delphi, etc., usa "Stack legacy o no soportado" — los agentes recibirán prompts cautelosos.</Text>
+              </>
             )}
             {det.evidence.map((e, i) => (
               <Text dimColor key={i}>  · {e}</Text>
@@ -535,11 +551,6 @@ function renderStep(
             onSubmit={(choice) => {
               if (choice === "__pick__") {
                 go("stack");
-              } else if (choice === "__none__") {
-                // Default to angular-springboot as a neutral fallback so the
-                // pipeline doesn't crash; agents won't get stack_overrides applied.
-                setData((d) => ({ ...d, stackId: "angular-springboot" }));
-                go("role-scope");
               } else {
                 setData((d) => ({ ...d, stackId: choice }));
                 go("role-scope");

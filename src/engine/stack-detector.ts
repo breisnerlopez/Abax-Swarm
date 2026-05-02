@@ -161,7 +161,123 @@ const RULES: DetectionRule[] = [
       return null;
     },
   },
+  // -------------------------------------------------------------------------
+  // Legacy detectors — match real stacks the catalog doesn't model and route
+  // them to `legacy-other`. Keep these LAST so modern stacks win when both
+  // signals coexist (rare but possible: a PHP app being migrated to Next.js).
+  // -------------------------------------------------------------------------
+  {
+    stackId: "legacy-other",
+    match: (dir) => {
+      // PHP detection. composer.json with framework, or bare .php files.
+      const composer = readJsonSafe(join(dir, "composer.json"));
+      if (composer) {
+        const req = (composer.require ?? {}) as Record<string, string>;
+        const reqDev = (composer["require-dev"] ?? {}) as Record<string, string>;
+        const all = { ...req, ...reqDev };
+        const fw = ["laravel/framework", "symfony/symfony", "symfony/framework-bundle", "cakephp/cakephp", "codeigniter/framework", "yiisoft/yii2", "slim/slim"]
+          .find((k) => k in all);
+        if (fw) return `PHP detectado: composer.json declara ${fw} (stack legacy no modelado)`;
+        return "PHP detectado: composer.json sin framework moderno conocido (stack legacy no modelado)";
+      }
+      try {
+        const files = readdirSync(dir);
+        if (files.some((f) => f.toLowerCase().endsWith(".php"))) {
+          return "PHP detectado: archivos .php en raiz sin composer.json (stack legacy no modelado)";
+        }
+      } catch {
+        // ignore
+      }
+      return null;
+    },
+  },
+  {
+    stackId: "legacy-other",
+    match: (dir) => {
+      // Java Desktop (Swing/AWT/JavaFX). Look for Maven/Gradle + UI imports.
+      const pom = readTextSafe(join(dir, "pom.xml"));
+      const gradle = readTextSafe(join(dir, "build.gradle"))
+        ?? readTextSafe(join(dir, "build.gradle.kts"));
+      const buildFile = pom ?? gradle;
+      if (!buildFile) return null;
+      // Heuristic: Java build file with no web framework AND a hint of desktop UI.
+      const hasWebFramework = /spring-boot|quarkus|micronaut|dropwizard|javalin|spark-core|vertx-web|jakarta\.ws\.rs|com\.sun\.jersey/i.test(buildFile);
+      if (hasWebFramework) return null;
+      const hasDesktopUi = /javafx|openjfx|swingx|miglayout|formdev|flatlaf/i.test(buildFile);
+      if (hasDesktopUi) return "Java desktop detectado: build file con dependencias JavaFX/Swing y sin framework web (stack legacy no modelado)";
+      // Fallback: scan a few .java files for Swing imports.
+      try {
+        const found = scanForJavaImports(dir, /import\s+javax\.swing|import\s+java\.awt|import\s+javafx\./, 50);
+        if (found) return `Java desktop detectado: ${found} (stack legacy no modelado)`;
+      } catch {
+        // ignore
+      }
+      return null;
+    },
+  },
+  {
+    stackId: "legacy-other",
+    match: (dir) => {
+      // VB6 / Visual Basic 6.0. .vbp project file, .frm forms, .bas modules, .cls classes.
+      try {
+        const files = readdirSync(dir);
+        const vbp = files.find((f) => f.toLowerCase().endsWith(".vbp"));
+        if (vbp) return `VB6 detectado: archivo de proyecto ${vbp} (stack legacy no modelado)`;
+        const hasForms = files.some((f) => f.toLowerCase().endsWith(".frm"));
+        const hasModules = files.some((f) => f.toLowerCase().endsWith(".bas"));
+        const hasClasses = files.some((f) => f.toLowerCase().endsWith(".cls"));
+        if (hasForms || (hasModules && hasClasses)) {
+          return "VB6 detectado: archivos .frm/.bas/.cls en raiz (stack legacy no modelado)";
+        }
+      } catch {
+        // ignore
+      }
+      return null;
+    },
+  },
 ];
+
+/**
+ * Scan up to `limit` .java files at the top level of `dir` looking for an
+ * import that matches `pattern`. Returns the first matching filename or null.
+ * Bounded by `limit` to keep detection fast on large repos.
+ */
+function scanForJavaImports(dir: string, pattern: RegExp, limit: number): string | null {
+  let scanned = 0;
+  for (const entry of readdirSync(dir)) {
+    if (!entry.endsWith(".java")) continue;
+    if (scanned++ >= limit) return null;
+    const content = readTextSafe(join(dir, entry));
+    if (content && pattern.test(content)) return `${entry} importa libreria de UI desktop`;
+  }
+  // Also check src/main/java if it exists (typical Maven layout).
+  const javaSrc = join(dir, "src", "main", "java");
+  if (existsSync(javaSrc)) {
+    try {
+      const found = scanDirForJavaImports(javaSrc, pattern, limit - scanned);
+      if (found) return found;
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
+function scanDirForJavaImports(dir: string, pattern: RegExp, remaining: number): string | null {
+  if (remaining <= 0) return null;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (remaining-- <= 0) return null;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      const found = scanDirForJavaImports(full, pattern, remaining);
+      if (found) return found;
+    } else if (entry.name.endsWith(".java")) {
+      const content = readTextSafe(full);
+      if (content && pattern.test(content)) return `${entry.name} importa libreria de UI desktop`;
+    }
+  }
+  return null;
+}
 
 /**
  * Inspect the target directory and return the matched stack id (if any) plus
