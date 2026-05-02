@@ -53,6 +53,7 @@ agent:
     bash: true
 
 skills:
+  - role-boundaries
   - test-automation-framework
   - ci-cd-testing
   - regression-automation

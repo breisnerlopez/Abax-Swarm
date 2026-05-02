@@ -68,6 +68,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - functional-analysis
   - requirement-traceability
   - business-rules-documentation

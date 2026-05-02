@@ -68,6 +68,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - deployment-planning
   - technical-design
   - architecture-decision-records

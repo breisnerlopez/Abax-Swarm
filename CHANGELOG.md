@@ -6,6 +6,31 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.20] — 2026-05-02
+
+### Added — Limites de rol y reglas de rechazo
+
+Motivado por el incidente de la sesión `ses_21576ae3b...`: el orquestador delegó a `@devops` una Task que decía *"redespliega y reejecuta QA"*. Devops cumplió con sesgo operacional ("responde HTTP 200 → done") y declaró el ciclo cerrado sin aplicar el rigor de qa-functional (criterios de aceptación, registro de defectos). Una sola Task colapsó dos disciplinas. Tres mecanismos coordinados de defensa:
+
+- **Skill compartida `role-boundaries`** asignada a 13 roles con riesgo de solapamiento (`devops`, `qa-functional`, `qa-automation`, `qa-performance`, `developer-backend`, `developer-frontend`, `dba`, `tech-lead`, `business-analyst`, `product-owner`, `solution-architect`, `security-architect`, `tech-writer`). Contiene la matriz maestra por fase, los 8 pares críticos de no-solapamiento, anti-patrones, y el patrón estricto de rechazo (`RECHAZO DE TAREA — fuera de mi rol`) con plantilla exacta.
+- **Sección nueva en orchestrator template** (OpenCode + Claude): "Matriz de responsabilidades técnicas por fase (anti-cross-role)" que enuncia el rol maestro de cada fase con sus anti-patrones, gateada por `mode !== "document"` (no aplica al modo documentación porque sus 4 ejes trabajan en paralelo). Cada fila se renderiza condicionalmente solo si los roles correspondientes están en el equipo.
+- **Regla 2-Tasks post-fix** en el mismo bloque: cuando QA reporta defecto, el orquestador SIEMPRE delega dos Tasks separadas (`@developer-*` para fix → SHA → `@qa-functional` para re-ejecutar). Se renderiza solo si tanto qa-functional como developer-backend están presentes.
+
+### Added — Tests
+
+- `tests/integration/role-boundaries.test.ts`: 31 tests cubriendo contenido del skill, wiring a los 13 roles, emisión condicional en modos `new` / `continue` / `document`, gating por roles presentes, validación de @-mentions out-of-team, edge cases de equipo pequeño y orphan handlebars.
+- Suite completa: 407 tests pasando (era 376), typecheck limpio, validate Zod OK.
+
+### Changed
+
+- `data/skills/` ahora tiene 76 archivos (era 75).
+- 13 roles declaran el nuevo skill `role-boundaries` en su lista `skills:`.
+
+### Documentation
+
+- `docs/role-boundaries.md` (nuevo): incidente motivador, matriz maestra completa, 8 pares críticos, plantilla exacta de rechazo, regla 2-Tasks post-fix, gating por modo.
+- `docs/README.md` y `README.md` actualizados con la referencia.
+
 ## [0.1.19] — 2026-05-02
 
 ### Added — 3 capas anti-mock

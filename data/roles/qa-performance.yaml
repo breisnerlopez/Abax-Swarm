@@ -52,6 +52,7 @@ agent:
     bash: true
 
 skills:
+  - role-boundaries
   - performance-testing
   - load-script-design
   - bottleneck-analysis

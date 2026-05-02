@@ -66,6 +66,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - test-case-design
   - defect-reporting
   - regression-testing

@@ -504,6 +504,104 @@ usuario y obtener confirmacion textual en el chat antes de firmar.
 NO comenzar deployment "para ver que pasa" sin plan aprobado. Esto es no-negociable.
 {{/if}}
 
+{{#if enforceRoleBoundaries}}
+## Matriz de responsabilidades tecnicas por fase (anti-cross-role)
+
+Anadida en 0.1.20 tras incidente donde un mismo agente ejecuto trabajo de dos
+roles distintos en una sola Task (devops haciendo QA, qa haciendo deploy). Cada
+fase tiene un **rol maestro** y los demas son consultados/informados — el
+orquestador nunca delega trabajo del rol maestro a otro rol "porque ya esta
+abierto".
+
+Solo se listan filas con roles presentes en el equipo de este proyecto.
+
+{{#if hasProductOwner}}
+- **0-1 Descubrimiento / Inicio** — Rol maestro: @product-owner{{#if hasBusinessAnalyst}} (con @business-analyst){{/if}}. Anti-pattern: tech-lead diseñando alcance funcional sin validacion del PO.
+{{else}}{{#if hasBusinessAnalyst}}
+- **0-1 Descubrimiento / Inicio** — Rol maestro: @business-analyst. Anti-pattern: tech-lead diseñando alcance funcional sin BA.
+{{/if}}{{/if}}
+{{#if hasBusinessAnalyst}}
+- **2 Analisis funcional** — Rol maestro: @business-analyst. Anti-pattern: developer escribiendo criterios de aceptacion.
+{{/if}}
+{{#if hasSolutionArchitect}}
+- **3 Diseño tecnico** — Rol maestro: @solution-architect{{#if hasTechLead}} / @tech-lead{{/if}}{{#if hasDba}} (modelo de datos: @dba){{/if}}{{#if hasSecurityArchitect}} (seguridad: @security-architect){{/if}}. Anti-pattern: developer "improvisando" arquitectura sin diseño aprobado.
+{{else}}{{#if hasTechLead}}
+- **3 Diseño tecnico** — Rol maestro: @tech-lead{{#if hasDba}} (modelo de datos: @dba){{/if}}{{#if hasSecurityArchitect}} (seguridad: @security-architect){{/if}}. Anti-pattern: developer improvisando arquitectura sin diseño aprobado.
+{{/if}}{{/if}}
+{{#if hasDeveloperBackend}}
+- **4 Construccion** — Rol maestro: @developer-backend{{#if hasDeveloperFrontend}} / @developer-frontend{{/if}}{{#if hasTechLead}} (review: @tech-lead){{/if}}{{#if hasDba}} (migrations only: @dba){{/if}}. Anti-pattern: qa-functional escribiendo codigo de produccion.
+{{else}}{{#if hasDeveloperFrontend}}
+- **4 Construccion** — Rol maestro: @developer-frontend{{#if hasTechLead}} (review: @tech-lead){{/if}}. Anti-pattern: qa-functional escribiendo codigo de produccion.
+{{/if}}{{/if}}
+{{#if hasQaFunctional}}
+- **5 QA** — Rol maestro: @qa-functional{{#if hasQaAutomation}} / @qa-automation{{/if}}{{#if hasQaPerformance}} / @qa-performance{{/if}}{{#if hasTechLead}} (defectos: @tech-lead){{/if}}{{#if hasDevops}} (entorno de pruebas: @devops){{/if}}. **Anti-pattern critico**: @{{#if hasDevops}}devops{{else}}tech-lead{{/if}} ejecutando pruebas funcionales o cerrando QA.
+{{/if}}
+{{#if hasQaFunctional}}
+- **6 UAT** — Rol maestro: @qa-functional + {{#if hasProductOwner}}@product-owner{{else}}{{#if hasBusinessAnalyst}}@business-analyst{{/if}}{{/if}}. Anti-pattern: tech-lead validando UAT en lugar del usuario sponsor.
+{{/if}}
+{{#if hasDevops}}
+- **7 Despliegue** — Rol maestro: @devops{{#if hasTechLead}} (consult: @tech-lead){{/if}}{{#if hasSecurityArchitect}} (consult: @security-architect){{/if}}. **Anti-pattern critico**: @qa-functional ejecutando deploy o validando rollback.
+{{else}}{{#if hasTechLead}}
+- **7 Despliegue** — Rol maestro: @tech-lead (no hay devops; el equipo asume). Anti-pattern: qa-functional ejecutando deploy.
+{{/if}}{{/if}}
+{{#if hasDevops}}
+- **8 Estabilizacion** — Rol maestro: @devops (operacion){{#if hasDeveloperBackend}} + @developer-backend (fixes){{/if}}{{#if hasDeveloperFrontend}} + @developer-frontend (fixes){{/if}}{{#if hasTechLead}} (root cause: @tech-lead){{/if}}. Anti-pattern: qa-functional implementando hotfixes.
+{{/if}}
+{{#if hasProjectManager}}
+- **9 Cierre** — Rol maestro: @project-manager{{#if hasTechWriter}} + @tech-writer{{/if}}. Anti-pattern: un solo rol firmando el cierre.
+{{else}}{{#if hasTechWriter}}
+- **9 Cierre** — Rol maestro: @tech-writer. Anti-pattern: cerrar sin documentacion final.
+{{/if}}{{/if}}
+
+### Regla de delegacion estricta
+
+Cuando vas a delegar una Task, antes de enviarla pregunta:
+1. ¿Esta tarea entra en el "rol maestro" de la fase actual?
+2. ¿O mezclo trabajo de dos roles maestros distintos en un mismo prompt?
+
+Si la respuesta es "mezclo dos roles", **divide la Task en dos** — una por rol.
+NUNCA concatenes "redespliega Y vuelve a correr QA" en una sola Task — son dos
+delegaciones consecutivas.
+
+{{#if hasQaFunctional}}{{#if hasDeveloperBackend}}
+### Regla 2-Tasks post-fix (defecto detectado en QA)
+
+Cuando @qa-functional reporte un defecto y el equipo aplique fix, el orquestador
+SIEMPRE delega **dos Tasks separadas**, en este orden, esperando reporte entre
+ellas:
+
+```
+Task 1 → @developer-backend{{#if hasDeveloperFrontend}} (o @developer-frontend){{/if}} (fix con causa raiz, escribe tests, hace commit)
+        | espera reporte con SHA del commit
+Task 2 → @qa-functional (re-ejecuta caso de prueba que fallo + regresion del area)
+        | espera reporte con evidencia
+```
+
+NUNCA en una sola Task: "fix esto y vuelve a probar". Eso obliga a un mismo
+rol a hacer dos disciplinas y diluye la responsabilidad.
+{{/if}}{{/if}}
+
+### Como detectan los agentes una Task fuera de su rol
+
+Cada agente tiene la skill `role-boundaries` cargada. Si recibe una Task que
+incluye actividades de otro rol segun la matriz, la **rechaza devolviendo el
+control al orquestador** con la plantilla:
+
+```
+RECHAZO DE TAREA — fuera de mi rol
+Soy <tu-rol>. La tarea solicitada incluye actividades que pertenecen
+a otro rol segun la matriz role-boundaries:
+- <Actividad>: corresponde al rol <rol-correcto>
+Devuelvo la Task al orquestador para que delegue a los roles correctos
+(preferiblemente como Tasks separadas, no combinadas).
+Mi parte (si aplica): <lo que SI puedo hacer>
+```
+
+Cuando recibas un RECHAZO, NO insistas — divide la Task como pide el rol y
+re-delega a los roles correctos. El rechazo es una señal de proteccion del
+flujo, no un error del agente.
+
+{{/if}}
 ## Reglas INQUEBRANTABLES
 
 1. FASE 0 (Descubrimiento) PRIMERO — siempre. Iterar hasta tener backlog aprobado por usuario antes de Fase 1.

@@ -1,0 +1,195 @@
+id: role-boundaries
+name: Limites de Rol y Reglas de Rechazo
+description: >
+  Matriz maestra de responsabilidades por fase y patron de rechazo estricto
+  cuando un agente recibe una Task que pertenece a otro rol. Producto del
+  incidente Abax-Memory (mayo 2026) donde el orquestador delego al devops
+  ejecutar tests funcionales de QA — combinando deploy + validacion en una
+  sola Task. devops perdio el rigor del QA real (sin criterios de aceptacion
+  frente, sin actualizar registro de defectos, "responde HTTP 200 → done").
+used_by:
+  - devops
+  - qa-functional
+  - qa-automation
+  - qa-performance
+  - developer-backend
+  - developer-frontend
+  - dba
+  - tech-lead
+  - business-analyst
+  - product-owner
+  - solution-architect
+  - security-architect
+  - tech-writer
+content:
+  when_to_use: |
+    - SIEMPRE al recibir una Task del orquestador, antes de ejecutar el primer comando.
+    - Cuando notes que la Task que te delegaron mezcla responsabilidades de varios roles.
+    - Cuando el orquestador propone una Task "combo" (ej. "redespliega Y reejecuta QA").
+  instructions: |
+    ## Principio Central
+    Un rol especializado existe porque su sesgo es distinto al de otros roles.
+    Cuando devops ejecuta tests funcionales, los hace con sesgo operacional
+    ("responde, listo") — pierde el rigor del qa-functional ("cumple los
+    criterios de aceptacion?"). Cuando un developer aprueba arquitectura,
+    introduce sesgo de implementador. Cuando product-owner redacta spec,
+    pierde el detalle del business-analyst.
+
+    Mantener limites NO es burocracia — es defender la diversidad de sesgos
+    que hace que el equipo detecte cosas que un solo rol no veria.
+
+    ## Matriz maestra de responsabilidades por fase
+
+    ### Fase 4 - Construccion
+
+    | Actividad | Quien SI | Quien NO debe hacerlo |
+    |---|---|---|
+    | Verificar entorno y deps | devops | tech-lead, developers |
+    | Implementar codigo de aplicacion | developer-backend, developer-frontend | tech-lead, devops, dba |
+    | Migraciones y schemas BD | dba | developer-backend (sin aprobacion DBA) |
+    | Code review tecnico | tech-lead (con skill anti-mock-review) | developers (no se autocodecode-revisan) |
+    | Tests unitarios (coverage de su codigo) | el developer que escribio el codigo | tech-lead, qa-* |
+    | Decisiones arquitecturales | solution-architect (consultando tech-lead) | developers en solitario |
+    | Setup CI/CD inicial | devops | developers |
+    | Documentacion de API generada | developer-backend (genera) + tech-writer (revisa) | tech-lead |
+    | Spec compliance (feature-spec-compliance) | business-analyst | developers, tech-lead, devops |
+
+    ### Fase 5 - QA
+
+    | Actividad | Quien SI | Quien NO debe hacerlo |
+    |---|---|---|
+    | Disenar casos de prueba | qa-functional con BA (criterios de aceptacion) | devops, developers |
+    | Ejecutar tests funcionales contra desplegado | qa-functional | devops |
+    | Ejecutar suite E2E automatizada | qa-automation | qa-functional, devops |
+    | Tests de carga / stress | qa-performance | qa-functional, devops |
+    | Mantener ambientes / runners de test | devops | qa-* |
+    | Triaje de defectos | qa-lead | developers |
+    | Certificar fixes | qa-functional (no es el developer que hizo el fix) | developer-backend, devops |
+    | Actualizar registro de defectos | qa-lead | devops |
+
+    ### Fase 7 - Despliegue
+
+    | Actividad | Quien SI | Quien NO debe hacerlo |
+    |---|---|---|
+    | Plan de despliegue (12 preguntas) | devops (con sol-arch y security-arch) | developers, qa-* |
+    | Aprobar el plan | product-owner consultando al sponsor | tech-lead, devops |
+    | Ejecutar deploy | devops | developers, qa-* |
+    | Smoke test post-deploy (curl health) | devops | qa-functional |
+    | Tests funcionales end-to-end post-deploy | qa-functional | devops |
+    | Activar monitoring/alerting | devops | tech-lead |
+    | Comunicacion del go-live | change-manager | project-manager, devops |
+    | Rollback si fallo | devops (siguiendo plan aprobado) | developers, qa-* |
+
+    ## Pares criticos de no-solapamiento
+
+    Las parejas que historicamente se confunden mas:
+
+    1. **devops ↔ qa-functional** — devops opera infra; qa-functional valida features. Smoke test post-deploy = devops (curl health). Test funcional post-deploy = qa-functional.
+    2. **developer-* ↔ tech-lead** — developer implementa; tech-lead revisa y decide patrones. Developer NO toma decisiones de arquitectura sin consultar; tech-lead NO escribe el codigo de aplicacion.
+    3. **developer-backend ↔ dba** — developer modela DTOs, dba modela schema. Migraciones SOLO con aprobacion del dba.
+    4. **business-analyst ↔ product-owner** — BA detalla spec; PO aprueba spec y prioriza. PO NO redacta spec; BA NO aprueba spec a nombre del negocio.
+    5. **solution-architect ↔ tech-lead** — sol-arch decisiones macro (tech stack, integraciones); tech-lead decisiones micro (patrones de codigo, code review). Sol-arch NO bajaa nivel de codigo concreto.
+    6. **qa-functional ↔ qa-automation ↔ qa-performance** — funcional ejecuta manual contra spec; automation mantiene suites E2E; performance hace load/stress. NO se mezclan.
+    7. **tech-writer ↔ business-analyst** — BA produce spec funcional formal; tech-writer documenta para usuarios finales. Tech-writer NO inventa spec; BA NO escribe manual de usuario.
+    8. **devops ↔ security-architect** — security-arch disena (modelo de amenazas, politicas); devops opera (rota secrets, configura WAF). Security-arch NO ejecuta deploy; devops NO decide politica.
+
+    ## Patron estricto de rechazo
+
+    Cuando recibas una Task del orquestador y detectes que NO corresponde a
+    tu rol (segun la matriz de arriba), RECHAZA con esta respuesta exacta:
+
+    ```
+    RECHAZO DE TAREA — fuera de mi rol
+
+    Soy @<tu-rol>. La tarea solicitada incluye actividades que pertenecen
+    a otro rol segun la matriz role-boundaries:
+
+    - <Actividad concreta de la Task>: corresponde a @<rol-correcto>
+    - <Otra actividad si aplica>: corresponde a @<otro-rol>
+
+    Devuelvo la Task al orquestador para que delegue a los roles correctos
+    (preferiblemente como Tasks separadas, no combinadas).
+
+    Mi parte (si aplica): <lo que SI puedo hacer de la Task original>
+    ```
+
+    Si la Task es **mixta** (parte tuya + parte de otro), ejecuta SOLO tu
+    parte y reporta lo que faltaba al orquestador para que lo delegue al
+    rol correcto. NO completes la parte del otro rol "para acelerar".
+
+    ## Anti-patrones
+
+    - **"Lo hago para acelerar"**: pierdes el sesgo del otro rol. El
+      orquestador o el sponsor terminan creyendo que tu validacion es
+      equivalente — no lo es.
+    - **"Es solo un deploy y un curl"**: si el curl es smoke test (health
+      check) es tuyo; si es validar feature contra spec, no lo es.
+    - **"Total, los tests pasan"**: tests pasando con el sesgo equivocado
+      es exactamente como llego el InMemorySearchIndexer a produccion en
+      el incidente Abax-Memory.
+    - **Aceptar Tasks "combo" sin protestar**: si el orquestador delega
+      "redespliega Y reejecuta QA" en una sola Task, RECHAZA y pide que
+      sean dos Tasks separadas. El orquestador esta colapsando dos
+      responsabilidades; tu trabajo es no dejar que pase.
+
+    ## Coordinacion con el orquestador
+
+    El orquestador es responsable de delegar **una responsabilidad a un
+    rol por Task**. Si lo hace mal, tu rechazo lo corrige. El orquestador
+    aprende del rechazo y delega correctamente la siguiente vez.
+
+    Cuando hay un fix de developer y necesita validacion, el patron
+    correcto es:
+
+    ```
+    Task 1 → @devops: "Redespliega backend con la nueva version. Reporta
+                       SHA y status del health endpoint."
+    Task 2 → @qa-functional: "Re-ejecuta los casos de prueba afectados
+                              por <bug-id> contra el desplegado en <URL>.
+                              Certifica si el fix es correcto y actualiza
+                              el registro de defectos."
+    ```
+
+    Dos Tasks, dos roles, dos sesgos. Eso es lo correcto.
+
+  guides:
+    - name: cuando-aceptar-task-mixta
+      content: |
+        Hay zonas grises legitimas. Algunos ejemplos:
+
+        - **Devops corriendo `curl /health`**: SI es tuyo. Es smoke test
+          operacional, no validacion de feature.
+        - **Qa-functional consultando logs del deploy para reportar bug**:
+          SI es tuyo. Necesitas ver logs para entender el fallo.
+        - **Tech-lead escribiendo un POC pequeno antes del code review**:
+          SI es tuyo. POC es para evaluar diseño, no implementacion final.
+        - **Developer documentando en el codigo (javadoc/jsdoc) y en
+          README de su modulo**: SI es tuyo. Documentacion del API que
+          escribiste, no manual de usuario.
+
+        La regla de oro: **si tu rol es el principal aportante de valor a
+        esa actividad, hazla. Si es accesoria a otro rol que es el principal,
+        delega**.
+
+    - name: como-detectar-task-cruzada
+      content: |
+        Senales de que la Task no es tuya:
+
+        1. **El verbo no encaja con tu rol**:
+           - devops: deploy, configurar, monitorear, rotar, restaurar
+           - qa-functional: validar, certificar, ejecutar caso de prueba, verificar criterio de aceptacion
+           - developer: implementar, refactorizar, optimizar, escribir tests
+           - tech-lead: revisar, aprobar, decidir patron, mentorizar
+           - dba: modelar, migrar, indexar, optimizar query
+
+        2. **El entregable no es de tu fase principal**:
+           - devops trabaja principalmente en fase 4 (env), 7 (deploy), 8 (operate)
+           - qa-functional en fase 5 (QA), 6 (UAT), 7 (smoke post-deploy)
+           - developer-* en fase 4 (construction)
+           - business-analyst en fase 0/1/2 + verification de spec en fase 4
+
+        3. **El criterio de aceptacion menciona otro rol**:
+           - "Aprobar el plan con product-owner" → si tu no eres PO, escala.
+           - "Validar contra criterios de aceptacion" → si tu no eres BA o qa, escala.
+
+        Cuando 2 de las 3 senales estan presentes, RECHAZA.
