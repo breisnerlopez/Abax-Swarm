@@ -1,6 +1,6 @@
 {
   "name": "abax-swarm",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Abax Swarm \u2014 AI agent orchestration for software projects",
   "type": "module",
   "main": "dist/cli/app.js",
