@@ -1,7 +1,8 @@
 ---
 description: {{{agent.description}}}
 mode: {{agent.mode}}
-{{#if model}}model: {{model}}
+{{#if color}}color: "{{color}}"
+{{/if}}{{#if model}}model: {{model}}
 {{/if}}{{#if thinking}}thinking:
   type: {{thinking.type}}
   budgetTokens: {{thinking.budgetTokens}}

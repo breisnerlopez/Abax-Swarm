@@ -13,6 +13,9 @@ agent:
   temperature: 0.3
   cognitive_tier: strategic
   reasoning: high
+  # Crimson is reserved for the orchestrator so it always stands out in the OpenCode TUI.
+  # Other roles inherit from the deterministic palette in src/engine/color-resolver.ts.
+  color: "#dc143c"
   description: >
     Orquestador principal del proyecto. Coordina al equipo de agentes
     IA siguiendo el flujo de trabajo cascada, delegando tareas

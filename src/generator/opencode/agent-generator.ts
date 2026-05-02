@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import type { Role, Skill } from "../../loader/schemas.js";
 import type { ModelMix, ModelSpec } from "../../engine/types.js";
+import { resolveAgentColor } from "../../engine/color-resolver.js";
 import { renderTemplate } from "./template-engine.js";
 
 export interface GeneratedFile {
@@ -18,6 +19,7 @@ export function generateAgentFile(role: Role, skills: Skill[], spec?: ModelSpec)
   const content = renderTemplate("agent.md.hbs", {
     ...role,
     skills: roleSkills,
+    color: resolveAgentColor(role),
     model: spec?.model,
     thinking: spec?.thinking,
     reasoningEffort: spec?.reasoningEffort,
