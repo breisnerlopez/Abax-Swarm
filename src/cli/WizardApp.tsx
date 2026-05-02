@@ -10,6 +10,8 @@ import type {
   ModelStrategy,
   ProjectMode,
   ProjectContextDetection,
+  PermissionMode,
+  IsolationMode,
   SelectionResult,
   TargetPlatform,
   TeamScope,
@@ -56,6 +58,8 @@ type StepName =
   | "platform"
   | "model-strategy"
   | "provider"
+  | "permissions"
+  | "isolation"
   | "description"
   | "size"
   | "criteria"
@@ -83,6 +87,8 @@ interface WizardData {
   scope?: TeamScope;
   provider?: "anthropic" | "openai";
   modelStrategy?: ModelStrategy;
+  permissionMode?: PermissionMode;
+  isolationMode?: IsolationMode;
   modelOverrides?: Record<string, { cognitive_tier?: "strategic" | "implementation" | "mechanical"; reasoning?: "none" | "low" | "medium" | "high" }>;
   selection?: SelectionResult;
   generated?: PipelineResult;
@@ -117,6 +123,8 @@ function stepNumber(step: StepName): number | null {
       return 2;
     case "model-strategy":
     case "provider":
+    case "permissions":
+    case "isolation":
       return 3;
     case "description":
     case "document-options":
@@ -163,6 +171,24 @@ function buildSidebarItems(data: WizardData, ctx: DataContext): SidebarItem[] {
             ? "Anthropic (Claude)"
             : "OpenAI (GPT)"
           : null,
+    },
+    {
+      label: "Permisos",
+      value: data.permissionMode
+        ? data.permissionMode === "full"
+          ? "acceso completo"
+          : data.permissionMode === "recommended"
+            ? "recomendado"
+            : "estricto"
+        : null,
+    },
+    {
+      label: "Aislamiento",
+      value: data.isolationMode
+        ? data.isolationMode === "devcontainer"
+          ? "devcontainer"
+          : "host (sin aislar)"
+        : null,
     },
     { label: "Descripción", value: data.description ?? null },
     { label: "Tamaño", value: data.size ? SIZE_LABELS[data.size] : null },
@@ -318,6 +344,8 @@ function buildConfig(data: WizardData): ProjectConfig {
     provider: data.provider ?? "anthropic",
     modelStrategy: data.modelStrategy ?? "custom",
     modelOverrides: data.modelOverrides,
+    permissionMode: data.permissionMode ?? "recommended",
+    isolationMode: data.isolationMode ?? "devcontainer",
     mode,
     detection: data.detection,
   };
@@ -564,7 +592,7 @@ function renderStep(
             ]}
             onSubmit={(modelStrategy) => {
               setData((d) => ({ ...d, modelStrategy }));
-              go(modelStrategy === "inherit" ? "description" : "provider");
+              go(modelStrategy === "inherit" ? "permissions" : "provider");
             }}
           />
         </Box>
@@ -589,6 +617,70 @@ function renderStep(
             ]}
             onSubmit={(provider) => {
               setData((d) => ({ ...d, provider }));
+              go("permissions");
+            }}
+          />
+        </Box>
+      );
+
+    case "permissions":
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={3} total={TOTAL_STEPS} title="Permisos de OpenCode" />
+          <Box marginBottom={1} flexDirection="column">
+            <Text dimColor>
+              Estricto: cada agente pide confirmación para casi todo. Cauteloso pero pesado.
+            </Text>
+            <Text dimColor>
+              Recomendado: allowlist de comandos comunes (git, npm, mvn, pip, etc.) y
+              denylist de operaciones peligrosas (rm /var, git push --force).
+            </Text>
+            <Text color="yellow">
+              Acceso completo: sin preguntas. Sólo para tu máquina personal en proyectos
+              de prueba — los agentes pueden ejecutar cualquier comando.
+            </Text>
+          </Box>
+          <SelectInput<PermissionMode>
+            label="¿Qué nivel de permisos?"
+            initialValue={data.permissionMode ?? "recommended"}
+            options={[
+              { label: "Recomendado (allowlist + denylist) — default", value: "recommended" },
+              { label: "Estricto (cada acción pide confirmación)", value: "strict" },
+              { label: "Acceso completo (sin restricciones — peligroso)", value: "full" },
+            ]}
+            onSubmit={(permissionMode) => {
+              setData((d) => ({ ...d, permissionMode }));
+              go("isolation");
+            }}
+          />
+        </Box>
+      );
+
+    case "isolation":
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={3} total={TOTAL_STEPS} title="Aislamiento del entorno" />
+          <Box marginBottom={1} flexDirection="column">
+            <Text dimColor>
+              Devcontainer: genera .devcontainer/devcontainer.json con todo el runtime
+              (Java, Maven, Node, Python, etc., según tu stack). Los agentes pueden
+              instalar dependencias sin tocar tu sistema operativo principal. Requiere Docker.
+            </Text>
+            <Text dimColor>
+              Host: trabajas directamente en el SO principal. Los agentes te pedirán
+              aprobación para cualquier instalación, y usarán gestores de versión del usuario
+              (sdkman, nvm, pyenv) en vez de sudo apt.
+            </Text>
+          </Box>
+          <SelectInput<IsolationMode>
+            label="¿Cómo aislar el entorno de desarrollo?"
+            initialValue={data.isolationMode ?? "devcontainer"}
+            options={[
+              { label: "Devcontainer (aislado, recomendado) — requiere Docker", value: "devcontainer" },
+              { label: "Host (sin aislamiento, agentes piden aprobación)", value: "host" },
+            ]}
+            onSubmit={(isolationMode) => {
+              setData((d) => ({ ...d, isolationMode }));
               go("description");
             }}
           />

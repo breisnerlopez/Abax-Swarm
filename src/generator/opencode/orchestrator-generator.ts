@@ -68,6 +68,14 @@ export function generateOrchestratorFile(
     ? `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo de documentacion (5 fases).`
     : `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`;
 
+  // env-verification deliverable lead: prefer devops when present, fall back to tech-lead.
+  // Used by the orchestrator template's "Protocolo de inicio de fase Construccion" block.
+  const envVerificationLead = agentIds.has("devops")
+    ? "devops"
+    : agentIds.has("tech-lead")
+      ? "tech-lead"
+      : null;
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description,
@@ -77,6 +85,8 @@ export function generateOrchestratorFile(
     dependencyChain,
     governance,
     phaseGates,
+    envVerificationLead,
+    envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,
     discovery,
     isDocumentMode,
     existingDocs: !!flags.existingDocs,

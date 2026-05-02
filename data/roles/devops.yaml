@@ -69,6 +69,7 @@ agent:
     grep: true
 
 skills:
+  - dependency-management
   - ci-cd-pipeline
   - containerization
   - deployment-plan

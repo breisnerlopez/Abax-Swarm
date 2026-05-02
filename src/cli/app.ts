@@ -115,6 +115,8 @@ program
         teamScope: manifest.project.team_scope ?? "full",
         provider: manifest.project.provider ?? "anthropic",
         modelStrategy: manifest.project.model_strategy ?? "custom",
+        permissionMode: manifest.project.permission_mode ?? "recommended",
+        isolationMode: manifest.project.isolation_mode ?? "devcontainer",
       };
 
       const selection = runSelection(config, ctx);

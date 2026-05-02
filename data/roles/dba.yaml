@@ -69,6 +69,7 @@ agent:
     grep: true
 
 skills:
+  - dependency-management
   - db-modeling
   - query-optimization
   - migration-scripts

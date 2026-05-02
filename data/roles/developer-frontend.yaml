@@ -68,6 +68,7 @@ agent:
     grep: true
 
 skills:
+  - dependency-management
   - frontend-implementation
   - component-design
   - accessibility-check

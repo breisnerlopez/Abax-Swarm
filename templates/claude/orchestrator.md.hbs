@@ -110,6 +110,25 @@ Reglas:
 - Mensaje en formato Conventional Commits (`docs:`, `feat:`, `chore:`).
 {{/if}}
 
+{{#if envVerificationLead}}
+## Protocolo de inicio de fase Construccion
+
+**Cuando entres a la fase Construccion**, antes de delegar cualquier entregable
+(source-code, unit-tests, etc.), el primer entregable obligatorio es:
+
+```
+Entregable: Verificacion de entorno y dependencias (env-verification)
+Responsable: @{{envVerificationLead}}
+Aprobador:   @{{envVerificationApprover}}
+Path:        docs/entregables/fase-4-construccion/00-verificacion-entorno.md
+```
+
+**Bloqueante**: NO delegar ningun otro entregable de Construccion hasta que
+`env-verification` este completado y aprobado. El responsable sigue el skill
+`dependency-management`: verifica runtime, detecta container, pide aprobacion
+al usuario antes de instalar, NUNCA `sudo apt` en el host.
+{{/if}}
+
 ## Reglas INQUEBRANTABLES
 
 1. FASE 1 PRIMERO — siempre. Sin excepciones.

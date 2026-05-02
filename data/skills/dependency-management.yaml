@@ -1,0 +1,207 @@
+id: dependency-management
+name: Gestion de Dependencias y Entorno Local
+description: >
+  Verificacion del runtime y de las dependencias antes de implementar codigo,
+  declaracion completa de dependencias en el manifest del stack, y arranque
+  reproducible del proyecto. Cubre tanto entornos aislados (devcontainer) como
+  el SO principal del usuario.
+used_by:
+  - tech-lead
+  - devops
+  - developer-backend
+  - developer-frontend
+  - dba
+content:
+  when_to_use: |
+    - Al iniciar la fase de Construccion, antes de escribir codigo de aplicacion.
+    - Cuando un build o test falla por una dependencia faltante.
+    - Cuando un nuevo desarrollador del equipo intenta arrancar el proyecto por primera vez.
+    - Cuando el orquestador delega un entregable que requiere ejecutar herramientas (build, test, migraciones, lint).
+  instructions: |
+    ## Principio Central
+    Antes de escribir codigo de aplicacion, el entorno debe estar verificado.
+    No se asume que el runtime esta instalado: se verifica explicitamente.
+    Si algo falta, se pide aprobacion al usuario antes de instalar — nunca
+    instalar silenciosamente con sudo apt en el SO del usuario.
+
+    ## Flujo de trabajo
+
+    ### Paso 1 - Verificar el runtime
+    Ejecutar el comando de verificacion del stack (ver tabla abajo). Documentar
+    lo encontrado (version detectada o "no encontrado") en el entregable.
+
+    | Stack | Comando de verificacion |
+    |---|---|
+    | Spring Boot / Quarkus | `java -version && mvn -version` |
+    | Node.js (todos) | `node -v && npm -v` |
+    | Python | `python3 --version && pip3 --version` |
+    | Go | `go version` |
+    | Rust | `rustc --version && cargo --version` |
+    | .NET | `dotnet --version` |
+    | Flutter | `flutter --version && dart --version` |
+
+    ### Paso 2 - Detectar el entorno
+    Verificar si estamos dentro de un container con `test -f /.dockerenv` o
+    `cat /proc/1/cgroup`. Si la variable de entorno `ABAX_ISOLATED=1` esta
+    presente, el devcontainer la setea (estamos dentro). Esto cambia COMO se
+    instala lo que falta, no SI se instala.
+
+    ### Paso 3 - Si falta runtime: instalar con aprobacion del usuario
+
+    **Dentro de container (ABAX_ISOLATED=1 o /.dockerenv presente):**
+    Es seguro usar `apt-get install` porque solo afecta al container.
+    Propon al usuario el comando exacto:
+
+    ```
+    Voy a instalar <runtime> dentro del container con:
+        sudo apt-get update && sudo apt-get install -y <paquetes>
+
+    ¿Apruebas?
+    ```
+
+    El permission mode "recommended" pone `apt *: allow` automaticamente cuando
+    estamos en container, asi que la confirmacion es nativa de OpenCode.
+
+    **En el host (sin container):**
+    NUNCA usar `sudo apt install` — afecta al SO del usuario y puede romper
+    paquetes del sistema. Usar gestores de version del usuario:
+
+    | Runtime | Gestor recomendado |
+    |---|---|
+    | Java | sdkman (`curl -s https://get.sdkman.io | bash`) y luego `sdk install java 21-tem` |
+    | Maven | sdkman (`sdk install maven`) |
+    | Node.js | nvm (`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash`) y `nvm install 20` |
+    | Python | pyenv (`curl https://pyenv.run | bash`) y `pyenv install 3.12` |
+    | Go | gvm o descarga directa de go.dev |
+    | Rust | rustup (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`) |
+
+    Antes de instalar el gestor de version, propon al usuario el comando completo
+    y espera su aprobacion. Si el usuario rechaza, escalar al orquestador con un
+    bloqueo explicito.
+
+    ### Paso 4 - Declarar dependencias en el manifest
+    Antes de escribir cualquier codigo que use una libreria, declarala en el manifest:
+
+    | Stack | Manifest |
+    |---|---|
+    | Maven | `pom.xml` `<dependencies>` |
+    | Gradle | `build.gradle` o `build.gradle.kts` `dependencies { ... }` |
+    | npm/pnpm/yarn | `package.json` `dependencies` y `devDependencies` |
+    | Python | `requirements.txt` o `pyproject.toml` `[project.dependencies]` |
+    | Go | `go.mod` (auto via `go get`) |
+    | Rust | `Cargo.toml` `[dependencies]` |
+    | .NET | `*.csproj` `<PackageReference>` |
+
+    ### Paso 5 - Verificar build vacio
+    Antes de marcar el entregable como completado, ejecutar la cadena minima
+    del stack y confirmar que no hay errores de configuracion:
+
+    | Stack | Verificacion |
+    |---|---|
+    | Maven | `mvn validate` |
+    | Gradle | `gradle tasks` |
+    | npm | `npm install --dry-run && npm run build --if-present` |
+    | Python | `pip install -r requirements.txt --dry-run` |
+    | Go | `go mod tidy && go build ./...` |
+    | Rust | `cargo check` |
+    | .NET | `dotnet restore && dotnet build` |
+
+    ### Paso 6 - Documentar el setup local
+    Producir o actualizar `docs/setup.md` con: prerrequisitos exactos
+    (versiones), comandos de instalacion paso a paso, comando para arrancar
+    en local. Incluir variante "dentro de devcontainer" y "en el host".
+
+    ## Anti-patrones (criticos)
+    - NO ejecutar `sudo apt install` en el host del usuario sin aprobacion explicita.
+    - NO ejecutar `rm -f /var/lib/dpkg/lock-frontend` ni similares para forzar instalaciones — escalar al usuario en su lugar.
+    - NO asumir que las herramientas estan instaladas: verificar con `command -v` o el flag `--version`.
+    - NO escribir codigo que importa una libreria sin haberla declarado primero en el manifest.
+    - NO mezclar herramientas globales con las del proyecto (ej. `npm install -g` cuando el proyecto usa `package.json`).
+
+    ## Coordinacion en equipo
+    - El **devops** lidera la verificacion del runtime al inicio de Construccion.
+    - El **tech-lead** valida el `docs/setup.md` antes de cerrar el entregable.
+    - Los **developers** (backend/frontend) declaran las deps que necesitan en el manifest antes de escribir su codigo.
+    - El **dba** declara extensiones/clientes de BD necesarios (psql, mysql client, drivers).
+
+  guides:
+    - name: comandos-por-stack
+      content: |
+        Resumen ejecutable de comandos por stack. Esta tabla es la fuente de
+        verdad cuando un agente necesita ejecutar build/test/install:
+
+        ### react-nextjs / vue-nuxt / astro-hono / react-nestjs / react-native-expo
+        - Verifica: `node -v && npm -v` (≥20 / ≥10)
+        - Manifest: `package.json`
+        - Install: `npm ci` (o `pnpm install --frozen-lockfile`)
+        - Build: `npm run build`
+        - Run: `npm run dev`
+
+        ### angular-springboot / angular-quarkus
+        - Verifica: `java -version && mvn -version` (Java 21+, Maven 3.8+) y `node -v` para el frontend
+        - Manifest: `backend/pom.xml` y `frontend/package.json`
+        - Install backend: `cd backend && mvn install -DskipTests`
+        - Install frontend: `cd frontend && npm ci`
+        - Run: `mvn spring-boot:run` (o `mvn quarkus:dev`) y `npm run start`
+
+        ### python-fastapi / python-django
+        - Verifica: `python3 --version` (3.12+) y `pip3 --version`
+        - Manifest: `requirements.txt` o `pyproject.toml`
+        - Install: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
+        - Run FastAPI: `uvicorn app.main:app --reload`
+        - Run Django: `python manage.py runserver`
+
+        ### go-fiber
+        - Verifica: `go version` (1.22+)
+        - Manifest: `go.mod`
+        - Install: `go mod download`
+        - Build: `go build ./...`
+        - Run: `go run .`
+
+        ### rust-axum
+        - Verifica: `rustc --version && cargo --version` (1.80+)
+        - Manifest: `Cargo.toml`
+        - Install: `cargo fetch`
+        - Build: `cargo build`
+        - Run: `cargo run`
+
+        ### dotnet-blazor
+        - Verifica: `dotnet --version` (8.0+)
+        - Manifest: `*.csproj` y `*.sln`
+        - Install: `dotnet restore`
+        - Build: `dotnet build`
+        - Run: `dotnet run`
+
+        ### flutter-dart
+        - Verifica: `flutter --version && dart --version` (Flutter 3.24+)
+        - Manifest: `pubspec.yaml`
+        - Install: `flutter pub get`
+        - Run: `flutter run`
+    - name: setup-md-template
+      content: |
+        Plantilla obligatoria para `docs/setup.md`:
+
+        # Setup del proyecto
+
+        ## Prerrequisitos
+        - <runtime y version>
+        - <herramientas adicionales>
+
+        ## Opcion 1 - Devcontainer (recomendado)
+        1. Instala Docker Desktop (o equivalente).
+        2. Abre el proyecto en VS Code.
+        3. Cuando aparezca "Reopen in Container?", acepta.
+        4. Espera a que el container se construya (~5min la primera vez).
+
+        ## Opcion 2 - Host (sin devcontainer)
+        1. Instala el runtime: `<comando con gestor de version>`.
+        2. Instala dependencias: `<comando del stack>`.
+        3. Arranca el proyecto: `<comando del stack>`.
+
+        ## Verificacion
+        Si todo esta bien, deberias poder:
+        - <verificacion 1>
+        - <verificacion 2>
+
+        ## Solucion de problemas
+        - Error X → causa Y → fix Z.

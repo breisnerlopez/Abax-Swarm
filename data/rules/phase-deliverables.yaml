@@ -126,6 +126,15 @@ phases:
     name: Construccion
     gate_approver: tech-lead
     deliverables:
+      - id: env-verification
+        name: Verificacion de entorno y dependencias
+        responsible: devops
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+        # BLOCKING: must complete before any other construction deliverable.
+        # Verifies runtime, declares dependencies, sets up local execution.
+        # Generated path: docs/entregables/fase-4-construccion/00-verificacion-entorno.md
       - id: source-code
         name: Codigo Fuente Implementado
         responsible: developer-backend

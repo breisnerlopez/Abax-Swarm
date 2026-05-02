@@ -68,6 +68,7 @@ agent:
     grep: true
 
 skills:
+  - dependency-management
   - backend-implementation
   - api-design
   - unit-testing

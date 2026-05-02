@@ -63,6 +63,12 @@ export function generateOrchestratorFile(
     ? `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo de documentacion (5 fases).`
     : `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`;
 
+  const envVerificationLead = agentIds.has("devops")
+    ? "devops"
+    : agentIds.has("tech-lead")
+      ? "tech-lead"
+      : null;
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description,
@@ -76,6 +82,8 @@ export function generateOrchestratorFile(
     existingDocs: !!flags.existingDocs,
     hasGit: !!flags.hasGit,
     documentPhases: flags.documentPhases ?? [],
+    envVerificationLead,
+    envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,
   });
 
   return {
