@@ -69,6 +69,7 @@ agent:
 
 skills:
   - dependency-management
+  - git-collaboration
   - backend-implementation
   - api-design
   - unit-testing

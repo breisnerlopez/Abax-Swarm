@@ -6,6 +6,26 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.16] — 2026-05-02
+
+### Changed
+
+- **Flujo git distribuido y ejecutado, no sugerido** (cambio de comportamiento respecto a 0.1.14):
+  - Antes: cuando había `.git/`, el orquestador emitía un comando `git add ... && git commit ...` para que el usuario lo ejecutara manualmente. Push nunca se ejecutaba.
+  - Ahora: cada agente técnico (5 roles) **commitea su propio entregable** después de escribirlo, con `git add <archivo-específico>` (nunca `.`/`-A`) + `git commit --author "<rol> <rol@abax-swarm>"`. Al cierre de cada fase, el orquestador delega exactamente una Task a `@devops` (o `@tech-lead` fallback): "haz `git push` de la fase". El orquestador **sigue siendo coordinador puro** (`bash: deny` intacto), no toca git directamente.
+
+### Added
+
+- **Nuevo skill `git-collaboration`** asignado a tech-lead, devops, developer-backend, developer-frontend y dba. Define: creación idempotente de rama `abax/<project-name>` al primer commit (si la actual es `main`/`master`/`trunk`), commits granulares con autoría del rol, push centralizado por devops al cierre de fase, manejo de errores (auth, branch protection, non-fast-forward, rate limit, conflicts).
+- **Nuevo doc [`docs/git-collaboration.md`](docs/git-collaboration.md)** con la tabla quien-hace-que, política de naming de rama, anti-patrones bloqueados, manejo de errores, combinación con modos de permisos.
+- **8 tests nuevos** verificando: skill existe + 5 roles lo declaran + instructions cubren branch/author/push/anti-patterns; orchestrator template emite la nueva instrucción distribuida cuando `hasGit`; fallback a tech-lead cuando no hay devops; sección omitida cuando `hasGit === false`; ambos targets (OpenCode + Claude).
+
+### Documentation
+
+- README actualizado: la frase sobre "sugiere un commit" ahora describe el flujo ejecutado, distribuido, con rama `abax/<project>` creada automáticamente.
+- `docs/guides/orchestrator-flow.md` sección "Per-phase commit protocol" reescrita.
+- `docs/README.md` actualizado con nuevas referencias (permissions, dependency-management, dev-environments, git-collaboration) y screenshot count corregido (6, no 5).
+
 ## [0.1.15] — 2026-05-02
 
 ### Added

@@ -206,14 +206,19 @@ The orchestrator delegates "actualizar X.md" instead of "crear X.md". Each agent
 
 ### Per-phase commit protocol (`hasGit === true`)
 
-At the close of every phase, **before delegating the next**, the orchestrator emits a commit suggestion in conventional-commits format:
+Distributed git flow (changed in 0.1.16, replaces the previous "suggest-only" behaviour):
 
-```
-git add docs/<carpeta-de-la-fase>/
-git commit -m "docs(<fase-id>): cierre de <nombre-fase> - <breve resumen>"
-```
+- **Each agent** commits its own deliverable using the `git-collaboration` skill: verifies branch (creates `abax/<project-name>` if currently on main/master/trunk), runs `git add <specific-file>` (never `.`/`-A`), then `git commit -m "..." --author "<role> <role@abax-swarm>"`. Does **not** push.
+- **At the close of every phase**, the orchestrator delegates exactly one Task to `@devops` (or `@tech-lead` if devops not in team): "do the push of phase X". devops runs `git push -u origin abax/<project-name>` and reports SHA + status.
+- The orchestrator itself **never executes git** — its `bash` permission stays `deny` by design.
 
-The orchestrator does **not** execute the commit — its `bash` permission is `deny` by design. The user reviews and runs the command. Only `git add` with the explicit phase folder, never `git add .` or `git add -A`.
+Anti-patterns blocked at multiple layers (skill instructions + permission denylist):
+- `git push --force` / `--force-with-lease` → `deny`.
+- Commits to `main`/`master`/`trunk` → first step of `git-collaboration` checks branch.
+- Autonomous conflict resolution → escalate to tech-lead via the orchestrator.
+- `git add .` / `-A` → always specific files.
+
+If push fails (auth, branch protection, non-fast-forward, rate limit), devops escalates to the user before the orchestrator advances to the next phase. Detail: [docs/git-collaboration.md](../git-collaboration.md).
 
 ---
 

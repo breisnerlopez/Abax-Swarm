@@ -69,6 +69,7 @@ agent:
 
 skills:
   - dependency-management
+  - git-collaboration
   - frontend-implementation
   - component-design
   - accessibility-check

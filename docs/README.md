@@ -8,6 +8,9 @@
 | [Data Model](./data-model.md) | YAML schemas for roles, skills, tools, stacks, rules + runtime types |
 | [Model Mix](./model-mix.md) | Per-role model assignment (Opus/Sonnet/Haiku, GPT-5/mini/nano), with the `inherit` strategy for users without premium model access |
 | [Agent Colors](./agent-colors.md) | Deterministic color palette for OpenCode TUI; orchestrator reserved crimson |
+| [Permissions](./permissions.md) | 3 modos de permisos OpenCode (strict/recommended/full) y el incidente que los motivo |
+| [Dependency Management](./dependency-management.md) | Skill + entregable bloqueante + protocolo de orchestrator para verificar runtime y deps antes de Construccion |
+| [Git Collaboration](./git-collaboration.md) | Flujo distribuido de version control: cada agente commitea su entregable, devops pushea al cierre de fase, todo en rama `abax/<project>` |
 
 ## Guides
 
@@ -17,7 +20,8 @@
 | [Adding Skills](./guides/adding-skills.md) | How to create a new skill |
 | [Adding Stacks](./guides/adding-stacks.md) | How to add a tech stack |
 | [Orchestrator Flow](./guides/orchestrator-flow.md) | How the orchestrator coordinates agents at runtime, in cascade and documentation modes |
+| [Dev Environments](./guides/dev-environments.md) | Devcontainer vs host, como arrancar el container, alternativas docker-compose |
 
 ## Screenshots
 
-The 5 PNGs in `screenshots/` are captured headlessly via `scripts/capture-screenshots.sh` (requires `tmux` + `freeze`). They show the wizard at: 1) start, 2) project-mode selection, 3) criteria multi-select, 4) team editor, 5) confirmation with model mix and file preview.
+The 6 PNGs in `screenshots/` are captured headlessly via `scripts/capture-screenshots.sh` (requires `tmux` + `freeze`). They show the wizard at: 1) start, 2) project-mode selection, 3) criteria multi-select, 4) team editor, 5) confirmation with model mix and file preview, 6) dry-run summary.

@@ -70,6 +70,7 @@ agent:
 
 skills:
   - dependency-management
+  - git-collaboration
   - db-modeling
   - query-optimization
   - migration-scripts

@@ -1,0 +1,199 @@
+id: git-collaboration
+name: Colaboracion con Git por Fase
+description: >
+  Flujo coordinado de version control entre agentes: cada agente commitea
+  su propio entregable con autoria clara, devops hace push al cierre de
+  cada fase. Garantiza que el trabajo siempre se hace en una rama de
+  desarrollo (nunca directo a main/master/trunk) y que el remoto se
+  actualiza de forma atomica por fase.
+used_by:
+  - tech-lead
+  - devops
+  - developer-backend
+  - developer-frontend
+  - dba
+content:
+  when_to_use: |
+    - Inmediatamente despues de escribir cualquier entregable a disco.
+    - Cuando el orquestador delega "cierre de fase con push" (solo devops).
+    - Cuando se inicia un proyecto y la branch actual es main/master/trunk.
+  instructions: |
+    ## Principio Central
+    El trabajo de cada fase queda capturado en commits granulares (uno por
+    entregable, con autoria del rol que lo produjo) **en una rama de
+    desarrollo separada de main**. El push al remoto se hace una vez por
+    fase, atomicamente, por devops.
+
+    El orquestador NUNCA toca git directamente. Coordina vias delegacion.
+
+    ## Flujo por agente que escribe entregables
+
+    ### Paso 1 - Verificar/crear rama de desarrollo
+    Antes de tu PRIMER commit en el proyecto, ejecuta:
+
+    ```bash
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "$BRANCH" =~ ^(main|master|trunk)$ ]]; then
+      # El nombre del proyecto se obtiene del project-manifest.yaml
+      PROJECT_NAME=$(yq -r '.project.name' project-manifest.yaml | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+      git checkout -b "abax/${PROJECT_NAME}" 2>/dev/null || git checkout "abax/${PROJECT_NAME}"
+      echo "Nueva rama de desarrollo: abax/${PROJECT_NAME}"
+    fi
+    ```
+
+    Esta operacion es **idempotente**: si la rama ya existe, hace checkout. Si ya
+    estas en una rama no-main, no hace nada.
+
+    Si `yq` no esta disponible, parsea el nombre con awk/grep:
+    `PROJECT_NAME=$(grep '^  name:' project-manifest.yaml | head -1 | awk '{print $2}' | tr -d '"' | tr ' ' '-' | tr '[:upper:]' '[:lower:]')`
+
+    ### Paso 2 - Stage solo tu archivo
+    NUNCA uses `git add .` ni `git add -A`. Stage solo el archivo que tu
+    produjiste:
+
+    ```bash
+    git add docs/entregables/fase-N/<tu-archivo>.md
+    ```
+
+    Si tu entregable son multiples archivos (codigo en fase Construccion,
+    por ejemplo), stage todos los archivos de tu autoria pero ninguno mas:
+
+    ```bash
+    git add backend/src/com/empresa/feature/ backend/src/test/com/empresa/feature/
+    ```
+
+    ### Paso 3 - Commit con autoria
+    Usa Conventional Commits con tu rol como scope:
+
+    ```bash
+    git commit -m "docs(<entregable>): <una linea descriptiva>" \
+      --author "<tu-rol> <tu-rol@abax-swarm>"
+    ```
+
+    Ejemplos:
+    - `business-analyst` → `git commit -m "docs(reglas-negocio): catalogo inicial extraido de UAT" --author "business-analyst <business-analyst@abax-swarm>"`
+    - `developer-backend` → `git commit -m "feat(api): endpoint POST /pagos con validaciones Zod" --author "developer-backend <developer-backend@abax-swarm>"`
+    - `dba` → `git commit -m "feat(schema): migracion 002 - tabla transacciones" --author "dba <dba@abax-swarm>"`
+
+    ### Paso 4 - NO hagas push
+    El push lo hace devops una vez al cierre de cada fase. Esto evita ruido
+    (multiples notificaciones al remoto) y race conditions cuando varios
+    agentes commitean en paralelo.
+
+    ### Paso 5 - Si hay conflicts
+    Si el commit falla por conflictos (raro pero posible si dos agentes
+    editaron el mismo archivo), NO los resuelvas autonomamente. Ejecuta:
+
+    ```bash
+    git status
+    git diff
+    ```
+
+    Y escala al orquestador con la salida exacta y el archivo afectado. El
+    orquestador decidira si delegar el merge a tech-lead o escalar al usuario.
+
+    ## Flujo de devops al cierre de fase
+
+    Cuando el orquestador te delegue "cierre de fase con push" (typically
+    como ultimo entregable de la fase, despues de que todos los demas estan
+    completados):
+
+    ### Paso 1 - Verificar branch
+    ```bash
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "$BRANCH" =~ ^(main|master|trunk)$ ]]; then
+      echo "ERROR: estoy en $BRANCH, no debe haber commits aqui. Escalando."
+      exit 1
+    fi
+    ```
+
+    ### Paso 2 - Verificar commits pendientes
+    ```bash
+    AHEAD=$(git rev-list --count "@{u}..HEAD" 2>/dev/null || git rev-list --count HEAD)
+    echo "Commits para pushear: $AHEAD"
+    ```
+
+    Si AHEAD es 0, no hay nada que pushear. Reporta al orquestador y termina.
+
+    ### Paso 3 - Verificar remote
+    ```bash
+    if ! git remote get-url origin >/dev/null 2>&1; then
+      echo "AVISO: sin remote configurado. Solo commits locales."
+      # Reporta al orquestador y termina (commits siguen estando en local).
+      exit 0
+    fi
+    ```
+
+    ### Paso 4 - Push con upstream tracking
+    ```bash
+    git push -u origin "$BRANCH"
+    ```
+
+    ### Paso 5 - Manejar fallas
+    Si el push falla:
+    - **`Updates were rejected`** (alguien mas pusheo): NO hagas force push. Ejecuta `git fetch origin` y reporta al usuario que necesita rebase manual.
+    - **`Permission denied`**: el usuario no tiene credenciales para el remoto. Reporta al usuario con el comando exacto que fallo.
+    - **`branch is protected`**: el remoto tiene branch protection. Reporta al usuario y sugiere que cambie a otro nombre de rama.
+    - **Rate limit (429)**: espera 60s y reintenta una vez. Si vuelve a fallar, escala.
+
+    ### Paso 6 - Reporte al orquestador
+    Si el push fue exitoso, reporta:
+    - SHA del ultimo commit (`git rev-parse HEAD`).
+    - Nombre del remote y branch (`origin/$BRANCH`).
+    - Numero de commits pusheados.
+    - URL del repo si esta disponible (`git remote get-url origin`).
+
+    ## Anti-patrones (criticos)
+
+    - NUNCA `git add .` ni `git add -A` — siempre archivos especificos.
+    - NUNCA `git push --force` ni `--force-with-lease` sin aprobacion explicita.
+    - NUNCA hacer commits en main/master/trunk — siempre verificar branch antes.
+    - NUNCA resolver conflicts autonomamente — escalar al orquestador.
+    - NUNCA borrar commits con `git reset --hard` ni `git rebase -i`.
+    - NUNCA modificar commits de otros agentes (`git commit --amend` solo en tu ultimo commit).
+
+    ## Coordinacion con el orquestador
+
+    El orquestador es un coordinador puro: NO toca git. Su rol en este flujo:
+    - Delega cada entregable al agente apropiado (que commitea su parte).
+    - Detecta cuando todos los entregables de la fase estan completados.
+    - Como ultimo paso de cierre, delega a `@devops` (o `@tech-lead` si no hay
+      devops): "haz push de la fase X".
+    - Espera el reporte de devops antes de avanzar a la siguiente fase.
+
+  guides:
+    - name: nombre-de-rama
+      content: |
+        El nombre de rama sigue el patron `abax/<project-name-kebab-case>`.
+
+        Reglas de sanitizacion del nombre del proyecto:
+        - lowercase
+        - espacios y caracteres especiales -> `-`
+        - colapsar `-` consecutivos
+        - quitar `-` al inicio o final
+        - max 60 caracteres (truncar)
+
+        Ejemplos:
+        - "Sistema de Gestión de Pagos" -> `abax/sistema-de-gestion-de-pagos`
+        - "API_v2.0" -> `abax/api-v2-0`
+        - "MiProyecto" -> `abax/miproyecto`
+
+        Si la rama ya existe en local o remoto, hacer checkout (no recrear).
+    - name: troubleshooting
+      content: |
+        ### "fatal: not a git repository"
+        El detector de Abax marco hasGit=true pero el directorio no tiene .git.
+        Quizas se elimino. Reporta al usuario.
+
+        ### "fatal: refusing to merge unrelated histories" en push
+        El remoto tiene commits no relacionados (otra rama o repo distinto).
+        Verifica el remote: `git remote -v`. Si es incorrecto, reporta al usuario.
+
+        ### "remote: Repository not found"
+        El usuario no tiene acceso al repo o el URL es incorrecto. Reporta.
+
+        ### Multiple agentes commitearon a la vez
+        Esto es raro porque cada agente commitea archivos distintos. Si pasa,
+        el segundo agente ve "non-fast-forward" en push (pero recuerda: solo
+        devops hace push). Para los commits locales no hay conflict salvo que
+        editen el mismo archivo (escalar al orquestador en ese caso).

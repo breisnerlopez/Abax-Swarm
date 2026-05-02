@@ -337,19 +337,49 @@ Para cada delegacion donde el entregable apunta a un archivo que ya existe:
 {{#if hasGit}}
 ## Protocolo de commits por fase
 
-El proyecto destino es un repositorio git. **Al cierre de cada fase**, antes de
-delegar la siguiente, emite al usuario un bloque listo para copiar:
+El proyecto destino es un repositorio git. El flujo es **distribuido**: cada
+agente commitea su propio entregable, y al cierre de fase tu (orquestador)
+delegas el push a `@devops`. Tu nunca tocas git directamente — sigues siendo
+coordinador puro.
+
+### Lo que cada agente hace
+
+Cada rol con `bash: allow` (developers, devops, dba, tech-lead) tiene la
+instruccion del skill `git-collaboration`:
+
+1. Antes del primer commit del proyecto, verifica que la rama actual no es
+   `main`/`master`/`trunk`. Si es, hace `git checkout -b abax/<project-name>`
+   (idempotente — si ya existe, hace checkout). NUNCA commits a main.
+2. Despues de escribir su entregable, hace `git add <archivo-especifico>`
+   (nunca `git add .` ni `-A`) y `git commit -m "docs(<entregable>): ..."`
+   con `--author "<rol> <rol@abax-swarm>"`.
+3. NO hace push — eso es responsabilidad de devops al cierre de fase.
+
+### Lo que tu (orquestador) haces al cerrar cada fase
+
+Cuando todos los entregables de la fase estan completados y aprobados, antes
+de avanzar a la siguiente, **delega exactamente una Task adicional**:
 
 ```
-git add docs/<carpeta-de-la-fase>/
-git commit -m "docs(<fase-id>): cierre de <nombre-fase> - <breve resumen>"
+agent: {{#if hasDevops}}devops{{else}}tech-lead{{/if}}
+description: Cierre de fase con push
+prompt: |
+  Todos los entregables de la fase <X> estan completados. Sigue el skill
+  git-collaboration: verifica branch (debe ser abax/<project-name>),
+  cuenta commits pendientes, y haz `git push -u origin <branch>`.
+  Reporta SHA del ultimo commit y status del push.
 ```
 
-Reglas:
-- **No ejecutes el commit tu mismo** — tu permiso `bash` es `deny` por diseno.
-- Solo sugiere `git add` con la ruta especifica de los entregables de esa fase, nunca `git add .` ni `git add -A`.
-- Mensaje en formato Conventional Commits (`docs:`, `feat:`, `chore:`).
-- Si el usuario confirma, propon la siguiente fase. Si no, espera instrucciones.
+Espera el reporte de devops antes de avanzar a la siguiente fase. Si reporta
+fallo (auth, branch protection, conflicto), escala al usuario antes de avanzar.
+
+### Reglas inquebrantables del flujo git
+
+- Tu (orquestador) NUNCA ejecutas `git` — solo coordinas vias delegacion.
+- NINGUN agente ejecuta `git push --force` ni `--force-with-lease`.
+- NINGUN agente commitea en main/master/trunk — siempre en `abax/<project-name>`.
+- Si dos agentes editaron el mismo archivo y hay conflicto, escala a tech-lead
+  para merge manual; no resuelvas autonomamente.
 {{/if}}
 
 {{#if envVerificationLead}}

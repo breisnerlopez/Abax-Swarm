@@ -90,14 +90,14 @@ describe("orchestrator template: conditional sections", () => {
     expect(orch.content).toContain("`publication`");
   });
 
-  it("includes the per-phase commit block when hasGit is true", () => {
-    const config = docConfig({ detection: { stackId: null, evidence: [], existingDocs: false, hasGit: true } });
+  it("includes the per-phase commit block when hasGit is true (distributed flow since 0.1.16)", () => {
+    const config = docConfig({ detection: { stackId: null, evidence: [], existingDocs: false, hasGit: true, hasDevcontainer: false } });
     const selection = runSelection(config, ctx);
     const result = runPipeline(config, selection, ctx);
     const orch = result.files.find((f) => f.path === ".opencode/agents/orchestrator.md")!;
     expect(orch.content).toContain("Protocolo de commits por fase");
-    expect(orch.content).toContain("git add docs/");
-    expect(orch.content).toContain("Conventional Commits");
+    expect(orch.content).toMatch(/cada\s+agente\s+commitea/i);
+    expect(orch.content).toContain("git-collaboration");
   });
 
   it("includes the existing-docs update protocol when existingDocs is true", () => {
