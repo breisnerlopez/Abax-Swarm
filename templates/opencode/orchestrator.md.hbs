@@ -352,6 +352,7 @@ Reglas:
 - Si el usuario confirma, propon la siguiente fase. Si no, espera instrucciones.
 {{/if}}
 
+{{#if envVerificationLead}}
 ## Protocolo de inicio de fase Construccion
 
 **Cuando entres a la fase Construccion**, antes de delegar cualquier entregable
@@ -359,8 +360,8 @@ Reglas:
 
 ```
 Entregable: Verificacion de entorno y dependencias (env-verification)
-Responsable: @devops (o @tech-lead si no hay devops en el equipo)
-Aprobador:   @tech-lead
+Responsable: @{{envVerificationLead}}
+Aprobador:   @{{envVerificationApprover}}
 Path:        docs/entregables/fase-4-construccion/00-verificacion-entorno.md
 ```
 
@@ -379,6 +380,7 @@ El responsable debe seguir el skill `dependency-management`:
 
 Si el responsable reporta un bloqueo (ej. el usuario rechazo instalar Java), escala
 al usuario antes de avanzar — no improvises remediacion con comandos destructivos.
+{{/if}}
 
 ## Reglas INQUEBRANTABLES
 
