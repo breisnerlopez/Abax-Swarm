@@ -19,7 +19,7 @@
 ## Layers
 
 ### 1. Data Layer (`src/loader/`, `data/`)
-- **YAML canonicals**: 20 roles, 71 skills, 7 tools, 13 stacks, 8 rule sets (size, criteria, dependencies, RACI, iron-laws, anti-rationalization, phase-deliverables, **document-mode**)
+- **YAML canonicals**: 20 roles, 73 skills, 7 tools, 13 stacks, 8 rule sets (size, criteria, dependencies, RACI, iron-laws, anti-rationalization, phase-deliverables, **document-mode**)
 - **Zod schemas** (`src/loader/schemas.ts`): Validation at load time, full TypeScript typing
 - **Loaders**: `loadRolesAsMap()`, `loadSkillsAsMap()`, `loadToolsAsMap()`, `loadStacksAsMap()`, `loadAllRules()` (which now includes `loadDocumentMode()`)
 
@@ -113,7 +113,7 @@ The wizard's first content step picks a mode that drives selection and emitted f
 |---|---|---|---|
 | `new` | `data/rules/size-matrix.yaml` + `criteria-rules.yaml` | 10-phase cascade | (none) |
 | `document` | `data/rules/document-mode.yaml` (curated 9 + optional security) | 5 phases (`discovery → inventory → documentation → review → publication`) | MkDocs scaffold |
-| `continue` | Same as `new`, but stack/docs/git pre-detected from `targetDir` | Same as `new` | Orchestrator includes per-phase commit suggestions when `hasGit`, update protocol when `existingDocs` |
+| `continue` | Same as `new`, but stack/docs/git pre-detected from `targetDir` | Same as `new` | Orchestrator includes per-phase distributed git protocol when `hasGit` (each agent commits its own deliverable, devops pushes at phase close — see [git-collaboration.md](git-collaboration.md)), update protocol when `existingDocs` |
 
 ## Governance models
 
@@ -131,7 +131,7 @@ Handlebars templates in `templates/opencode/`, `templates/claude/` and `template
 | Template | Generates | Key variables |
 |----------|-----------|---------------|
 | `agent.md.hbs` | Agent files | `agent.*`, `skills[]`, `phases[]`, `dependencies.*`, `model`, `color`, `thinking`, `reasoningEffort` |
-| `orchestrator.md.hbs` | Orchestrator | `agents[]`, `phaseGates[]`, `phases[]`, `dependencyChain[]`, `governance.*`, `isDocumentMode`, `existingDocs`, `hasGit`, `documentPhases[]`, `color` |
+| `orchestrator.md.hbs` | Orchestrator | `agents[]`, `phaseGates[]`, `phases[]`, `dependencyChain[]`, `governance.*`, `isDocumentMode`, `existingDocs`, `hasGit`, `hasDevops`, `envVerificationLead`, `documentPhases[]`, `color` |
 | `skill.md.hbs` | Skill files | `skill.*`, `content.*`, `guides[]` |
 | `tool.ts.hbs` | Tool files | `tool.*`, `implementation.*` |
 | `design-system/presentacion-template.html` | Static HTML reference (3 presets) | (no variables — copied verbatim) |

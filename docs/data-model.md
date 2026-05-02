@@ -62,9 +62,9 @@ raci:                                # RACI assignments
   deploy: C
 ```
 
-## Skills (`data/skills/*.yaml`) — 71 files
+## Skills (`data/skills/*.yaml`) — 73 files
 
-The `presentation-design` skill drives the HTML design system; the `reverse-engineering` skill (added in 0.1.11) is what makes "documentar algo existente" tractable — it gives roles methodology to extract behavior from code, queries and configs.
+The `presentation-design` skill drives the HTML design system; the `reverse-engineering` skill (added in 0.1.11) is what makes "documentar algo existente" tractable — it gives roles methodology to extract behavior from code, queries and configs. The `dependency-management` and `git-collaboration` skills (added in 0.1.14 and 0.1.16) coordinate the runtime verification and per-phase distributed git workflow that 5 tech roles use.
 
 ```yaml
 id: functional-analysis

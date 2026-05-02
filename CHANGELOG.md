@@ -6,6 +6,15 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.17] — 2026-05-02
+
+### Documentation
+
+- 3 docs sincronizados con el flujo git distribuido de 0.1.16:
+  - `docs/architecture.md`: skills count actualizado de 71 a 73 (incluye `dependency-management` y `git-collaboration`); tabla de "Project modes" describe el flujo distribuido en lugar de la versión "suggest-only"; tabla de templates incluye los nuevos vars del context (`hasDevops`, `envVerificationLead`).
+  - `docs/data-model.md`: skills count actualizado a 73, mención del nuevo skill `git-collaboration`.
+  - `docs/permissions.md`: nueva nota cruzada explicando que `git *: allow` + `git push --force *: deny` están diseñados específicamente para soportar el flujo distribuido.
+
 ## [0.1.16] — 2026-05-02
 
 ### Changed
