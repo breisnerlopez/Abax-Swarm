@@ -6,6 +6,15 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.13] — 2026-05-02
+
+### Documentation
+
+- `CONTRIBUTING.md` ampliado de 73 a 236 líneas con dos guías nuevas para futuros contribuyentes:
+  - **"Documentar cambios"**: tabla con qué docs tocar según el tipo de cambio (wizard, schemas YAML, módulos engine/generator, orchestrator, features grandes), formato del `CHANGELOG.md` (Keep a Changelog), pautas de redacción de bullets, criterios de versionado en 0.x.y, checks obligatorios pre-release.
+  - **"Regenerar las capturas de pantalla"**: requisitos (`tmux` + `freeze`), instalación de `freeze` desde GitHub release, ejecución del script, cuidados al modificarlo (TextInput pre-llenado con `process.cwd()` requiere Backspaces en chunks; `Ctrl-U` no funciona en `ink-text-input`; sleeps generosos para que ink procese), verificación visual.
+- Sección de Releases ampliada: orden recomendado (bump + CHANGELOG en el mismo PR de la última feature), requisito de `NPM_TOKEN` con bypass 2FA, troubleshooting para fallos comunes (`skipped`, `403`, `tag already exists`).
+
 ## [0.1.12] — 2026-05-02
 
 ### Fixed
