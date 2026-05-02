@@ -165,6 +165,20 @@ phases:
         approver: solution-architect
         mandatory: true
         artifact_type: report
+      # BLOQUEANTE — ULTIMO entregable de Construccion antes de fase QA.
+      # Anadido en 0.1.19 tras incidente Abax-Memory donde un backend con
+      # regex disfrazada de IA y un InMemorySearchIndexer en lugar de Qdrant
+      # llego al borde del despliegue sin que ningun control lo detectara.
+      # Responsable es business-analyst (NO desarrollador, NO tech-lead) —
+      # alguien que conoce la spec y NO esta en el equipo de implementacion.
+      # Approver es product-owner que consulta al usuario sponsor cuando hay
+      # integraciones criticas.
+      - id: feature-spec-compliance
+        name: Verificacion de cumplimiento Feature vs Especificacion
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: report
 
   - id: qa-testing
     name: Pruebas QA

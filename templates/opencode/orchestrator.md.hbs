@@ -412,6 +412,54 @@ Si el responsable reporta un bloqueo (ej. el usuario rechazo instalar Java), esc
 al usuario antes de avanzar — no improvises remediacion con comandos destructivos.
 {{/if}}
 
+{{#if hasBusinessAnalyst}}
+## Protocolo de cierre de fase Construccion (3 capas anti-mock)
+
+Antes de avanzar a fase 5 (QA), TRES capas de defensa deben pasar — anadidas
+en 0.1.19 tras incidente Abax-Memory donde un backend con regex disfrazada
+de IA llego al borde del despliegue sin que ningun control lo detectara.
+
+### Capa 1 — Prevencion en el desarrollo (ya en los prompts de developers)
+- Si falta credencial/dependencia para integracion REAL, el developer
+  ESCALA antes de mockear.
+- Mocks temporales legitimos llevan marca obligatoria
+  `// MOCK: <razon> // REPLACE_BEFORE_PROD`.
+
+### Capa 2 — Code review tecnico (skill anti-mock-review en tech-lead)
+Antes de aprobar el entregable `source-code`, tech-lead ejecuta el skill
+`anti-mock-review` que escanea por: clases con prefijo InMemory/Mock/Fake/
+Stub/Dummy en src/main, regex en metodos que dicen extraer entidades,
+dependencias declaradas vs imports reales, instanciacion de clientes
+externos vs valores hardcoded.
+
+Output: `docs/entregables/fase-4-construccion/code-review-anti-mock.md` con
+matriz de integraciones declaradas vs estado real.
+
+Si el reporte es RECHAZADO, devuelve la tarea al developer con la matriz.
+NO marca source-code como done.
+
+### Capa 3 — Verificacion contra spec (ULTIMO entregable de fase 4)
+Antes de pasar a QA, el ULTIMO entregable obligatorio:
+
+```
+Entregable: feature-spec-compliance
+Responsable: @business-analyst (NO desarrollador, NO tech-lead — alguien que conoce la spec)
+Aprobador:   @{{#if hasProductOwner}}product-owner{{else}}business-analyst{{/if}} (consultando al sponsor para integraciones criticas)
+Path:        docs/entregables/fase-4-construccion/feature-spec-compliance.md
+```
+
+El BA produce una matriz: cada feature de la spec funcional → archivo que
+la implementa → estado (REAL / MOCK / NO_IMPL) → evidencia (linea concreta).
+
+**Bloqueante** — NO delegar ningun entregable de fase 5 (QA) hasta que
+feature-spec-compliance este completado y aprobado por product-owner.
+
+Si el BA detecta MOCKs en features criticas que no tienen marca
+REPLACE_BEFORE_PROD, devuelve a developer + tech-lead. Si los mocks tienen
+marca y bloqueo registrado, el sponsor decide si pueden ir a QA con
+condicion de resolverse antes del deployment-plan (fase 7).
+{{/if}}
+
 {{#if deploymentPlanLead}}
 ## Protocolo de inicio de fase Despliegue
 

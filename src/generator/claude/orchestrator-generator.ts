@@ -89,6 +89,8 @@ export function generateOrchestratorFile(
     existingDocs: !!flags.existingDocs,
     hasGit: !!flags.hasGit,
     hasDevops: agentIds.has("devops"),
+    hasBusinessAnalyst: agentIds.has("business-analyst"),
+    hasProductOwner: agentIds.has("product-owner"),
     documentPhases: flags.documentPhases ?? [],
     envVerificationLead,
     envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,

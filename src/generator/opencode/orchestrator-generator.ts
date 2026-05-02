@@ -106,6 +106,8 @@ export function generateOrchestratorFile(
     hasGit: !!flags.hasGit,
     hasDevops: agentIds.has("devops"),
     documentPhases: flags.documentPhases ?? [],
+    hasBusinessAnalyst: agentIds.has("business-analyst"),
+    hasProductOwner: agentIds.has("product-owner"),
   });
 
   return {

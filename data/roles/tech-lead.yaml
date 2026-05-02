@@ -69,6 +69,7 @@ agent:
     grep: true
 
 skills:
+  - anti-mock-review
   - presentation-design
   - dependency-management
   - git-collaboration

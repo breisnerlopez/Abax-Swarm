@@ -13,6 +13,7 @@
 | [Git Collaboration](./git-collaboration.md) | Flujo distribuido de version control: cada agente commitea su entregable, devops pushea al cierre de fase, todo en rama `abax/<project>` |
 | [Deployment Planning](./deployment-planning.md) | Bloqueante al inicio de fase 7 con 12 preguntas (donde, URL publica, DNS, monitoring, rollback, etc.) y aprobacion explicita del sponsor |
 | [Presentation Publishing](./presentation-publishing.md) | Workflow de GitHub Pages para publicar las presentaciones automaticamente + audit anti-solapamiento de roles |
+| [Quality Gates](./quality-gates.md) | 3 capas anti-mock (regla en developers + skill `anti-mock-review` en tech-lead + entregable `feature-spec-compliance` con BA externo) que cazan implementaciones falsas antes de QA |
 | [Roadmap](./roadmap.md) | Tipos de proyecto futuros (audit, migration, onboarding, infra, data, ml, etc.) con priorizacion en tiers y criterios para promover |
 
 ## Guides

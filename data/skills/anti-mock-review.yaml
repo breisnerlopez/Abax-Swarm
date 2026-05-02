@@ -1,0 +1,208 @@
+id: anti-mock-review
+name: Code Review Anti-Mock
+description: >
+  Auditoria de codigo orientada a detectar implementaciones falsas, stubs
+  permanentes, integraciones simuladas con regex/in-memory en lugar de
+  servicios reales. La ejecuta el tech-lead antes de aprobar el entregable
+  `source-code` de la fase Construccion. Producto del incidente Abax-Memory
+  (mayo 2026) donde un backend con regex disfrazada de IA y un
+  `InMemorySearchIndexer` en lugar de Qdrant llego al borde del despliegue
+  sin que ningun control lo detectara.
+used_by:
+  - tech-lead
+content:
+  when_to_use: |
+    - Antes de aprobar el entregable `source-code` de la fase Construccion.
+    - Cuando un developer reporta haber completado una feature con integraciones externas.
+    - Antes de ejecutar QA, como segunda capa de defensa despues de la regla anti-mock en el prompt de los developers.
+    - Cuando el technical-design lista integraciones (OpenAI, Qdrant, Stripe, etc.) y necesitas verificar que se conectaron de verdad.
+  instructions: |
+    ## Principio Central
+    Las features no estan "Done" solo porque el codigo compila y los tests
+    pasan. Estan Done cuando las integraciones externas declaradas en el
+    technical-design estan **realmente conectadas**, no simuladas con
+    regex/in-memory/hardcoded responses.
+
+    Esta auditoria es preventiva, no punitiva: si encuentras mocks, los
+    devuelves al developer con un reporte concreto. Lo que NO quieres es
+    que el codigo mockeado pase a QA, UAT y deployment como paso en el
+    incidente Abax-Memory.
+
+    ## Flujo de auditoria
+
+    ### Paso 1 - Inventario de integraciones declaradas
+
+    Lee el documento de technical-design (fase 3) y extrae todas las
+    integraciones externas declaradas. Ejemplos:
+    - APIs de IA: OpenAI, Anthropic, Cohere, HuggingFace
+    - Vector DBs: Qdrant, Pinecone, Weaviate, ChromaDB, pgvector
+    - Auth: Keycloak, Auth0, AWS Cognito
+    - Pago: Stripe, Mercado Pago, PayPal
+    - Storage: S3, GCS, Azure Blob
+    - Mensajeria: Kafka, RabbitMQ, SQS, Pub/Sub
+    - Notificaciones: SendGrid, Twilio, Firebase
+    - Search: Elasticsearch, Algolia, Meilisearch
+    - Observabilidad: Datadog, Sentry, New Relic
+    - DBs externas no del stack base
+
+    Si el technical-design es ambiguo o no enumera, usa la spec funcional
+    (fase 2) y los criterios de aceptacion.
+
+    ### Paso 2 - Verificar dependencias declaradas vs imports reales
+
+    Para cada integracion:
+
+    1. ¿La dependencia client esta en el manifest? Ejemplos:
+       - OpenAI → `langchain4j-openai`, `openai`, `quarkus-langchain4j-openai`
+       - Qdrant → `qdrant-client`, `io.qdrant`
+       - Stripe → `stripe`, `stripe-java`
+       - Auth0 → `@auth0/*`, `auth0`
+    2. ¿Hay al menos un `import` real de esa libreria en codigo de produccion (NO en tests)?
+    3. ¿El import se usa en una clase concreta que se inyecta o instancia en runtime?
+
+    Si dep declarada pero no importada → mock detectado.
+    Si import existe pero solo en tests → mock detectado en runtime.
+
+    ### Paso 3 - Escaneo de keywords sospechosos
+
+    Ejecuta los siguientes greps sobre codigo de produccion (NO test, NO docs):
+
+    ```bash
+    # Patron 1: clases con prefijo/sufijo sospechoso
+    grep -rn -E 'class\s+(InMemory|Mock|Fake|Stub|Dummy|Sample)\w*' src/
+
+    # Patron 2: marcadores de codigo temporal sin la convencion oficial
+    grep -rn -E '//\s*(TODO|FIXME|XXX|HACK|TEMP)' src/ \
+      | grep -v 'REPLACE_BEFORE_PROD'
+
+    # Patron 3: respuestas hardcoded en vez de llamada a servicio
+    grep -rn -E 'return\s+(Arrays|List|Map|Set)\.of\([^)]{30,}\)' src/
+
+    # Patron 4: regex matching donde deberia haber NLP/IA real
+    grep -rn -E 'Pattern\.compile|\.matches\(' src/main/ \
+      | grep -iE 'extract|classif|nlp|sentiment|entity'
+
+    # Patron 5: simulaciones explicitas
+    grep -rn -iE 'simulado|placeholder|por ahora|temporary' src/main/
+
+    # Patron 6: clientes de integracion externa nunca instanciados
+    grep -rn -E 'new\s+\w+(Client|Service|Connector)\(' src/main/
+    ```
+
+    Los hallazgos se clasifican como:
+    - **MOCK convencional**: marcado con `// MOCK: <razon> // REPLACE_BEFORE_PROD`. Aceptable si esta documentado como bloqueo en el reporte al orquestador.
+    - **MOCK silencioso**: cualquiera de los patrones de arriba SIN la convencion. Rechazo automatico.
+    - **TODO sin REPLACE_BEFORE_PROD**: equivale a mock silencioso.
+
+    ### Paso 4 - Verificar instanciacion real de clientes externos
+
+    Para cada integracion del Paso 1:
+    1. Localiza la clase Client/Service que envuelve el SDK externo.
+    2. Verifica que se instancia con configuracion real (URL, credenciales) y NO con valores `"localhost:1234"` o `"test-key"` en codigo de produccion.
+    3. Verifica que existe un test de integracion (no unitario) que llama el servicio real con datos de prueba (puede usar testcontainer pero la libreria es la real).
+
+    Sin test de integracion = sospecha de mock.
+
+    ### Paso 5 - Reporte estructurado
+
+    Produce el archivo `docs/entregables/fase-4-construccion/code-review-anti-mock.md` con:
+
+    ```
+    # Code Review Anti-Mock — <Nombre del Proyecto>
+
+    Fase: 4-Construccion
+    Reviewer: tech-lead
+    Fecha: <YYYY-MM-DD>
+    Resultado: APROBADO / RECHAZADO / APROBADO CON OBSERVACIONES
+
+    ## Matrix de integraciones
+
+    | Integracion declarada | Dep en manifest | Import en src/main | Cliente instanciado | Test de integracion | Estado |
+    |---|---|---|---|---|---|
+    | OpenAI text-embedding-3-large | langchain4j-openai 0.34.0 | OpenAiEmbeddingModel | si, en EmbeddingConfig.java | si, EmbeddingIT.java | REAL |
+    | Qdrant | qdrant-client 1.9.0 | QdrantClient | si, en QdrantConfig.java | si, QdrantIT.java | REAL |
+    | Auth con Keycloak | quarkus-oidc | OidcConfig | si | NO | PARCIAL |
+
+    ## Hallazgos de mocks
+
+    | Archivo:linea | Patron detectado | Convencional? | Accion |
+    |---|---|---|---|
+    | InMemorySearchIndexer.java:1 | clase con prefijo InMemory | NO | RECHAZAR — reemplazar por QdrantSearchIndexer |
+    | StructuredExtractionService.java:42 | regex Pattern.compile en metodo extract | NO | RECHAZAR — implementar con OpenAI structured outputs |
+
+    ## Decision
+
+    [APROBADO]: pasa a feature-spec-compliance (BA) y QA.
+    [RECHAZADO]: devuelve al developer con esta lista y bloquea fase 5.
+    [APROBADO CON OBSERVACIONES]: items menores no bloqueantes que se anotan
+    como deuda tecnica para fase de Estabilizacion.
+    ```
+
+    ### Paso 6 - Comunicacion al orquestador
+
+    Si el resultado es APROBADO: continua con feature-spec-compliance.
+    Si el resultado es RECHAZADO: devuelve la tarea al developer (vias
+    orquestador) con el reporte. NO marcar source-code como done.
+    Si APROBADO CON OBSERVACIONES: notifica los items menores al
+    project-manager para tracking.
+
+    ## Anti-patrones del reviewer
+
+    NO seas complice del developer:
+    - NO aprobar "porque urge" — el incidente Abax-Memory casi llega a prod por esto.
+    - NO aceptar "lo arreglo despues" sin ticket concreto y bloqueo del deployment.
+    - NO firmar sin ejecutar los greps del Paso 3 y revisar la tabla del Paso 5.
+
+    Tampoco seas burocrata:
+    - Aceptar mocks marcados con `// MOCK: ... // REPLACE_BEFORE_PROD` cuando hay justificacion (credencial pendiente del usuario, libreria aun no liberada).
+    - Distinguir tests unitarios (donde mocks son OK) de codigo de produccion (donde no).
+  guides:
+    - name: keywords-sospechosos-por-stack
+      content: |
+        ### Java / Spring / Quarkus
+        - Clases: `InMemory*`, `Mock*`, `Fake*`, `Dummy*`, `Test*` (en src/main/)
+        - `Pattern.compile` / `.matches` en servicios que dicen extraer entidades
+        - `Arrays.asList(...)` o `List.of(...)` con datos hardcoded retornados como respuesta
+        - `@ConditionalOnProperty` con condiciones siempre falsas
+
+        ### TypeScript / React / Node
+        - `MSW` (mock service worker) usado en codigo de produccion
+        - Funciones que retornan `Promise.resolve({...})` con valores fijos
+        - `// @ts-ignore` o `as any` cerca de calls a APIs externas
+        - Fixtures importados en componentes en lugar de fetch real
+
+        ### Python
+        - `def fake_*`, `def mock_*` en modulos de produccion
+        - `return [...]` con datos hardcoded en endpoints
+        - `unittest.mock` importado fuera de tests/
+
+        ### Go / Rust
+        - Tipos con sufijo `Stub`, `Fake`, `Dummy` en paquetes no-test
+        - Funciones que retornan `nil` o estructuras con valores zero sin llamar al servicio real
+
+    - name: convencion-mock-temporal-aceptable
+      content: |
+        Hay casos legitimos para mock temporal: el equipo no tiene
+        credenciales del proveedor todavia, la API externa esta en mantenimiento,
+        la libreria oficial esta en beta y rompe builds, etc. En esos casos:
+
+        1. El mock OBLIGATORIAMENTE lleva la marca:
+
+           ```
+           // MOCK: <razon concreta + ticket de bloqueo> // REPLACE_BEFORE_PROD
+           ```
+
+        2. El developer escala al orquestador la lista completa de mocks
+           creados en su entregable, con su justificacion individual.
+
+        3. El technical-debt-management skill registra cada mock como deuda
+           con prioridad alta y fecha de resolucion antes del deployment.
+
+        4. El deployment-plan (fase 7) NO se aprueba si quedan mocks sin
+           resolver para features criticas. El sponsor decide si features
+           no criticas pueden ir a prod con stub temporal.
+
+        Lo que NO es aceptable:
+        - Mock sin marca = mock silencioso = rechazo.
+        - Marca sin justificacion ni bloqueo concreto = rechazo.
+        - "Lo cambio despues" sin fecha ni responsable.
