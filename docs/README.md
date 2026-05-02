@@ -4,8 +4,10 @@
 
 | Document | Description |
 |----------|-------------|
-| [Architecture](./architecture.md) | System layers, data flow, component overview |
-| [Data Model](./data-model.md) | YAML schemas for roles, skills, tools, stacks, rules |
+| [Architecture](./architecture.md) | System layers, data flow, detectors, project modes |
+| [Data Model](./data-model.md) | YAML schemas for roles, skills, tools, stacks, rules + runtime types |
+| [Model Mix](./model-mix.md) | Per-role model assignment (Opus/Sonnet/Haiku, GPT-5/mini/nano), with the `inherit` strategy for users without premium model access |
+| [Agent Colors](./agent-colors.md) | Deterministic color palette for OpenCode TUI; orchestrator reserved crimson |
 
 ## Guides
 
@@ -14,15 +16,8 @@
 | [Adding Roles](./guides/adding-roles.md) | How to create a new agent role |
 | [Adding Skills](./guides/adding-skills.md) | How to create a new skill |
 | [Adding Stacks](./guides/adding-stacks.md) | How to add a tech stack |
-| [Orchestrator Flow](./guides/orchestrator-flow.md) | How the orchestrator coordinates agents at runtime |
+| [Orchestrator Flow](./guides/orchestrator-flow.md) | How the orchestrator coordinates agents at runtime, in cascade and documentation modes |
 
-## Internal (development history)
+## Screenshots
 
-These files document the development process and are not part of the product documentation:
-
-| Document | Description |
-|----------|-------------|
-| [Plan Original](./internal/PLAN_SISTEMA_AGENTES.md) | Original system design plan |
-| [Task Matrix](./internal/TASK_MATRIX.md) | Development task tracker (completed) |
-| [Bitacora](./internal/BITACORA.md) | Session log and decisions |
-| [Roles Source](./internal/matriz_roles_flujo_cascada.md) | Source document with 30+ roles and waterfall flow |
+The 5 PNGs in `screenshots/` are captured headlessly via `scripts/capture-screenshots.sh` (requires `tmux` + `freeze`). They show the wizard at: 1) start, 2) project-mode selection, 3) criteria multi-select, 4) team editor, 5) confirmation with model mix and file preview.
