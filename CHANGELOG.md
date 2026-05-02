@@ -6,6 +6,38 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.23] — 2026-05-02
+
+### Added — Stack `legacy-other` + deteccion de PHP / Java desktop / VB6 + fix de fallback silencioso
+
+El wizard tenia un bug latente: cuando el detector no reconocia el stack y el usuario presionaba "Continuar sin stack adapter", se asignaba **`angular-springboot`** silenciosamente. En modo `document` sobre un sistema legacy (Java Swing, VB6, PHP clasico, Cobol, Delphi), los agentes recibian prompts adaptados a Spring Boot y documentaban "controllers REST" sobre `JFrame` listeners o forms .frm — equivalente al incidente Abax-Memory pero en la capa de documentacion.
+
+Tres piezas coordinadas:
+
+- **Stack `legacy-other`** (`data/stacks/legacy-other.yaml`): placeholder con `role_context` cauteloso para los 12 roles tecnicos. Cada uno recibe instrucciones adaptadas a su disciplina diciendo: *NO asumas patrones modernos, INFIERE convenciones del codigo existente, REPORTA al orquestador antes de aplicar comandos modernos*. Sumado a `stack_overrides` consistentes en los 12 roles (ahora todos con 14 stacks completos).
+- **3 detectores nuevos** (`src/engine/stack-detector.ts`):
+  - **PHP**: `composer.json` con framework conocido (Laravel/Symfony/CakePHP/CodeIgniter/Yii/Slim) o sin framework, o archivos `.php` sueltos sin composer.
+  - **Java desktop**: `pom.xml`/`build.gradle` con JavaFX/Swing/MigLayout/FlatLaf y SIN spring-boot/quarkus/micronaut, o archivos `.java` importando `javax.swing`/`java.awt`/`javafx.*` (escaneo bounded a 50 archivos top-level + Maven `src/main/java` layout).
+  - **VB6**: archivos `.vbp` (proyecto), `.frm` (forms), o combinacion `.bas`+`.cls` en raiz.
+  - Los 3 mapean a `stackId: "legacy-other"` con evidencia descriptiva. Estan al **final** de `RULES` para que stacks modernos ganen cuando coexistan.
+- **Fix del fallback silencioso** (`src/cli/WizardApp.tsx`): la opcion "Continuar sin stack adapter" se reemplaza por "Usar Stack legacy o no soportado" (apuntando a `legacy-other`). Si el detector no encuentra match, el wizard recomienda explicitamente la opcion legacy con texto "Si tu sistema es Java desktop, VB6, PHP clasico, Cobol, Delphi, etc.".
+
+### Added — Tests integrales
+
+- 26 nuevos tests en `tests/integration/legacy-stack.test.ts`:
+  - Stack catalog: existencia, `role_context` para 12 roles, descripcion explicita.
+  - Detector: PHP (4 variantes), Java desktop (4 variantes incluyendo regresion para Spring Boot/Quarkus), VB6 (3 variantes), prioridad de modernos, ausencia de signals.
+  - Pipeline: `runSelection`/`runPipeline` con `legacy-other` no crashean, agentes generados contienen el contexto cauteloso, funciona en modo `document`.
+  - Stack adapter: merge aditivo de `stack_overrides` + `role_context`, no muta el rol original.
+  - Regresion: el codigo fuente de `WizardApp.tsx` ya NO mapea `__none__` a `angular-springboot` (test sentinel que lee el archivo).
+
+Suite total: 446 tests pasando (era 420), typecheck + validate OK, 14 stacks (era 13).
+
+### Documentation
+
+- `docs/legacy-stacks.md` (nuevo): bug que lo motivo, descripcion de las 3 piezas, ejemplos de prompts cautelosos por rol, criterios de deteccion, justificacion de mapear a `legacy-other` en lugar de crear stacks por cada legacy, como añadir mas detectores en el futuro.
+- `README.md` y `docs/README.md` actualizados con la referencia.
+
 ## [0.1.22] — 2026-05-02
 
 ### Added — 3 guard rails adicionales para reglas con riesgo de dilucion

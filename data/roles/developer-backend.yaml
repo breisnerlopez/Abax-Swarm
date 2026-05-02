@@ -208,6 +208,15 @@ stack_overrides:
       Validacion con serializers DRF y model validators.
       Tests con pytest-django + factory_boy + APIClient.
 
+  legacy-other:
+    prompt_append: |
+      Stack: legacy o no modelado en Abax Swarm (Java desktop, VB6, PHP clasico,
+      Cobol, Delphi, etc.).
+      Sigue las reglas de cautela en el Contexto del Stack abajo: NO asumas
+      patrones modernos, INFIERE convenciones leyendo el codigo, REPORTA al
+      orquestador antes de aplicar comandos modernos (npm/mvn/docker/kubectl).
+      Para modo document: documenta lo que VES, no lo que esperarias en un stack moderno.
+
 dependencies:
   receives_from:
     - tech-lead
