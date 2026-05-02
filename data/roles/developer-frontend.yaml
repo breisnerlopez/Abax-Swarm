@@ -94,6 +94,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - dependency-management
   - git-collaboration
   - frontend-implementation

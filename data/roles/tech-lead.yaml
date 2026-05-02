@@ -69,6 +69,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - anti-mock-review
   - presentation-design
   - dependency-management

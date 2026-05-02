@@ -67,6 +67,7 @@ agent:
     grep: true
 
 skills:
+  - role-boundaries
   - deployment-planning
   - security-audit
   - threat-modeling

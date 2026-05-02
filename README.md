@@ -373,6 +373,8 @@ abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest exist
 | [docs/data-model.md](docs/data-model.md) | Esquemas YAML de cada entidad |
 | [docs/model-mix.md](docs/model-mix.md) | Mix de modelos por rol: tabla completa con justificación |
 | [docs/agent-colors.md](docs/agent-colors.md) | Política de colores y paleta para agentes en OpenCode |
+| [docs/quality-gates.md](docs/quality-gates.md) | 3 capas anti-mock que cazan implementaciones falsas antes de QA |
+| [docs/role-boundaries.md](docs/role-boundaries.md) | Matriz maestra de roles por fase + protocolo 2-Tasks post-fix |
 | [docs/guides/adding-roles.md](docs/guides/adding-roles.md) | Cómo agregar un rol |
 | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) | Cómo agregar una habilidad |
 | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) | Cómo agregar un stack |

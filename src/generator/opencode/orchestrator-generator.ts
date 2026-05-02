@@ -108,6 +108,18 @@ export function generateOrchestratorFile(
     documentPhases: flags.documentPhases ?? [],
     hasBusinessAnalyst: agentIds.has("business-analyst"),
     hasProductOwner: agentIds.has("product-owner"),
+    hasTechLead: agentIds.has("tech-lead"),
+    hasSolutionArchitect: agentIds.has("solution-architect"),
+    hasSecurityArchitect: agentIds.has("security-architect"),
+    hasDba: agentIds.has("dba"),
+    hasDeveloperBackend: agentIds.has("developer-backend"),
+    hasDeveloperFrontend: agentIds.has("developer-frontend"),
+    hasQaFunctional: agentIds.has("qa-functional"),
+    hasQaAutomation: agentIds.has("qa-automation"),
+    hasQaPerformance: agentIds.has("qa-performance"),
+    hasProjectManager: agentIds.has("project-manager"),
+    hasTechWriter: agentIds.has("tech-writer"),
+    enforceRoleBoundaries: !isDocumentMode && agents.length >= 2,
   });
 
   return {

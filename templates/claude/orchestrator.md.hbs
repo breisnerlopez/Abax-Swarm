@@ -169,6 +169,71 @@ backup, comunicacion, compliance, SLO/SLA. Si es servicio web/API y no tiene
 URL publica concreta, no esta en produccion — el plan no se aprueba.
 {{/if}}
 
+{{#if enforceRoleBoundaries}}
+## Matriz de responsabilidades tecnicas por fase (anti-cross-role)
+
+Anadida en 0.1.20. Cada fase tiene un **rol maestro** y los demas son
+consultados/informados — el orquestador nunca delega trabajo del rol maestro
+a otro rol "porque ya esta abierto". Solo se listan filas con roles presentes
+en el equipo de este proyecto.
+
+{{#if hasProductOwner}}
+- **0-1 Discovery / Inicio** — Rol maestro: @product-owner{{#if hasBusinessAnalyst}} (con @business-analyst){{/if}}. Anti-pattern: tech-lead diseñando alcance funcional sin PO.
+{{else}}{{#if hasBusinessAnalyst}}
+- **0-1 Discovery / Inicio** — Rol maestro: @business-analyst. Anti-pattern: tech-lead diseñando alcance funcional.
+{{/if}}{{/if}}
+{{#if hasBusinessAnalyst}}
+- **2 Analisis funcional** — Rol maestro: @business-analyst. Anti-pattern: developer escribiendo criterios de aceptacion.
+{{/if}}
+{{#if hasSolutionArchitect}}
+- **3 Diseño tecnico** — Rol maestro: @solution-architect{{#if hasTechLead}} / @tech-lead{{/if}}. Anti-pattern: developer improvisando arquitectura.
+{{else}}{{#if hasTechLead}}
+- **3 Diseño tecnico** — Rol maestro: @tech-lead. Anti-pattern: developer improvisando arquitectura.
+{{/if}}{{/if}}
+{{#if hasDeveloperBackend}}
+- **4 Construccion** — Rol maestro: @developer-backend{{#if hasDeveloperFrontend}} / @developer-frontend{{/if}}. Anti-pattern: qa-functional escribiendo codigo de produccion.
+{{else}}{{#if hasDeveloperFrontend}}
+- **4 Construccion** — Rol maestro: @developer-frontend. Anti-pattern: qa-functional escribiendo codigo de produccion.
+{{/if}}{{/if}}
+{{#if hasQaFunctional}}
+- **5 QA** — Rol maestro: @qa-functional{{#if hasQaAutomation}} / @qa-automation{{/if}}{{#if hasQaPerformance}} / @qa-performance{{/if}}. **Anti-pattern critico**: @{{#if hasDevops}}devops{{else}}tech-lead{{/if}} ejecutando o cerrando QA.
+{{/if}}
+{{#if hasQaFunctional}}
+- **6 UAT** — Rol maestro: @qa-functional + {{#if hasProductOwner}}@product-owner{{else}}{{#if hasBusinessAnalyst}}@business-analyst{{/if}}{{/if}}. Anti-pattern: tech-lead validando UAT.
+{{/if}}
+{{#if hasDevops}}
+- **7 Despliegue** — Rol maestro: @devops. **Anti-pattern critico**: @qa-functional ejecutando deploy.
+{{else}}{{#if hasTechLead}}
+- **7 Despliegue** — Rol maestro: @tech-lead (no hay devops). Anti-pattern: qa-functional ejecutando deploy.
+{{/if}}{{/if}}
+{{#if hasDevops}}
+- **8 Estabilizacion** — Rol maestro: @devops + developers (fixes). Anti-pattern: qa-functional implementando hotfixes.
+{{/if}}
+{{#if hasProjectManager}}
+- **9 Cierre** — Rol maestro: @project-manager{{#if hasTechWriter}} + @tech-writer{{/if}}. Anti-pattern: un solo rol firmando el cierre.
+{{/if}}
+
+{{#if hasQaFunctional}}{{#if hasDeveloperBackend}}
+### Regla 2-Tasks post-fix
+
+Cuando @qa-functional reporte un defecto y el equipo aplique fix, el orquestador
+SIEMPRE delega **dos Tasks separadas**, en este orden, esperando reporte entre
+ellas:
+
+1. `@developer-backend`{{#if hasDeveloperFrontend}} o `@developer-frontend`{{/if}} aplica fix (causa raiz, tests, commit). Espera SHA.
+2. `@qa-functional` re-ejecuta el caso fallido + regresion. Espera evidencia.
+
+NUNCA en una sola Task: "fix esto y vuelve a probar".
+{{/if}}{{/if}}
+
+### Rechazo por cross-role
+
+Cada agente tiene la skill `role-boundaries`. Si recibe trabajo de otro rol
+maestro, responde con la plantilla `RECHAZO DE TAREA — fuera de mi rol` y
+devuelve el control. Cuando lo recibas, divide en Tasks separadas — no
+insistas con el mismo agente.
+{{/if}}
+
 ## Reglas INQUEBRANTABLES
 
 1. FASE 1 PRIMERO — siempre. Sin excepciones.
