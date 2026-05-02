@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
 import { readFileSync, existsSync } from "fs";
+import { fileURLToPath } from "url";
 import { parse as yamlParse } from "yaml";
 import { loadDataContext } from "./data-context.js";
 import { runWizard } from "./wizard.js";
@@ -10,12 +11,18 @@ import { runSelection, runPipeline, writePipeline } from "./pipeline.js";
 import { printBanner, printRoleTable, printStackTable, printFileList, printSuccess } from "./format.js";
 import type { ProjectConfig } from "../engine/types.js";
 
+// Read version from package.json so the binary always matches the published
+// version. Both `dist/cli/app.js` and `src/cli/app.ts` are two levels deep.
+const pkg = JSON.parse(
+  readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../../package.json"), "utf-8"),
+) as { version: string };
+
 const program = new Command();
 
 program
   .name("abax-swarm")
   .description("Inicializa proyectos con agentes IA orquestados para OpenCode y Claude Code")
-  .version("0.1.0");
+  .version(pkg.version);
 
 program
   .command("init")
