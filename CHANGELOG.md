@@ -6,6 +6,24 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-05-01
+
+### Added
+
+- Nueva opción **"Heredar del default de mi configuración"** en el paso 3 del wizard ("Asignación de modelos"):
+  - Cuando el usuario la elige, no se escribe `model:`, `thinking:` ni `reasoningEffort:` en el frontmatter de los agentes ni en `opencode.json`. OpenCode hereda del `model` raíz del workspace o del default global del usuario, y los subagentes heredan del primario que los invoca (vía oficial documentada).
+  - Útil cuando el usuario final no tiene acceso a Opus / GPT-5; OpenCode no soporta fallback nativo de modelos ([sst/opencode#25150](https://github.com/sst/opencode/issues/25150)).
+  - Si elige "inherit", el wizard salta el paso de proveedor.
+  - La estrategia se persiste como `project.model_strategy` en `project-manifest.yaml` y se respeta en `abax-swarm regenerate`.
+- Precarga de elecciones previas al actualizar una carpeta existente:
+  - `init` sobre carpeta con `project-manifest.yaml` ahora precarga `target`, `provider` y `model_strategy` desde el manifest.
+  - El bloque "Configuración existente" muestra plataforma y estrategia/proveedor previos.
+  - `SelectInput` admite `initialValue` y posiciona el cursor en la opción anterior — basta Enter para conservarla.
+
+### Documentation
+
+- Sección nueva en `docs/model-mix.md` explicando `custom` vs `inherit` y cuándo usar cada una.
+
 ## [0.1.4] — 2026-05-01
 
 ### Added

@@ -7,6 +7,15 @@ export type TeamScope = "lean" | "full";
 
 export type Provider = "anthropic" | "openai";
 
+/**
+ * How models are assigned to agents.
+ * - "custom": pick a model per role from PROVIDER_MODELS based on tier+reasoning.
+ * - "inherit": omit `model` from agent frontmatter and opencode.json so the user's
+ *   own OpenCode/Claude configuration provides the default. Use this when the
+ *   end user does not have access to the provider's premium models (e.g. Opus, GPT-5).
+ */
+export type ModelStrategy = "custom" | "inherit";
+
 export interface ModelSpec {
   /** Provider-prefixed model id (e.g. "anthropic/claude-opus-4-7"). */
   model: string;
@@ -37,6 +46,8 @@ export interface ProjectConfig {
   provider?: Provider;
   /** Optional per-role overrides for tier/reasoning (e.g. user customised the suggested mix). */
   modelOverrides?: Record<string, RoleModelOverride>;
+  /** Defaults to "custom". When "inherit", no model is written and the host CLI's default applies. */
+  modelStrategy?: ModelStrategy;
 }
 
 export interface RoleSelection {

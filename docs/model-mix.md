@@ -30,6 +30,23 @@ El motor traduce `(provider, cognitive_tier, reasoning)` a un `ModelSpec` concre
 
 **Mantenemos el mix dentro del mismo proveedor**: nunca mezclamos modelos de Anthropic con modelos de OpenAI en el mismo equipo. Esto evita confusión de credenciales y permite al usuario optimizar costo/calidad cambiando un solo `provider` en el wizard.
 
+### Estrategia de asignación: `custom` vs `inherit`
+
+El wizard pregunta cómo asignar modelos antes de pedir el proveedor:
+
+- **`custom`** (recomendado, comportamiento por defecto): aplica la tabla de arriba. Cada rol recibe un modelo concreto en el frontmatter de su `.md` y en `opencode.json`.
+- **`inherit`**: **no se escribe `model:` en ningún agente** ni en `opencode.json`. OpenCode hereda del `model` raíz del workspace o del default global del usuario; los subagentes heredan del primario que los invoca (comportamiento documentado en https://opencode.ai/docs/agents).
+
+Cuándo elegir `inherit`:
+
+- El usuario final no tiene credenciales para Opus / GPT-5 (los modelos `strategic`).
+- Quieres un proyecto portable que cualquier instalación de OpenCode pueda ejecutar sin tocar config.
+- Estás haciendo pruebas locales con un modelo único (Sonnet, Haiku, gpt-4o-mini, etc.).
+
+OpenCode **no soporta fallback nativo** entre modelos ([sst/opencode#25150](https://github.com/sst/opencode/issues/25150) abierto sin merge), por lo que `inherit` es la única forma idiomática de evitar fallos en runtime cuando el modelo asignado no está disponible.
+
+La estrategia se persiste en `project-manifest.yaml > project.model_strategy` y se respeta en `abax-swarm regenerate`.
+
 ---
 
 ## Asignación por rol

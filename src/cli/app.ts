@@ -107,6 +107,7 @@ program
         target: manifest.project.target ?? "opencode",
         teamScope: manifest.project.team_scope ?? "full",
         provider: manifest.project.provider ?? "anthropic",
+        modelStrategy: manifest.project.model_strategy ?? "custom",
       };
 
       const selection = runSelection(config, ctx);

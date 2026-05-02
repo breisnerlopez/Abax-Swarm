@@ -11,14 +11,19 @@ interface Props<T> {
   label: string;
   options: Option<T>[];
   onSubmit: (value: T) => void;
+  initialValue?: T;
 }
 
-export function SelectInput<T>({ label, options, onSubmit }: Props<T>) {
+export function SelectInput<T>({ label, options, onSubmit, initialValue }: Props<T>) {
   const items = options.map((o, i) => ({
     label: o.label,
     value: String(i),
     key: String(i),
   }));
+  const initialIdx =
+    initialValue !== undefined
+      ? options.findIndex((o) => o.value === initialValue)
+      : -1;
 
   return (
     <Box flexDirection="column">
@@ -29,6 +34,7 @@ export function SelectInput<T>({ label, options, onSubmit }: Props<T>) {
       <Box marginLeft={2} flexDirection="column">
         <InkSelectInput
           items={items}
+          initialIndex={initialIdx >= 0 ? initialIdx : 0}
           onSelect={(item) => {
             const idx = Number(item.value);
             onSubmit(options[idx]!.value);

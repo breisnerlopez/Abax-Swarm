@@ -7,6 +7,7 @@ import { parse as yamlParse } from "yaml";
 import type {
   ProjectConfig,
   DataContext,
+  ModelStrategy,
   SelectionResult,
   TargetPlatform,
   TeamScope,
@@ -30,7 +31,15 @@ import { Sidebar } from "./components/Sidebar.js";
 import type { SidebarItem } from "./components/Sidebar.js";
 
 interface ExistingManifest {
-  project: { name: string; description?: string; size: ProjectSize; stack: string };
+  project: {
+    name: string;
+    description?: string;
+    size: ProjectSize;
+    stack: string;
+    target?: TargetPlatform;
+    provider?: "anthropic" | "openai";
+    model_strategy?: ModelStrategy;
+  };
   team?: { roles?: Array<{ id: string }> };
   criteria_applied?: string[];
 }
@@ -39,6 +48,7 @@ type StepName =
   | "target-dir"
   | "existing-confirm"
   | "platform"
+  | "model-strategy"
   | "provider"
   | "description"
   | "size"
@@ -63,6 +73,7 @@ interface WizardData {
   stackId?: string;
   scope?: TeamScope;
   provider?: "anthropic" | "openai";
+  modelStrategy?: ModelStrategy;
   modelOverrides?: Record<string, { cognitive_tier?: "strategic" | "implementation" | "mechanical"; reasoning?: "none" | "low" | "medium" | "high" }>;
   selection?: SelectionResult;
   generated?: PipelineResult;
@@ -94,6 +105,7 @@ function stepNumber(step: StepName): number | null {
       return 1;
     case "platform":
       return 2;
+    case "model-strategy":
     case "provider":
       return 3;
     case "description":
@@ -131,12 +143,14 @@ function buildSidebarItems(data: WizardData, ctx: DataContext): SidebarItem[] {
         : null,
     },
     {
-      label: "Proveedor",
-      value: data.provider
-        ? data.provider === "anthropic"
-          ? "Anthropic (Claude)"
-          : "OpenAI (GPT)"
-        : null,
+      label: "Modelos",
+      value: data.modelStrategy === "inherit"
+        ? "heredados (default del usuario)"
+        : data.provider
+          ? data.provider === "anthropic"
+            ? "Anthropic (Claude)"
+            : "OpenAI (GPT)"
+          : null,
     },
     { label: "Descripción", value: data.description ?? null },
     { label: "Tamaño", value: data.size ? SIZE_LABELS[data.size] : null },
@@ -287,6 +301,7 @@ function buildConfig(data: WizardData): ProjectConfig {
     target: data.target!,
     teamScope: data.scope ?? "full",
     provider: data.provider ?? "anthropic",
+    modelStrategy: data.modelStrategy ?? "custom",
     modelOverrides: data.modelOverrides,
   };
 }
@@ -313,7 +328,20 @@ function renderStep(
               const targetDir = resolve(rawPath);
               if (!existsSync(targetDir)) mkdirSync(targetDir, { recursive: true });
               const existing = loadExistingManifest(targetDir);
-              setData((d) => ({ ...d, rawPath, targetDir, existing }));
+              setData((d) => ({
+                ...d,
+                rawPath,
+                targetDir,
+                existing,
+                // Preload prior choices so "actualizar" defaults to what was used before.
+                ...(existing
+                  ? {
+                      target: existing.project.target ?? d.target,
+                      provider: existing.project.provider ?? d.provider,
+                      modelStrategy: existing.project.model_strategy ?? d.modelStrategy,
+                    }
+                  : {}),
+              }));
               go(existing ? "existing-confirm" : "platform");
             }}
           />
@@ -328,11 +356,21 @@ function renderStep(
             <Text>Proyecto: <Text bold>{ex.project.name}</Text></Text>
             <Text>Tamaño:   {ex.project.size}</Text>
             <Text>Stack:    {ex.project.stack}</Text>
+            {ex.project.target ? <Text>Plataforma: {ex.project.target}</Text> : null}
+            {ex.project.model_strategy ? (
+              <Text>
+                Modelos:  {ex.project.model_strategy}
+                {ex.project.model_strategy === "custom" && ex.project.provider
+                  ? ` (${ex.project.provider})`
+                  : ""}
+              </Text>
+            ) : null}
             {ex.team?.roles?.length ? (
               <Text dimColor>Roles: {ex.team.roles.length}</Text>
             ) : null}
             <Text color="yellow">
-              Los archivos serán sobrescritos con la nueva configuración.
+              Los archivos serán sobrescritos. Tus elecciones previas vienen
+              preseleccionadas en cada paso.
             </Text>
           </InfoBox>
           <ConfirmInput
@@ -357,13 +395,43 @@ function renderStep(
           <StepHeader step={2} total={TOTAL_STEPS} title="Plataforma destino" />
           <SelectInput<TargetPlatform>
             label="Plataforma de agentes:"
+            initialValue={data.target}
             options={[
               { label: "OpenCode", value: "opencode" },
               { label: "Claude Code", value: "claude" },
             ]}
             onSubmit={(target) => {
               setData((d) => ({ ...d, target }));
-              go("provider");
+              go("model-strategy");
+            }}
+          />
+        </Box>
+      );
+
+    case "model-strategy":
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={3} total={TOTAL_STEPS} title="Asignación de modelos" />
+          <Box marginBottom={1} flexDirection="column">
+            <Text dimColor>
+              Personalizado: cada rol recibe un modelo según su nivel cognitivo
+              (estratégico / implementación / mecánico).
+            </Text>
+            <Text dimColor>
+              Heredar: no se asigna modelo en los agentes; se usa el default de tu
+              configuración local. Útil si no tienes acceso a Opus o GPT-5.
+            </Text>
+          </Box>
+          <SelectInput<ModelStrategy>
+            label="¿Cómo asignar modelos a los agentes?"
+            initialValue={data.modelStrategy}
+            options={[
+              { label: "Personalizado por rol (recomendado)", value: "custom" },
+              { label: "Heredar del default de mi configuración", value: "inherit" },
+            ]}
+            onSubmit={(modelStrategy) => {
+              setData((d) => ({ ...d, modelStrategy }));
+              go(modelStrategy === "inherit" ? "description" : "provider");
             }}
           />
         </Box>
@@ -381,6 +449,7 @@ function renderStep(
           </Box>
           <SelectInput<"anthropic" | "openai">
             label="¿Qué proveedor usarás?"
+            initialValue={data.provider}
             options={[
               { label: "Anthropic (Claude opus / sonnet / haiku)", value: "anthropic" },
               { label: "OpenAI (GPT-5 / mini / nano)", value: "openai" },
@@ -650,6 +719,7 @@ function ConfirmStep({
   }, [data, ctx]);
 
   const mixGroups = useMemo(() => {
+    if (data.modelStrategy === "inherit") return [];
     const provider = data.provider ?? "anthropic";
     const mix = buildModelMix(provider, result.project.roles, data.modelOverrides ?? {});
     return groupMixBySpec(mix);
@@ -681,25 +751,39 @@ function ConfirmStep({
     <Box flexDirection="column">
       <StepHeader step={8} total={TOTAL_STEPS} title="Confirmación y generación" />
       <Box marginBottom={1} flexDirection="column">
-        <Text bold>
-          Mix de modelos ({data.provider === "openai" ? "OpenAI" : "Anthropic"}):
-        </Text>
-        {mixGroups.map((g, i) => (
-          <Box key={i} flexDirection="column" marginLeft={2}>
-            <Text>
-              <Text color="cyan">{g.spec.model}</Text>
-              {g.spec.thinking ? (
-                <Text dimColor>
-                  {" "}· thinking {g.spec.thinking.budgetTokens / 1000}k
-                </Text>
-              ) : null}
-              {g.spec.reasoningEffort ? (
-                <Text dimColor> · reasoning {g.spec.reasoningEffort}</Text>
-              ) : null}
+        {data.modelStrategy === "inherit" ? (
+          <>
+            <Text bold>Modelos:</Text>
+            <Box marginLeft={2}>
+              <Text dimColor>
+                Heredados del default de tu configuración (no se escribirá `model:` en
+                los agentes ni en opencode.json).
+              </Text>
+            </Box>
+          </>
+        ) : (
+          <>
+            <Text bold>
+              Mix de modelos ({data.provider === "openai" ? "OpenAI" : "Anthropic"}):
             </Text>
-            <Text dimColor>{"  "}{g.roleIds.join(", ")}</Text>
-          </Box>
-        ))}
+            {mixGroups.map((g, i) => (
+              <Box key={i} flexDirection="column" marginLeft={2}>
+                <Text>
+                  <Text color="cyan">{g.spec.model}</Text>
+                  {g.spec.thinking ? (
+                    <Text dimColor>
+                      {" "}· thinking {g.spec.thinking.budgetTokens / 1000}k
+                    </Text>
+                  ) : null}
+                  {g.spec.reasoningEffort ? (
+                    <Text dimColor> · reasoning {g.spec.reasoningEffort}</Text>
+                  ) : null}
+                </Text>
+                <Text dimColor>{"  "}{g.roleIds.join(", ")}</Text>
+              </Box>
+            ))}
+          </>
+        )}
       </Box>
       <Box marginBottom={1}>
         <Text bold>Archivos a generar ({result.files.length}):</Text>
