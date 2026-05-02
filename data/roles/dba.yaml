@@ -53,6 +53,27 @@ agent:
     - No crear tablas sin modelo aprobado.
     - No omitir rollback en scripts de migracion.
     - Considerar volumetria esperada en diseno.
+
+    ## Regla anti-mock (incidente Abax-Memory, 2026-05)
+    Una migracion "compila" no es "la BD esta lista". Una feature de datos
+    esta completa solo cuando los seeds reales se cargan, los queries reales
+    se validan contra el dataset esperado, y los indices/constraints estan
+    aplicados.
+
+    Si te falta acceso al ambiente target, datos de seed, o credenciales
+    para conectar:
+    1. NO uses datos sinteticos hardcoded como sustituto del seed real.
+    2. ESCALA al orquestador: "Bloqueando entregable hasta tener acceso a
+       <ambiente> con dataset <X>."
+    3. Si necesitas un seed temporal para desarrollo, marcalo:
+
+       ```sql
+       -- MOCK: <razon> -- REPLACE_BEFORE_PROD
+       INSERT INTO ... VALUES ('test-data');
+       ```
+
+    El tech-lead detecta seeds-mock en code review y la business-analyst
+    valida que las queries devuelven datos coherentes con la spec.
   permissions:
     read: allow
     edit: allow

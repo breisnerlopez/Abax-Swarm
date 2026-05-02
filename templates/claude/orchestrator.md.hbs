@@ -129,6 +129,29 @@ Path:        docs/entregables/fase-4-construccion/00-verificacion-entorno.md
 al usuario antes de instalar, NUNCA `sudo apt` en el host.
 {{/if}}
 
+{{#if hasBusinessAnalyst}}
+## Protocolo de cierre de fase Construccion (3 capas anti-mock)
+
+Antes de avanzar a fase 5 (QA), TRES capas de defensa deben pasar (anadidas
+en 0.1.19 tras incidente Abax-Memory):
+
+1. **Capa 1 — Prevencion**: developers NO mockean silenciosamente. Si falta
+   credencial/dependencia, ESCALAN. Mocks temporales obligan marca
+   `// MOCK: <razon> // REPLACE_BEFORE_PROD`.
+2. **Capa 2 — Code review** (skill `anti-mock-review` en tech-lead): antes
+   de aprobar `source-code`, escanea por clases InMemory/Mock/Fake/Stub,
+   regex en metodos NLP, dependencias declaradas vs imports reales. Output:
+   `code-review-anti-mock.md` con matriz de integraciones.
+3. **Capa 3 — Spec compliance** (ULTIMO entregable de fase 4):
+
+   - Responsable: `@business-analyst` (NO desarrollador, NO tech-lead)
+   - Aprobador: `@{{#if hasProductOwner}}product-owner{{else}}business-analyst{{/if}}`
+   - Output: `feature-spec-compliance.md` con matriz feature-de-spec → archivo → REAL/MOCK/NO_IMPL
+
+**Bloqueante** — sin feature-spec-compliance aprobado, NO se delega ningun
+entregable de fase 5 (QA).
+{{/if}}
+
 {{#if deploymentPlanLead}}
 ## Protocolo de inicio de fase Despliegue
 

@@ -6,6 +6,33 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.19] — 2026-05-02
+
+### Added — 3 capas anti-mock
+
+Motivado por el incidente Abax-Memory (sesión `ses_216175a25ffe...`): un backend con `regex` disfrazada de IA y un `InMemorySearchIndexer` en lugar de Qdrant pasó los 7 entregables de Construcción, QA, UAT, y llegó al borde del despliegue sin que ningún control lo detectara. Tres capas independientes de defensa, ahora obligatorias:
+
+- **Capa 1 — Prevención en developers**: nueva sección "Regla anti-mock" en `system_prompt` de `developer-backend`, `developer-frontend` y `dba`. Cita el incidente por nombre y fecha. Obliga a escalar al orquestador cuando falta credencial/dependencia, y a marcar mocks temporales con `// MOCK: <razon> // REPLACE_BEFORE_PROD`.
+- **Capa 2 — Skill nuevo `anti-mock-review`** asignado a `tech-lead`. Flujo de 6 pasos: inventario de integraciones declaradas, dependencias declaradas vs imports reales, escaneo de keywords sospechosos (`InMemory*`/`Mock*`/`Fake*`/`Stub*`/`Dummy*`/`regex.*match` en código no-test), instanciación real de clientes externos, reporte estructurado, comunicación al orquestador. Incluye guides por stack (Java/TS/Python/Go/Rust) y criterios de mock temporal aceptable.
+- **Capa 3 — Entregable bloqueante `feature-spec-compliance`** como **ÚLTIMO** entregable de fase 4 (Construcción). Responsable: `business-analyst` (NO desarrollador, NO tech-lead — alguien externo al equipo de implementación). Approver: `product-owner` (consulta al sponsor para integraciones críticas). Bloqueante: el orchestrator no delega QA hasta que esto esté aprobado. Output: matriz `feature de spec → archivo → REAL/MOCK/NO_IMPL → evidencia`.
+- **Sección nueva en orchestrator template** (OpenCode + Claude): "Protocolo de cierre de fase Construccion (3 capas anti-mock)" que enuncia explícitamente las 3 capas, las cita por nombre y bloquea el avance a QA.
+
+### Added — Tests
+
+- 15 nuevos integration tests en `tests/integration/quality-gates.test.ts` cubriendo cada capa individualmente + un end-to-end que valida que las 3 capas están consistentes en un proyecto medium generado.
+- Lint, typecheck, validate Zod: todo verde. 376 tests en la suite unit/integration + 1 E2E.
+
+### Changed
+
+- `data/skills/` ahora tiene 75 archivos (era 74).
+- `tech-lead` declara skill nuevo: `anti-mock-review`.
+- `developer-backend`, `developer-frontend`, `dba` system_prompts ampliados con regla anti-mock.
+
+### Documentation
+
+- `docs/quality-gates.md` (nuevo): incidente que lo motivó, descripción detallada de las 3 capas, por qué BA en Capa 3, cómo cambiar la rúbrica, limitaciones conocidas.
+- `docs/README.md` actualizado con la referencia.
+
 ## [0.1.18] — 2026-05-02
 
 ### Added

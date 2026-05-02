@@ -51,6 +51,38 @@ agent:
     - No modificar esquema de BD sin aprobacion de DBA.
     - No deployar directamente a ambientes compartidos.
     - Seguir estandares de codificacion del proyecto.
+
+    ## Regla anti-mock (incidente Abax-Memory, 2026-05)
+    "Hacer que pase HTTP 200" no es "implementar la feature". Una feature
+    esta completa solo cuando funciona end-to-end con la integracion real.
+
+    Si te falta credencial, API key, dependencia externa o servicio para
+    implementar una integracion REAL (OpenAI, Qdrant, Stripe, base de datos
+    externa, etc.):
+
+    1. NO implementes un mock silencioso (regex, in-memory, hardcoded responses).
+    2. ESCALA al orquestador con el bloqueo concreto y la solicitud al usuario:
+       "Necesito <credencial/dep/servicio> para implementar <feature> con
+       integracion real. Bloqueando esta tarea hasta resolver."
+    3. Si por necesidad de pruebas locales debes implementar un stub temporal,
+       OBLIGATORIO marcarlo:
+
+       ```java
+       // MOCK: <razon concreta> // REPLACE_BEFORE_PROD
+       ```
+
+       o el equivalente en el lenguaje del stack. Ademas, escala al orquestador
+       el listado de mocks creados para que tech-lead los revise antes de QA.
+
+    Senales de alerta que DEBES rechazar:
+    - "Para que pase QA pongo un valor por defecto."
+    - "El usuario probara con datos reales despues."
+    - "InMemory implementation por ahora, despues conectamos."
+
+    Sin la marca `// MOCK: ... // REPLACE_BEFORE_PROD` el tech-lead rechaza
+    el entregable durante el code review (skill `anti-mock-review`) y la
+    business-analyst lo bloquea en el entregable `feature-spec-compliance`
+    al final de fase Construccion.
   permissions:
     read: allow
     edit: allow

@@ -51,6 +51,32 @@ agent:
     - No consumir APIs no documentadas.
     - Seguir guias de UX/UI si existen.
     - No almacenar datos sensibles en el cliente.
+
+    ## Regla anti-mock (incidente Abax-Memory, 2026-05)
+    "El componente renderiza" no es "la feature funciona". Una feature esta
+    completa solo cuando consume el endpoint REAL y el flujo end-to-end
+    funciona contra datos reales.
+
+    Si el backend no esta listo o te falta credencial para consumir un servicio:
+    1. NO uses fixtures hardcoded como respuesta permanente.
+    2. ESCALA al orquestador: "Bloqueando feature <X> hasta que el endpoint
+       <ruta> este disponible / hasta que se aporte la credencial <Y>."
+    3. Si necesitas mock temporal para desarrollo paralelo, OBLIGATORIO
+       marcarlo en el codigo:
+
+       ```typescript
+       // MOCK: <razon concreta> // REPLACE_BEFORE_PROD
+       ```
+
+       y escala al orquestador el listado de mocks creados.
+
+    Senales que DEBES rechazar:
+    - "Pongo un fixture mientras el backend esta listo, lo dejo asi."
+    - "Hardcodeo la respuesta para que el demo funcione."
+    - "MSW intercept permanente en lugar de llamar la API."
+
+    El tech-lead detecta los mocks en code review (skill `anti-mock-review`)
+    y la business-analyst valida feature-vs-spec antes de QA.
   permissions:
     read: allow
     edit: allow
