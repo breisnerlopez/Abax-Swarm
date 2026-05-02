@@ -6,6 +6,18 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.15] — 2026-05-02
+
+### Added
+
+- **Test E2E del wizard** (`tests/e2e/wizard-flow.test.ts`): spawnea el binario real `node dist/cli/app.js init --dry-run` dentro de un PTY (`node-pty`), escribe teclas sintéticas y verifica el output renderizado por Ink. Cubre los 12 steps del flujo completo modo `new` con defaults — incluye los nuevos pasos `permissions` y `isolation` añadidos en 0.1.14. Detecta regresiones que `ink-testing-library` no puede (comportamiento real de teclado, transiciones de step, sidebar dinámico).
+- Nuevo script `npm run test:e2e` que builda y corre solo el E2E. Separado de `npm test` para mantener CI rápido. Tiempo total: ~5s.
+- `node-pty@^1.1.0` añadido a `devDependencies`.
+
+### Documentation
+
+- CONTRIBUTING.md: la sección "Antes de tagear un release" ahora menciona que el E2E vive aparte y se corre con `npm run test:e2e` cuando se modifica el wizard.
+
 ## [0.1.14] — 2026-05-02
 
 ### Added

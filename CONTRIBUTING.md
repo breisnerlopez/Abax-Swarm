@@ -98,11 +98,19 @@ Mientras estemos en `0.x.y`, la API se considera inestable y todo cambio se publ
 ```bash
 npm run lint        # ESLint sobre src/ y tests/
 npm run typecheck   # tsc --noEmit
-npm test            # Vitest, 315+ tests
+npm test            # Vitest, 320+ tests (excluye E2E para mantenerlo rápido)
 npm run validate    # Validación Zod de todos los YAML
 ```
 
 Los cuatro deben pasar. CI los corre como `validate` en el workflow `ci.yml`, y el tag dispara `release.yml` que los corre **otra vez** antes de publicar a npm — así que un fallo local también va a fallar el release.
+
+**Si modificaste el wizard**, corre también:
+
+```bash
+npm run test:e2e    # Spawnea el binario real en un PTY y navega los 12 steps con teclado sintético (~5s)
+```
+
+Este test cubre regresiones que `ink-testing-library` no detecta (transiciones de step, sidebar dinámico, `process.cwd()` pre-fill del TextInput, comportamiento real del teclado en Ink).
 
 ### Si tu cambio incluye una feature visible en el wizard
 
