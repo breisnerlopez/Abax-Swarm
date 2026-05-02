@@ -20,6 +20,7 @@ La fuente de verdad del codigo vive en [`src/engine/permissions.ts`](../src/engi
   - `git push --force *`, `chmod 777 *`
   - `rm /var/* *`, `rm /etc/* *`, `rm /usr/* *`, `rm /var/lib/dpkg/* *` (raiz del incidente que motivo este feature)
   - `curl * | sh`, `wget * | bash` (shell injection)
+- **Compatible con el flujo git distribuido** (ver [git-collaboration.md](git-collaboration.md)): `git *` en `allow` permite a cada agente hacer `git add` + `git commit --author "<rol>"` despues de su entregable, y a devops hacer `git push -u origin abax/<project-name>` al cierre de fase. La denylist de `git push --force *` impide cualquier override destructivo.
 - **Container-aware**: `apt *`, `apt-get *`, `dpkg *`, `sudo *`, `brew *` estan en `ask` cuando `isolationMode === "host"` (afectan al SO del usuario), pero pasan automaticamente a `allow` cuando `isolationMode === "devcontainer"` (solo afectan al container, son seguros).
 - **Cuando usar**: tu maquina personal en proyectos donde sabes lo que haces. Default recomendado para la mayoria de los casos.
 
