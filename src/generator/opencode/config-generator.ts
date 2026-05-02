@@ -86,6 +86,7 @@ export function generateProjectManifest(
       target: config.target,
       team_scope: config.teamScope,
       provider: config.provider ?? "anthropic",
+      model_strategy: config.modelStrategy ?? "custom",
       governance_model: governance.model,
       governance_name: governance.name_es,
     },

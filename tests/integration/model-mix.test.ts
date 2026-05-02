@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { join } from "path";
 import { loadDataContext } from "../../src/cli/data-context.js";
 import { runSelection, runPipeline } from "../../src/cli/pipeline.js";
 import type { DataContext, ProjectConfig } from "../../src/engine/types.js";
@@ -70,6 +69,41 @@ describe("integration: model mix flows into generated files", () => {
     expect(devMd.content).toContain("model: anthropic/claude-sonnet-4-6");
     expect(devMd.content).toContain("thinking:");
     expect(devMd.content).toContain("budgetTokens: 4000");
+  });
+
+  it("modelStrategy=inherit omits model from opencode.json agent entries", () => {
+    const config = baseConfig({ modelStrategy: "inherit" });
+    const selection = runSelection(config, ctx);
+    const result = runPipeline(config, selection, ctx);
+    const oc = result.files.find((f) => f.path === "opencode.json")!;
+    const cfg = JSON.parse(oc.content);
+
+    for (const [, entry] of Object.entries<Record<string, unknown>>(cfg.agent)) {
+      expect(entry.model).toBeUndefined();
+      expect(entry.thinking).toBeUndefined();
+      expect(entry.reasoningEffort).toBeUndefined();
+    }
+  });
+
+  it("modelStrategy=inherit omits model from agent .md frontmatter", () => {
+    const config = baseConfig({ size: "medium", modelStrategy: "inherit" });
+    const selection = runSelection(config, ctx);
+    const result = runPipeline(config, selection, ctx);
+    const agentMds = result.files.filter((f) => f.path.startsWith(".opencode/agents/"));
+    expect(agentMds.length).toBeGreaterThan(0);
+    for (const md of agentMds) {
+      expect(md.content).not.toMatch(/^model:/m);
+      expect(md.content).not.toMatch(/^thinking:/m);
+      expect(md.content).not.toMatch(/^reasoningEffort:/m);
+    }
+  });
+
+  it("modelStrategy=inherit persists in project-manifest.yaml", () => {
+    const config = baseConfig({ modelStrategy: "inherit" });
+    const selection = runSelection(config, ctx);
+    const result = runPipeline(config, selection, ctx);
+    const manifest = result.files.find((f) => f.path === "project-manifest.yaml")!;
+    expect(manifest.content).toContain("model_strategy: inherit");
   });
 
   it("modelOverrides override the role's tier/reasoning", () => {

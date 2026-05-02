@@ -111,7 +111,12 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
   const provider = config.provider ?? "anthropic";
   const orchRole = ctx.roles.get("orchestrator");
   const rolesForMix = orchRole ? [...adaptedRoles, orchRole] : adaptedRoles;
-  const mix = buildModelMix(provider, rolesForMix, config.modelOverrides ?? {});
+  // "inherit" strategy: pass an empty mix so generators leave model fields unset
+  // and the user's own OpenCode/Claude default is used at runtime.
+  const mix: ModelMix =
+    config.modelStrategy === "inherit"
+      ? {}
+      : buildModelMix(provider, rolesForMix, config.modelOverrides ?? {});
 
   const { files, orchestratorFile } = generateFiles(
     config.target, config, selection, adaptedRoles, skills, tools, governance, mix, ctx,
