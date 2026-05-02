@@ -72,6 +72,10 @@ const AgentConfigSchema = z.object({
   tools_enabled: z.record(z.string(), z.boolean()).default({}),
   cognitive_tier: CognitiveTier.default("implementation"),
   reasoning: ReasoningLevel.default("none"),
+  // Optional override for the OpenCode TUI color. Hex (e.g. "#ff6b6b") or theme key
+  // (primary | secondary | accent | success | warning | error | info). If omitted,
+  // src/engine/color-resolver.ts assigns one deterministically from a curated palette.
+  color: z.string().optional(),
 });
 
 const DependencyBlockSchema = z.object({

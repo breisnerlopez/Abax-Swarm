@@ -2,6 +2,7 @@ import { stringify } from "yaml";
 import type { Role, Skill, Tool, Stack } from "../../loader/schemas.js";
 import type { ModelMix, ModelSpec, ProjectConfig, SelectionResult } from "../../engine/types.js";
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
+import { resolveAgentColor, ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
 import type { GeneratedFile } from "./agent-generator.js";
 
 function applySpec(target: Record<string, unknown>, spec: ModelSpec | undefined): void {
@@ -26,6 +27,7 @@ export function generateOpenCodeConfig(
   const orch: Record<string, unknown> = {
     description: orchestratorDescription ?? "Orquestador principal del proyecto. Coordina agentes siguiendo flujo cascada.",
     mode: "primary",
+    color: ORCHESTRATOR_COLOR,
     temperature: 0.3,
     permission: {
       read: "deny",
@@ -47,6 +49,7 @@ export function generateOpenCodeConfig(
     const entry: Record<string, unknown> = {
       description: agent.agent.description.replace(/\s+/g, " ").trim(),
       mode: agent.agent.mode,
+      color: resolveAgentColor(agent),
       temperature: agent.agent.temperature,
       permission: agent.agent.permissions,
     };

@@ -1,5 +1,6 @@
 import type { Role, DependencyGraph, RaciMatrix, PhaseDeliverables } from "../../loader/schemas.js";
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
+import { ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
 import { renderTemplate } from "./template-engine.js";
 import type { GeneratedFile } from "./agent-generator.js";
 
@@ -53,6 +54,7 @@ export function generateOrchestratorFile(
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description: `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`,
+    color: ORCHESTRATOR_COLOR,
     agents,
     phases,
     dependencyChain,
