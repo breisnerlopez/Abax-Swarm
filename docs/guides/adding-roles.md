@@ -80,6 +80,26 @@ How:
 
 How: add the role ID to `EXEMPT_FROM_ROLE_BOUNDARIES` in `tests/integration/role-boundaries.test.ts` with a one-line comment explaining why. The test will pass; reviewers should question the exemption during code review.
 
+## 2b. Three additional guard rails (`tests/integration/role-guards.test.ts`)
+
+Three other systemic rules are enforced automatically when you add a new role. Each has a corresponding `EXEMPT_FROM_*` constant for documented exceptions.
+
+### Anti-mock rule (incident Abax-Memory, 0.1.19)
+
+Every role that implements production code (`id` starts with `developer-` OR `category` is `construction`/`data` with `bash != "deny"`) must embed the anti-mock rule in its `system_prompt`. The rule must contain `REPLACE_BEFORE_PROD`, the phrase `incidente Abax-Memory`, and a `Regla anti-mock` header.
+
+Use the rule from `data/roles/developer-backend.yaml` (the canonical version) and adapt the language-specific examples and signals (e.g., `// MOCK:` for TS/Java/Go, `# MOCK:` for Python, `-- MOCK:` for SQL). Exempt only via `EXEMPT_FROM_ANTI_MOCK` if the role provably writes no production code.
+
+### `git-collaboration` skill on roles with bash
+
+Every role with `bash: allow|ask` must declare the `git-collaboration` skill (so it respects the distributed flow: `abax/<project>` branch, `--author <role@abax-swarm>`, no force push, no commits to `main`). Exempt via `EXEMPT_FROM_GIT_COLLABORATION` only if the role uses bash but does not commit deliverables (e.g., `qa-*` roles execute tests but produce reports via `write/edit`).
+
+### Complete `stack_overrides`
+
+If a role declares any `stack_overrides`, it must have an entry for **every** stack in `data/stacks/`. Adding a stack later (`#14`) without updating all 12 technical roles produces silent context loss in generated agents — the guard catches this.
+
+A role can legitimately have no `stack_overrides` at all (coordinators, designers, doc roles); the guard only enforces completeness when the block is present.
+
 ## 3. Register in rules
 
 ### `data/rules/size-matrix.yaml`

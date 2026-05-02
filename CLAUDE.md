@@ -87,6 +87,7 @@ After changing any YAML in `data/`:
 3. If you added a role, also update: `size-matrix.yaml`, `dependency-graph.yaml`, `raci-matrix.yaml`
 4. If you added a phase ID, update `phases:` in all participating role YAMLs
 5. **If you added a role, classify it for `role-boundaries`** — either add it to `used_by:` in `data/skills/role-boundaries.yaml` AND list `- role-boundaries` first in its `skills:`, OR add it to `EXEMPT_FROM_ROLE_BOUNDARIES` in `tests/integration/role-boundaries.test.ts` with a one-line reason. The test "every role is classified" fails CI if you skip this step. See `docs/guides/adding-roles.md` §2 for the rubric and `docs/role-boundaries.md` for the motivating incident.
+6. **If you added a role, satisfy the three guard rails in `tests/integration/role-guards.test.ts`** — (a) anti-mock rule embedded in `system_prompt` if the role implements production code; (b) `git-collaboration` skill if `bash != "deny"`; (c) complete `stack_overrides` for every stack in `data/stacks/` if the role declares any overrides. Each has an `EXEMPT_FROM_*` constant for documented exceptions. See `docs/guides/adding-roles.md` §2b.
 
 ## Test structure
 

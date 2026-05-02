@@ -6,6 +6,23 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.22] — 2026-05-02
+
+### Added — 3 guard rails adicionales para reglas con riesgo de dilucion
+
+Mismo patron que la guard rail de `role-boundaries` (0.1.21): tests que recorren todos los roles en `data/roles/` y exigen que cada uno cumpla una regla sistemica O este en una lista de exencion documentada. Aplicado a tres reglas mas:
+
+- **Anti-mock rule en developers** (incidente Abax-Memory, 0.1.19) — todo rol cuyo `id` empieza con `developer-` o cuya `category` es `construction`/`data` con `bash != "deny"` debe embeber `REPLACE_BEFORE_PROD`, "incidente Abax-Memory" y "Regla anti-mock" en su `system_prompt`. Previene que un futuro `developer-mobile`/`-ml`/`-api` regrese el patron `InMemorySearchIndexer`.
+- **`git-collaboration` skill en roles con bash** (flujo distribuido, 0.1.16) — todo rol con `bash: allow|ask` debe declarar la skill o estar exento. 4 exenciones documentadas: `qa-functional`, `qa-automation`, `qa-performance` (ejecutan tests, reportan via write/edit), `system-designer` (meta-rol del proyecto Abax Swarm). Previene que un rol nuevo con bash haga commits a `main` sin la convencion `abax/<project>` + `--author`.
+- **`stack_overrides` completos** — cada rol con bloque `stack_overrides` debe tener entrada para cada uno de los 13 stacks en `data/stacks/`. Previene que añadir un stack `#14` deje silenciosamente sin contexto a los 12 roles tecnicos. Tambien atrapa referencias a stacks que no existen.
+
+5 nuevos tests en `tests/integration/role-guards.test.ts` (419 totales, era 414).
+
+### Changed
+
+- `docs/guides/adding-roles.md` §2b nuevo con las 3 reglas + criterios de exencion.
+- `CLAUDE.md` paso 6 en "When modifying YAML data" recuerda los 3 guards al asistente.
+
 ## [0.1.21] — 2026-05-02
 
 ### Added — Guard rails para que role-boundaries no se diluya con futuros roles
