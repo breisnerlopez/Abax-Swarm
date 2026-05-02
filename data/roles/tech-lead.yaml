@@ -69,6 +69,7 @@ agent:
     grep: true
 
 skills:
+  - dependency-management
   - code-review
   - technical-decomposition
   - coding-standards

@@ -20,6 +20,7 @@ import * as cc from "../generator/claude/index.js";
 // Shared generators
 import { generatePresentationTemplate, teamUsesPresentations } from "../generator/design-system-generator.js";
 import { generateDocsSiteFiles } from "../generator/docs-site-generator.js";
+import { generateDevcontainerFile, shouldEmitDevcontainer } from "../generator/devcontainer-generator.js";
 
 export interface PipelineResult {
   project: ResolvedProject;
@@ -94,6 +95,7 @@ function generateFiles(
 
     if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
     if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
+    if (shouldEmitDevcontainer(config)) files.push(generateDevcontainerFile(config));
 
     return { files, orchestratorFile };
   }
@@ -107,11 +109,16 @@ function generateFiles(
     config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
   );
   files.push(orchestratorFile);
-  files.push(oc.generateOpenCodeConfig(adaptedRoles, mix));
+  files.push(oc.generateOpenCodeConfig(
+    adaptedRoles, mix, undefined,
+    config.permissionMode ?? "recommended",
+    config.isolationMode ?? "devcontainer",
+  ));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
   if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
   if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
+  if (shouldEmitDevcontainer(config)) files.push(generateDevcontainerFile(config));
 
   return { files, orchestratorFile };
 }

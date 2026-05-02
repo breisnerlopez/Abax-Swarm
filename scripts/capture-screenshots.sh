@@ -114,12 +114,16 @@ run_freeze "$WORK_DIR/02-project-mode.ansi" "$OUT_DIR/02-project-mode.png"
 tmux send-keys -t abax-cap Enter
 sleep 1.2
 
-# === Steps 3..7: platform → model-strategy → provider → description → size ===
+# === Steps 3..7: platform → model-strategy → provider → permissions → isolation → description → size ===
 tmux send-keys -t abax-cap Enter   # platform: OpenCode (default)
 sleep 1.2
 tmux send-keys -t abax-cap Enter   # model-strategy: Personalizado (default)
 sleep 1.2
 tmux send-keys -t abax-cap Enter   # provider: Anthropic (default)
+sleep 1.2
+tmux send-keys -t abax-cap Enter   # permissions: Recomendado (default)
+sleep 1.2
+tmux send-keys -t abax-cap Enter   # isolation: Devcontainer (default)
 sleep 1.2
 tmux send-keys -t abax-cap Enter   # description: keep default
 sleep 1.2

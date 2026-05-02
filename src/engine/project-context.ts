@@ -1,6 +1,7 @@
 import { detectStack } from "./stack-detector.js";
 import { hasExistingDocs } from "./docs-detector.js";
 import { hasGitRepo } from "./git-detector.js";
+import { hasDevcontainerConfig } from "./container-detector.js";
 import type { ProjectContextDetection } from "./types.js";
 
 /**
@@ -14,5 +15,6 @@ export function detectProjectContext(targetDir: string): ProjectContextDetection
     evidence,
     existingDocs: hasExistingDocs(targetDir),
     hasGit: hasGitRepo(targetDir),
+    hasDevcontainer: hasDevcontainerConfig(targetDir),
   };
 }

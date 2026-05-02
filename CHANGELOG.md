@@ -6,6 +6,34 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.14] — 2026-05-02
+
+### Added
+
+- **3 modos de permisos para OpenCode**, configurables en un nuevo step del wizard:
+  - `strict`: comportamiento de hoy (sólo permission por agente).
+  - `recommended` (default): allowlist de comandos comunes (git, npm, mvn, pip, etc.) y denylist de operaciones peligrosas (`git push --force`, `rm /var/*`, `rm /var/lib/dpkg/*`, `chmod 777`, `curl|sh`). **Container-aware**: `apt`/`dpkg`/`sudo` están en `ask` cuando el aislamiento es `host` y pasan a `allow` automáticamente cuando es `devcontainer`.
+  - `full`: `"permission": "allow"` raíz, sin restricciones, con banner de advertencia en el wizard.
+- **Aislamiento del entorno de desarrollo**, nuevo step del wizard con 2 opciones:
+  - `devcontainer` (default): genera `.devcontainer/devcontainer.json` con features según el stack (Java+Maven, Node, Python, Go, Rust, .NET, Flutter). Marca el container con `ABAX_ISOLATED=1` para que el detector lo reconozca en runtime.
+  - `host`: trabaja directamente en el SO principal; los agentes usan gestores de versión del usuario (sdkman, nvm, pyenv, rustup) y nunca `sudo apt`.
+- **Skill nuevo `dependency-management`** asignado a tech-lead, devops, developer-backend, developer-frontend y dba. Define el flujo de 6 pasos para verificar runtime, declarar dependencias en el manifest del stack, instalar con aprobación del usuario (sin destructive remediation), verificar build vacío, documentar setup local en `docs/setup.md`. Incluye tabla de comandos por stack.
+- **Entregable bloqueante `env-verification`** al inicio de la fase Construcción (`phase-deliverables.yaml`). El orchestrator no delega ningún otro entregable de Construcción hasta que esté completado y aprobado. Resuelve el incidente que motivó este release: agentes intentando builds sin runtime instalado.
+- **Detector de container** (`container-detector.ts`): `/.dockerenv`, `/run/.containerenv`, `/proc/1/cgroup`, `$ABAX_ISOLATED`. Pure module, no I/O fuera de readFileSync.
+- Nuevos docs: `docs/permissions.md` (3 modos + el incidente que los motivó), `docs/dependency-management.md` (skill + entregable + protocolo), `docs/guides/dev-environments.md` (devcontainer vs host, cómo arrancar, alternativas).
+- **20 tests nuevos** cubriendo los 3 modos de permisos, devcontainer per-stack, container-detector, cross-references del skill, blocker en phase-deliverables, sección del orchestrator template.
+
+### Changed
+
+- Orchestrator template (OpenCode + Claude) incluye nueva sección "Protocolo de inicio de fase Construcción" que fuerza el entregable `env-verification` antes que cualquier otro de Construcción y referencia el skill `dependency-management`.
+- 5 roles (tech-lead, devops, developer-backend, developer-frontend, dba) ahora declaran el skill `dependency-management`.
+- `ProjectConfig` admite `permissionMode` e `isolationMode`. Se persisten en `project-manifest.yaml > project.permission_mode/isolation_mode` y se respetan en `regenerate`.
+- Capturas regeneradas reflejando los 2 nuevos steps.
+
+### Fixed
+
+- Mitigación al incidente real `ses_217c43466ffe...` (mayo 2026): un agente devops intentando `mvn install` sin Java instalado terminó ejecutando `rm -f /var/lib/dpkg/lock-frontend && dpkg --configure -a` para forzar la instalación. Con modo `recommended` ese comando ahora está en `deny` explícito; con devcontainer no aplica porque apt-get es seguro adentro.
+
 ## [0.1.13] — 2026-05-02
 
 ### Documentation

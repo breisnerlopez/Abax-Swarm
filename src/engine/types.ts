@@ -27,6 +27,24 @@ export type ModelStrategy = "custom" | "inherit";
 export type ProjectMode = "new" | "document" | "continue";
 
 /**
+ * How OpenCode should treat permissions.
+ * - "strict":      preserve current behaviour (per-agent permission only).
+ * - "recommended": root permission with allowlist for common dev commands and
+ *                  denylist for clearly destructive ones. Container-aware: when
+ *                  IsolationMode is "devcontainer", apt/dpkg drop to "allow"
+ *                  because they only affect the container.
+ * - "full":        `"permission": "allow"` root. Banner warns the user.
+ */
+export type PermissionMode = "strict" | "recommended" | "full";
+
+/**
+ * Whether the dev environment runs isolated.
+ * - "devcontainer": generate .devcontainer/devcontainer.json with stack-aware features.
+ * - "host":         the user takes responsibility for the host environment.
+ */
+export type IsolationMode = "devcontainer" | "host";
+
+/**
  * Result of inspecting the target directory before running selection.
  * All flags are pure observations: the wizard / pipeline decide what to do with them.
  */
@@ -39,6 +57,8 @@ export interface ProjectContextDetection {
   existingDocs: boolean;
   /** True when targetDir/.git exists and looks like a git repo. */
   hasGit: boolean;
+  /** True when targetDir/.devcontainer/devcontainer.json exists. */
+  hasDevcontainer: boolean;
 }
 
 export interface ModelSpec {
@@ -77,6 +97,10 @@ export interface ProjectConfig {
   mode?: ProjectMode;
   /** Pre-computed context detection (stack/docs/git). Pipeline uses this to specialise output. */
   detection?: ProjectContextDetection;
+  /** Defaults to "recommended". Drives the `permission` block in opencode.json. */
+  permissionMode?: PermissionMode;
+  /** Defaults to "devcontainer". Drives whether we emit .devcontainer/devcontainer.json. */
+  isolationMode?: IsolationMode;
 }
 
 export interface RoleSelection {

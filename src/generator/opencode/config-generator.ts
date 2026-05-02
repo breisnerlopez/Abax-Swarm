@@ -1,8 +1,9 @@
 import { stringify } from "yaml";
 import type { Role, Skill, Tool, Stack } from "../../loader/schemas.js";
-import type { ModelMix, ModelSpec, ProjectConfig, SelectionResult } from "../../engine/types.js";
+import type { ModelMix, ModelSpec, PermissionMode, IsolationMode, ProjectConfig, SelectionResult } from "../../engine/types.js";
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import { resolveAgentColor, ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
+import { buildOpenCodePermission } from "../../engine/permissions.js";
 import type { GeneratedFile } from "./agent-generator.js";
 
 function applySpec(target: Record<string, unknown>, spec: ModelSpec | undefined): void {
@@ -20,6 +21,8 @@ export function generateOpenCodeConfig(
   agents: Role[],
   mix?: ModelMix,
   orchestratorDescription?: string,
+  permissionMode: PermissionMode = "recommended",
+  isolationMode: IsolationMode = "devcontainer",
 ): GeneratedFile {
   const agentConfig: Record<string, unknown> = {};
 
@@ -57,10 +60,12 @@ export function generateOpenCodeConfig(
     agentConfig[agent.id] = entry;
   }
 
-  const config = {
+  const rootPermission = buildOpenCodePermission(permissionMode, isolationMode);
+  const config: Record<string, unknown> = {
     $schema: "https://opencode.ai/config.json",
     agent: agentConfig,
   };
+  if (rootPermission !== undefined) config.permission = rootPermission;
 
   return {
     path: "opencode.json",
@@ -90,6 +95,8 @@ export function generateProjectManifest(
       team_scope: config.teamScope,
       provider: config.provider ?? "anthropic",
       model_strategy: config.modelStrategy ?? "custom",
+      permission_mode: config.permissionMode ?? "recommended",
+      isolation_mode: config.isolationMode ?? "devcontainer",
       governance_model: governance.model,
       governance_name: governance.name_es,
     },
