@@ -321,7 +321,7 @@ function renderStep(
           <StepHeader step={1} total={TOTAL_STEPS} title="Directorio del proyecto" />
           <TextInput
             label="Ruta del proyecto destino:"
-            initialValue={data.rawPath}
+            initialValue={data.rawPath ?? process.cwd()}
             placeholder="/ruta/a/mi/proyecto"
             validate={(v) => (!v.trim() ? "Debes ingresar una ruta" : null)}
             onSubmit={(rawPath) => {
