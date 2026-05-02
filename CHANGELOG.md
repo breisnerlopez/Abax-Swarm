@@ -6,6 +6,38 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.18] — 2026-05-02
+
+### Added
+
+- **Bloqueante de planificación de despliegue al inicio de fase 7** con aprobación explícita del usuario sponsor. Resuelve el caso reportado: el orchestrator avanzaba a Estabilización sin haber preguntado dónde se publicaba el sistema, con qué dominio, ni cómo se monitorizaba.
+  - Nuevo skill `deployment-planning` con rúbrica de **12 preguntas** (dónde, cómo, **URL pública + dominio**, DNS+TLS, exposición, secrets, monitoring, rollback, backup, comunicación, compliance, SLO/SLA) + tabla de aplicabilidad por tipo de servicio (web, API, mobile backend, batch, interno) + checklist pre-go-live.
+  - Asignado a `devops`, `project-manager`, `solution-architect`, `security-architect`.
+  - `deployment-plan-doc` en `phase-deliverables.yaml` cambia approver de `tech-lead` → `product-owner` (que **debe consultar al sponsor explícitamente**).
+  - Sección nueva en orchestrator template (OpenCode + Claude): "Protocolo de inicio de fase Despliegue" — bloquea avance hasta aprobación textual del sponsor en chat.
+- **Publicación automática de presentaciones a GitHub Pages**:
+  - Nuevo `src/generator/pages-generator.ts` emite `.github/workflows/pages.yml` cuando el team usa `presentation-design`.
+  - El workflow auto-detecta `mkdocs.yml` (modo `document` → `mkdocs build`) o publica `docs/` directamente como sitio estático.
+  - Trigger: `push` a `main` + `workflow_dispatch`. Concurrency `pages` con `cancel-in-progress: false` (los pushes consecutivos se encolan, ninguno se cancela mid-deploy).
+  - Setup único: el usuario habilita Pages en `Settings → Pages → Source: GitHub Actions`. A partir de ahí, cada presentación generada y commiteada por el flujo distribuido se publica automáticamente.
+- **Audit anti-solapamiento de roles para presentaciones**:
+  - El skill `presentation-design` se amplió con `product-owner`, `tech-lead` y `qa-lead` en `used_by` (estaban en la rúbrica pero faltaban en el wiring — bug detectado por el audit).
+  - Esos 3 roles ahora declaran el skill en sus YAMLs.
+  - Test nuevo `tests/integration/deployment-pages.test.ts` ejecuta dos audits automáticos: (1) cada responsabilidad en la tabla del skill está correctamente wireada en `used_by` + role.skills; (2) ningún par `(fase, presentación)` aparece duplicado.
+- **17 tests nuevos** cubriendo skill, wiring, blocker en fase 7, orchestrator template (ambos targets), workflow YAML válido, branching mkdocs/static, audits.
+
+### Documentation
+
+- `docs/deployment-planning.md` (nuevo): rúbrica completa, plantilla del entregable, checklist pre-go-live, quién hace qué, cómo cambiar la rúbrica.
+- `docs/presentation-publishing.md` (nuevo): workflow GitHub Pages, setup único, audit anti-solapamiento, cómo cambiar asignación de presentaciones, limitaciones conocidas.
+- `docs/README.md` actualizado con las dos referencias nuevas.
+
+### Internal validation
+
+- Smoke test de 5 escenarios + 2 audits, todos verde (28 checks).
+- E2E del wizard sigue verde (4s).
+- Lint, typecheck, validate Zod: todo verde. 363 unit/integration tests pasan + 1 E2E + smoke.
+
 ## [0.1.17] — 2026-05-02
 
 ### Documentation

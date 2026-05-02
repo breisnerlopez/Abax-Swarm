@@ -63,6 +63,7 @@ agent:
     bash: false
 
 skills:
+  - deployment-planning
   - risk-matrix
   - change-control
   - status-reporting

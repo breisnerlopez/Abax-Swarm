@@ -61,6 +61,7 @@ agent:
     bash: false
 
 skills:
+  - presentation-design
   - test-strategy
   - quality-metrics
   - test-case-design

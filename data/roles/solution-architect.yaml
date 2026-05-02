@@ -68,6 +68,7 @@ agent:
     grep: true
 
 skills:
+  - deployment-planning
   - technical-design
   - architecture-decision-records
   - integration-design

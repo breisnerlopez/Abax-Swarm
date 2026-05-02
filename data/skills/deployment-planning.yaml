@@ -1,0 +1,235 @@
+id: deployment-planning
+name: Planificacion de Despliegue a Produccion
+description: >
+  Gobierno y rubrica del plan de despliegue. Antes de cualquier accion real
+  contra un ambiente productivo, el equipo produce un plan que cubre dónde
+  se publica, cómo se expone (URL, dominio, TLS), cómo se monitorea, cómo se
+  revierte y cómo se comunica al usuario final. El plan es bloqueante:
+  ningun deploy ocurre sin aprobacion explicita del usuario sponsor.
+used_by:
+  - devops
+  - project-manager
+  - solution-architect
+  - security-architect
+content:
+  when_to_use: |
+    - Al inicio de la fase Despliegue (fase 7), ANTES de cualquier accion real contra un ambiente productivo o de pre-produccion compartido.
+    - Cuando se cambia el modelo de exposicion publica de un servicio existente (nuevo dominio, nueva region, nuevo tipo de cliente).
+    - Antes de habilitar un servicio web o API a Internet por primera vez.
+    - Cuando una migracion (modo `migration`) llega a su corte productivo.
+  instructions: |
+    ## Principio Central
+    "Si no esta planificado, no esta en produccion." Toda decision operativa,
+    de exposicion, de monitoreo y de rollback debe estar documentada y aprobada
+    por el usuario sponsor ANTES de ejecutar el primer comando real de despliegue.
+
+    El entregable se llama `deployment-plan` (o `00-plan-despliegue.md` en la
+    fase 7) y vive en `docs/entregables/fase-7-despliegue/00-plan-despliegue.md`.
+
+    ## Las 12 preguntas que el plan DEBE responder
+
+    El plan no esta completo hasta que cada una de estas preguntas tenga
+    respuesta concreta. Si el usuario no sabe la respuesta, el plan registra
+    "pendiente: <quien> hasta <fecha>" — pero NO se considera completo.
+
+    ### 1. Donde se despliega
+    - Cloud (AWS / GCP / Azure / DigitalOcean / Hetzner / etc.) u on-prem o edge
+    - Region especifica (ej. `us-east-1`, `europe-west1`)
+    - Ambientes intermedios disponibles: dev, qa, staging, prod
+    - Cuenta / proyecto / suscripcion concreta (no genericamente "AWS")
+
+    ### 2. Como se despliega
+    - Manual desde una maquina, CI/CD pipeline, plataforma como Vercel/Netlify
+    - Estrategia: blue-green, canary, rolling, recreate, all-at-once
+    - Frecuencia: one-shot, continuous deployment, ventana fija
+    - Tiempo estimado por deploy + tiempo de ventana de mantenimiento
+
+    ### 3. URL publica y dominio (CRITICO para servicios web/API)
+    - URL final exacta: `https://<dominio>/<path>`
+    - Dominio: existente (cual subdominio) o nuevo (quien lo registra, donde, costo)
+    - Path: raiz, /api, /v1/api, etc.
+    - Si NO va a estar publico: justificar (interno corporativo, VPN-only, etc.)
+    - **Si es servicio o web y NO se publica, no esta en produccion** — el plan debe explicitar esto
+
+    ### 4. DNS + TLS
+    - Provider DNS: Route53, Cloudflare, GoDaddy, NS1, etc.
+    - Certificado: ACM, Let's Encrypt + cert-manager, comprado, internal CA
+    - Renovacion automatica: si/no, quien la administra
+    - Tiempo de propagacion DNS estimado
+
+    ### 5. Modelo de exposicion
+    - Load balancer (ALB/NLB/GLB), API Gateway, CDN al frente
+    - Whitelist de IPs si aplica (corporate VPN, allowlist por cliente)
+    - Rate limiting / throttling: limites por IP, por API key, por usuario
+    - Proteccion contra abuso: WAF, captcha, bot mitigation
+
+    ### 6. Secrets management
+    - Donde viven (Vault, AWS Secrets Manager, GCP Secret Manager, Doppler, env vars)
+    - Como se inyectan al runtime (sidecar, init container, env, file mount)
+    - Quien tiene acceso a leerlos / rotarlos
+    - Politica de rotacion: frecuencia + procedimiento
+
+    ### 7. Monitoring + alerting
+    - Metricas minimas: latencia p50/p95/p99, error rate, throughput, saturation
+    - Logging: agregador (Datadog, Loki, CloudWatch), retencion
+    - Tracing: OpenTelemetry, Jaeger, X-Ray
+    - Dashboard URL: link concreto que el usuario puede abrir
+    - Alerting: que dispara una page, a quien, por que canal (PagerDuty, Opsgenie, Slack)
+    - Runbook de oncall: link al doc + comandos de diagnostico iniciales
+
+    ### 8. Rollback
+    - Estrategia: redeploy version anterior, feature flag, BD migration revert, DNS swap
+    - Comando exacto que ejecuta el rollback (con SHA o tag de la version anterior)
+    - Probado al menos una vez en staging — fecha y SHA del test
+    - Tiempo estimado de rollback (RTO)
+    - Ventana en la que se puede rollback sin perdida de datos
+
+    ### 9. Backup + restore
+    - Si aplica BD: backup strategy (full daily / incremental hourly / continuous)
+    - RPO (Recovery Point Objective) y RTO (Recovery Time Objective) acordados
+    - Donde viven los backups (region distinta, provider distinto)
+    - Restore procedure probado al menos una vez — fecha y tester
+
+    ### 10. Comunicacion
+    - A stakeholders internos: que, cuando, por que canal
+    - A usuarios finales (si afecta UX): comunicacion previa + durante + post
+    - Pagina de status: existe / se crea ahora / no aplica
+    - Plan en caso de incidente: quien comunica, donde, en que tono
+
+    ### 11. Compliance + auditoria
+    - Regulacion aplicable (RGPD, HIPAA, PCI, SOC2, ISO27001, sector-especifico)
+    - Audit log: que se registra, donde, cuanto se retiene
+    - Datos sensibles: identificacion, encriptacion at-rest y in-transit
+    - Tratamiento de PII si aplica (anonimizacion, residencia geografica)
+
+    ### 12. SLO/SLA
+    - Disponibilidad target: 99.0% / 99.9% / 99.99% (clarificar definicion)
+    - Latencia p95 target en endpoints criticos
+    - Error budget asociado y politica de freeze cuando se agota
+    - Responsable del cumplimiento del SLO + reporte mensual
+
+    ## Tabla de aplicabilidad por tipo de servicio
+
+    No todos los temas aplican igual. Esta tabla guia que es indispensable
+    segun el tipo:
+
+    | Tema | Web app | API publica | Mobile backend | Batch / Job | Servicio interno |
+    |---|---|---|---|---|---|
+    | URL + dominio | obligatorio | obligatorio | obligatorio | n/a | recomendado |
+    | DNS + TLS | obligatorio | obligatorio | obligatorio | n/a | si interno-https |
+    | Exposicion publica | obligatorio | obligatorio | obligatorio | n/a | privada |
+    | Secrets | obligatorio | obligatorio | obligatorio | obligatorio | obligatorio |
+    | Monitoring | obligatorio | obligatorio | obligatorio | obligatorio | obligatorio |
+    | Rollback | obligatorio | obligatorio | obligatorio | obligatorio | obligatorio |
+    | Backup | si hay BD | si hay BD | si hay BD | si genera estado | si hay estado |
+    | Comunicacion usuarios | obligatorio | si breaking | si breaking | n/a | n/a |
+    | Compliance | segun regulacion | segun regulacion | segun regulacion | segun regulacion | segun regulacion |
+    | SLO/SLA | obligatorio | obligatorio | obligatorio | obligatorio (procesado a tiempo) | obligatorio si critico |
+
+    ## Flujo del entregable
+
+    1. **devops** redacta el primer borrador del plan respondiendo las 12 preguntas
+       con la informacion disponible al cierre de QA (fase 5) y UAT (fase 6).
+    2. **solution-architect** revisa puntos 1, 2, 5 (donde, como, exposicion).
+    3. **security-architect** revisa puntos 4, 6, 11 (TLS, secrets, compliance).
+    4. **project-manager** consolida y prepara la presentacion al sponsor.
+    5. **El usuario sponsor** revisa el plan completo y aprueba EXPLICITAMENTE
+       en el chat con el orquestador. Sin esa aprobacion el orquestador NO
+       avanza a otros entregables de la fase 7.
+    6. Si el sponsor pide cambios, el devops itera y vuelve a aprobacion.
+
+    ## Anti-patrones (criticos)
+
+    - NO comenzar deployment "para ver que pasa" sin plan aprobado.
+    - NO asumir que "ya esta en produccion" porque hay un servidor corriendo —
+      verificar que la URL publica responde desde fuera de la red corporativa.
+    - NO desplegar un servicio web sin URL publica concreta. Si el plan dice
+      "url pendiente", el plan NO esta aprobado.
+    - NO posponer monitoring "para despues del go-live". Sin observabilidad,
+      no hay deployment seguro.
+    - NO improvisar rollback el dia del incidente — debe estar probado antes.
+
+  guides:
+    - name: plantilla-plan-despliegue
+      content: |
+        Plantilla obligatoria para `docs/entregables/fase-7-despliegue/00-plan-despliegue.md`:
+
+        # Plan de Despliegue — <Nombre del Proyecto>
+
+        - **Fase**: 7-Despliegue
+        - **Entregable**: Plan de Despliegue
+        - **Responsable**: devops
+        - **Aprobador**: <usuario sponsor>
+        - **Fecha**: <YYYY-MM-DD>
+        - **Estado**: Borrador / En revision / Aprobado / Rechazado
+        - **Tipo de servicio**: Web / API / Mobile backend / Batch / Interno
+
+        ## 1. Donde
+        - Cloud / on-prem: ...
+        - Region: ...
+        - Ambientes: dev / qa / staging / prod
+        - Cuenta / proyecto: ...
+
+        ## 2. Como
+        - Estrategia: ...
+        - Tooling: ...
+
+        ## 3. URL publica y dominio
+        - URL final: `https://...`
+        - Dominio: ...
+        - Path: ...
+
+        ## 4. DNS + TLS
+        ...
+
+        ## 5. Exposicion
+        ...
+
+        ## 6. Secrets
+        ...
+
+        ## 7. Monitoring + alerting
+        - Dashboard: <URL>
+        - Runbook oncall: <URL>
+
+        ## 8. Rollback
+        - Comando: `<comando>`
+        - Probado: <SHA, fecha>
+
+        ## 9. Backup
+        ...
+
+        ## 10. Comunicacion
+        ...
+
+        ## 11. Compliance
+        ...
+
+        ## 12. SLO/SLA
+        ...
+
+        ## Aprobacion del sponsor
+
+        - [ ] El sponsor confirma que las 12 secciones tienen respuesta concreta.
+        - [ ] El sponsor aprueba la URL publica final y el dominio.
+        - [ ] El sponsor aprueba el plan de comunicacion a usuarios finales.
+        - [ ] Fecha de go-live: <YYYY-MM-DD>
+        - [ ] Sponsor: <nombre>
+        - [ ] Fecha aprobacion: <YYYY-MM-DD>
+
+    - name: checklist-pre-go-live
+      content: |
+        Checklist que el devops ejecuta el dia del go-live, en orden:
+
+        1. Plan de despliegue aprobado por sponsor — verificar firma en `00-plan-despliegue.md`.
+        2. Rollback probado en staging en las ultimas 48h — verificar fecha en plan.
+        3. Monitoring activo — verificar dashboard responde.
+        4. Comunicacion previa enviada — verificar timestamp.
+        5. Equipo oncall identificado y disponible — verificar contactos.
+        6. Backup reciente disponible (si aplica BD) — verificar timestamp y restore-test.
+        7. DNS / certificados validos — `curl -I https://<dominio>` desde fuera de la red.
+        8. Ejecutar deploy.
+        9. Smoke test post-deploy.
+        10. Actualizar pagina de status si aplica.
+
+        Si alguno falla, abort y rollback inmediato.

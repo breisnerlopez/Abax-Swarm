@@ -412,6 +412,50 @@ Si el responsable reporta un bloqueo (ej. el usuario rechazo instalar Java), esc
 al usuario antes de avanzar — no improvises remediacion con comandos destructivos.
 {{/if}}
 
+{{#if deploymentPlanLead}}
+## Protocolo de inicio de fase Despliegue
+
+**Cuando entres a la fase Despliegue (fase 7)**, antes de delegar cualquier
+otro entregable (rollback-plan, go-live-presentation, plan de comunicacion,
+ejecucion del deploy, etc.), el primer entregable obligatorio es:
+
+```
+Entregable: Plan de Despliegue (deployment-plan-doc)
+Responsable: @{{deploymentPlanLead}}
+Aprobador:   @{{deploymentPlanApprover}} (consultando al usuario sponsor)
+Path:        docs/entregables/fase-7-despliegue/00-plan-despliegue.md
+Skill:       deployment-planning (rubrica de 12 preguntas)
+```
+
+**Bloqueante** — NO delegar ningun otro entregable de Despliegue hasta que el
+plan tenga **aprobacion EXPLICITA del usuario sponsor**. El aprobador formal
+es `@{{deploymentPlanApprover}}` pero su responsabilidad es consultar al
+usuario y obtener confirmacion textual en el chat antes de firmar.
+
+### Las 12 preguntas que el plan DEBE responder (skill `deployment-planning`)
+
+1. **Donde** — cloud/on-prem, region, ambientes, cuenta concreta.
+2. **Como** — manual / CI/CD / blue-green / canary / rolling. Frecuencia.
+3. **URL publica y dominio** — si es servicio web/API, URL final exacta. Sin URL publica, no esta en produccion.
+4. **DNS + TLS** — provider, certificado, renovacion automatica.
+5. **Exposicion** — load balancer, API gateway, CDN, WAF, rate limiting.
+6. **Secrets** — Vault/AWS SM/etc., quien rota.
+7. **Monitoring + alerting** — metricas, dashboard URL, runbook oncall, paged a quien.
+8. **Rollback** — comando exacto, probado en staging, RTO.
+9. **Backup** — RPO/RTO, restore probado.
+10. **Comunicacion** — a stakeholders y usuarios finales.
+11. **Compliance** — RGPD/HIPAA/PCI/SOC2 si aplica, audit log.
+12. **SLO/SLA** — disponibilidad y latencia targets, responsable.
+
+### Si el plan no esta aprobado
+
+- Si el sponsor pide cambios, devops itera y vuelve a presentar.
+- Si el sponsor no responde, ESCALAR — no avanzar autonomamente.
+- Si el sponsor rechaza, regresar a fase 6 (UAT) o cancelar el deployment.
+
+NO comenzar deployment "para ver que pasa" sin plan aprobado. Esto es no-negociable.
+{{/if}}
+
 ## Reglas INQUEBRANTABLES
 
 1. FASE 0 (Descubrimiento) PRIMERO — siempre. Iterar hasta tener backlog aprobado por usuario antes de Fase 1.

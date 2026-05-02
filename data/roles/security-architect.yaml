@@ -67,6 +67,7 @@ agent:
     grep: true
 
 skills:
+  - deployment-planning
   - security-audit
   - threat-modeling
   - owasp-review
