@@ -6,6 +6,27 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.9] — 2026-05-01
+
+### Added
+
+- Sistema de presentaciones funcional end-to-end:
+  - Nuevo `templates/design-system/presentacion-template.html` (single-file, sin CDN) con los **3 presets visuales** del Design System: Corporate Minimal, Tech Editorial y Dark Premium. Incluye un slide deck de muestra navegable con switcher entre presets.
+  - Nuevo generador `src/generator/design-system-generator.ts` que emite el template en `docs/design-system/presentacion-template.html` del proyecto destino cuando algún agente del equipo usa el skill `presentation-design`.
+  - Aplica para ambos targets (OpenCode y Claude).
+
+### Changed
+
+- `data/tools/create-presentation.yaml` ahora **emite HTML autónomo single-file** (antes emitía Markdown, contradiciendo el skill rubric):
+  - Nuevo arg `style` con valores `corporate-minimal | tech-editorial | dark-premium` (default: `corporate-minimal`).
+  - Convierte el `content` Markdown del agente en `<section class="slide">` separados por `---`.
+  - CSS de los 3 presets embebido (single-file, portable, imprimible).
+  - Sin gradientes púrpura/rosa, sin gris puro, neutrales tintados — alineado con la rúbrica del skill.
+
+### Fixed
+
+- Eliminado el gap entre la rúbrica de `presentation-design` y la implementación: el archivo `docs/design-system/presentacion-template.html` que el skill y los agentes referenciaban **ya no es un dangling reference** — se entrega con cada proyecto generado.
+
 ## [0.1.8] — 2026-05-01
 
 ### Added
