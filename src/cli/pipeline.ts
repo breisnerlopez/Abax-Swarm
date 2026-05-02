@@ -21,6 +21,7 @@ import * as cc from "../generator/claude/index.js";
 import { generatePresentationTemplate, teamUsesPresentations } from "../generator/design-system-generator.js";
 import { generateDocsSiteFiles } from "../generator/docs-site-generator.js";
 import { generateDevcontainerFile, shouldEmitDevcontainer } from "../generator/devcontainer-generator.js";
+import { generatePagesWorkflow, teamUsesPresentations as teamUsesPresentationsForPages } from "../generator/pages-generator.js";
 
 export interface PipelineResult {
   project: ResolvedProject;
@@ -96,6 +97,7 @@ function generateFiles(
     if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
     if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
     if (shouldEmitDevcontainer(config)) files.push(generateDevcontainerFile(config));
+    if (teamUsesPresentationsForPages(skills)) files.push(generatePagesWorkflow());
 
     return { files, orchestratorFile };
   }
@@ -119,6 +121,7 @@ function generateFiles(
   if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
   if (config.mode === "document") files.push(...generateDocsSiteFiles(config, ctx));
   if (shouldEmitDevcontainer(config)) files.push(generateDevcontainerFile(config));
+  if (teamUsesPresentationsForPages(skills)) files.push(generatePagesWorkflow());
 
   return { files, orchestratorFile };
 }

@@ -69,6 +69,13 @@ export function generateOrchestratorFile(
       ? "tech-lead"
       : null;
 
+  const deploymentPlanLead = envVerificationLead;
+  const deploymentPlanApprover = agentIds.has("product-owner")
+    ? "product-owner"
+    : agentIds.has("project-manager")
+      ? "project-manager"
+      : null;
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description,
@@ -85,6 +92,8 @@ export function generateOrchestratorFile(
     documentPhases: flags.documentPhases ?? [],
     envVerificationLead,
     envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,
+    deploymentPlanLead: deploymentPlanLead && deploymentPlanApprover ? deploymentPlanLead : null,
+    deploymentPlanApprover,
   });
 
   return {

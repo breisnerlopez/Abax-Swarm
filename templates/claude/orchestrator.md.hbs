@@ -129,6 +129,23 @@ Path:        docs/entregables/fase-4-construccion/00-verificacion-entorno.md
 al usuario antes de instalar, NUNCA `sudo apt` en el host.
 {{/if}}
 
+{{#if deploymentPlanLead}}
+## Protocolo de inicio de fase Despliegue
+
+**Cuando entres a la fase Despliegue (fase 7)**, antes de delegar cualquier
+otro entregable, el primer obligatorio es el Plan de Despliegue
+(`docs/entregables/fase-7-despliegue/00-plan-despliegue.md`):
+
+- Responsable: `@{{deploymentPlanLead}}` (sigue el skill `deployment-planning`)
+- Aprobador: `@{{deploymentPlanApprover}}` consultando al usuario sponsor
+
+**Bloqueante** — sin aprobacion EXPLICITA del usuario sponsor, NO se delega
+ningun otro entregable de Despliegue. El plan cubre 12 preguntas: donde, como,
+**URL publica + dominio**, DNS+TLS, exposicion, secrets, monitoring, rollback,
+backup, comunicacion, compliance, SLO/SLA. Si es servicio web/API y no tiene
+URL publica concreta, no esta en produccion — el plan no se aprueba.
+{{/if}}
+
 ## Reglas INQUEBRANTABLES
 
 1. FASE 1 PRIMERO — siempre. Sin excepciones.

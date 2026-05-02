@@ -6,7 +6,10 @@ description: >
   proyecto a diferentes audiencias y niveles organizacionales.
 used_by:
   - project-manager
+  - product-owner
   - business-analyst
+  - tech-lead
+  - qa-lead
   - change-manager
   - solution-architect
   - tech-writer

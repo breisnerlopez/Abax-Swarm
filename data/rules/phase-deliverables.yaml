@@ -243,7 +243,11 @@ phases:
       - id: deployment-plan-doc
         name: Plan de Despliegue
         responsible: devops
-        approver: tech-lead
+        # Approver es product-owner: representa al sponsor en el flujo. El PO
+        # DEBE consultar al usuario sponsor explicitamente antes de aprobar.
+        # El orquestador no avanza a otros entregables de fase 7 sin esta
+        # aprobacion. Sigue el skill `deployment-planning` (12 preguntas).
+        approver: product-owner
         mandatory: true
         artifact_type: document
       - id: rollback-plan
