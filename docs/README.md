@@ -11,6 +11,7 @@
 | [Permissions](./permissions.md) | 3 modos de permisos OpenCode (strict/recommended/full) y el incidente que los motivo |
 | [Dependency Management](./dependency-management.md) | Skill + entregable bloqueante + protocolo de orchestrator para verificar runtime y deps antes de Construccion |
 | [Git Collaboration](./git-collaboration.md) | Flujo distribuido de version control: cada agente commitea su entregable, devops pushea al cierre de fase, todo en rama `abax/<project>` |
+| [Roadmap](./roadmap.md) | Tipos de proyecto futuros (audit, migration, onboarding, infra, data, ml, etc.) con priorizacion en tiers y criterios para promover |
 
 ## Guides
 
