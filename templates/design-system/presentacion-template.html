@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design System de Presentaciones — Plantilla de referencia</title>
+<style>
+  /* ==========================================================
+     RESET + BASE
+     ========================================================== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: var(--font-body, "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    transition: background 200ms ease, color 200ms ease;
+  }
+  h1, h2, h3 { font-family: var(--font-heading, var(--font-body)); font-weight: 800; line-height: 1.1; }
+
+  /* ==========================================================
+     PRESET: CORPORATE MINIMAL  (default)
+     Inspirado en Swiss / International Typographic Style.
+     Contraste verificado WCAG AA.
+     ========================================================== */
+  body[data-style="corporate-minimal"], body:not([data-style]) {
+    --bg: #FFFFFF;
+    --bg-alt: #F5F5F7;
+    --text: #1a1a2e;
+    --text-muted: #4a4a5e;       /* tinted neutral, no pure gray */
+    --accent: #0066cc;
+    --accent-strong: #e94560;
+    --border: #d8d8e0;
+    --font-heading: "Inter", "Segoe UI", sans-serif;
+  }
+
+  /* ==========================================================
+     PRESET: TECH EDITORIAL
+     KPIs grandes, jump ratio 10:1, cards en gris claro tintado.
+     ========================================================== */
+  body[data-style="tech-editorial"] {
+    --bg: #FFFFFF;
+    --bg-alt: #f0f0f3;          /* tinted gray, not #ccc */
+    --text: #111118;
+    --text-muted: #44444c;
+    --accent: #FFCC00;          /* used as bg with dark text on top */
+    --accent-strong: #111118;
+    --border: #d0d0d8;
+    --font-heading: "Inter", "Segoe UI", sans-serif;
+  }
+
+  /* ==========================================================
+     PRESET: DARK PREMIUM
+     Apple/Stripe-style. High-contrast cyan accent on deep navy.
+     ========================================================== */
+  body[data-style="dark-premium"] {
+    --bg: #0d1117;
+    --bg-alt: #1a1a2e;
+    --text: #e6e6f0;
+    --text-muted: #a0a0b0;       /* tinted, no pure gray */
+    --accent: #00d4ff;
+    --accent-strong: #00ff88;
+    --border: #2a2a3e;
+    --font-heading: "Inter", "Segoe UI", sans-serif;
+  }
+
+  /* ==========================================================
+     LAYOUT: SLIDE
+     1 slide = 1 mensaje. ~30% espacio negativo. Asimétrico.
+     ========================================================== */
+  .slide {
+    min-height: 100vh;
+    padding: 8vh 10vw;
+    display: grid;
+    align-content: start;
+    gap: 1.5rem;
+    page-break-after: always;
+    border-bottom: 1px solid var(--border);
+  }
+  .slide:last-child { border-bottom: none; }
+
+  .slide-eyebrow {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .slide h1 { font-size: clamp(2.5rem, 5vw, 4rem); }   /* jump ratio 4:1+ vs body */
+  .slide h2 { font-size: clamp(2rem, 4vw, 3rem); }
+  .slide h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); color: var(--text-muted); font-weight: 600; }
+  .slide p, .slide li { font-size: clamp(1rem, 1.5vw, 1.125rem); max-width: 70ch; }
+
+  /* KPI block — protagonista visual del Tech Editorial preset */
+  .kpi {
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent-strong);
+    letter-spacing: -0.03em;
+  }
+  .kpi-label { font-size: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* List: max 5 items, generous line-height */
+  ul, ol { padding-left: 1.5rem; display: grid; gap: 0.75rem; }
+  ul li::marker, ol li::marker { color: var(--accent); }
+
+  /* Table: max 5 columns. Tinted neutrals for borders. */
+  table { border-collapse: collapse; width: 100%; max-width: 60rem; }
+  th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  th { font-weight: 700; color: var(--accent-strong); }
+
+  /* Card — no nested cards, single level only */
+  .card {
+    background: var(--bg-alt);
+    padding: 2rem;
+    border-radius: 4px;          /* subtle, not excessive */
+    border: 1px solid var(--border);
+    max-width: 42rem;
+  }
+
+  /* CTA block — every deck must end with one */
+  .cta {
+    background: var(--accent);
+    color: var(--bg);
+    padding: 3rem 4rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  body[data-style="tech-editorial"] .cta { color: #111118; }
+  .cta-question { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+
+  /* ==========================================================
+     STYLE SWITCHER (header del template de referencia)
+     ========================================================== */
+  .switcher {
+    position: fixed; top: 1rem; right: 1rem;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    padding: 0.5rem;
+    display: flex; gap: 0.25rem;
+    border-radius: 4px;
+    z-index: 100;
+  }
+  .switcher button {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid transparent;
+    padding: 0.5rem 0.875rem;
+    font-family: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 150ms ease, border-color 150ms ease;
+  }
+  .switcher button:hover { background: var(--bg); border-color: var(--border); }
+  .switcher button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  body[data-style="tech-editorial"] .switcher button[aria-pressed="true"] { color: #111118; }
+
+  /* Print: layout estable, sin switcher */
+  @media print {
+    .switcher { display: none; }
+    .slide { min-height: auto; page-break-after: always; padding: 4vh 6vw; }
+  }
+</style>
+</head>
+<body data-style="corporate-minimal">
+
+<nav class="switcher" aria-label="Cambiar preset visual">
+  <button type="button" data-set="corporate-minimal" aria-pressed="true">Corporate Minimal</button>
+  <button type="button" data-set="tech-editorial" aria-pressed="false">Tech Editorial</button>
+  <button type="button" data-set="dark-premium" aria-pressed="false">Dark Premium</button>
+</nav>
+
+<!-- ============================================================
+     SLIDE 1 — COVER
+     Estructura mínima: eyebrow, título grande, metadata.
+     ============================================================ -->
+<section class="slide" aria-label="Portada">
+  <span class="slide-eyebrow">Plantilla de referencia</span>
+  <h1>Design System de presentaciones</h1>
+  <h3>Tres presets para todo el ciclo del proyecto: gobierno, demos técnicas, kickoff de producto.</h3>
+  <p style="margin-top: 2rem; color: var(--text-muted);">
+    Proyecto · Fecha · Autor · Audiencia
+  </p>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — AGENDA
+     Máx 5 ítems. Marker tintado al accent.
+     ============================================================ -->
+<section class="slide" aria-label="Agenda">
+  <span class="slide-eyebrow">Agenda</span>
+  <h2>Qué vas a ver</h2>
+  <ul>
+    <li>El sistema: 3 presets compartiendo principios de UX</li>
+    <li>Anti-patrones a evitar (incluido el AI-slop)</li>
+    <li>Cómo el agente <code>create-presentation</code> usa este template</li>
+    <li>Checklist de calidad antes de entregar</li>
+  </ul>
+</section>
+
+<!-- ============================================================
+     SLIDE 3 — KPI BLOCK
+     1 mensaje = la métrica. Jump ratio extremo.
+     ============================================================ -->
+<section class="slide" aria-label="Métrica clave">
+  <span class="slide-eyebrow">Métrica clave</span>
+  <div class="kpi">98%</div>
+  <p class="kpi-label">Cobertura de criterios de aceptación validados con UAT</p>
+  <p style="margin-top: 2rem; max-width: 50ch;">
+    Las métricas merecen ser el protagonista visual del slide. Jump ratio 8:1 entre la cifra y el cuerpo.
+    Sin gráficos decorativos: el número solo, con contexto mínimo a su lado.
+  </p>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — COMPARACIÓN
+     Tabla densa pero legible. Borders tintados, no #ccc.
+     ============================================================ -->
+<section class="slide" aria-label="Comparación de presets">
+  <span class="slide-eyebrow">Comparación</span>
+  <h2>Cuándo elegir cada preset</h2>
+  <table>
+    <thead>
+      <tr><th>Preset</th><th>Audiencia ideal</th><th>Tipo de contenido</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Corporate Minimal</td><td>Comité directivo, sponsors</td><td>Decisiones, gobierno, status</td></tr>
+      <tr><td>Tech Editorial</td><td>Equipo técnico, PM/QA</td><td>Demos, KPIs, reportes de calidad</td></tr>
+      <tr><td>Dark Premium</td><td>Audiencia mixta de alto impacto</td><td>Kickoff, go-live, demos de producto</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================================
+     SLIDE 5 — ANTI-PATRONES
+     Card simple. Sin nesting. Sin gradientes.
+     ============================================================ -->
+<section class="slide" aria-label="Antipatrones a evitar">
+  <span class="slide-eyebrow">Lo que NO hacemos</span>
+  <h2>Anti-patrones a evitar</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Gradientes púrpura/rosa</strong> — el default LLM, se ve AI-generated.</li>
+      <li><strong>Gris puro</strong> (#888, #ccc) — siempre tintar neutrales hacia el acento.</li>
+      <li><strong>Cards anidados</strong> — un nivel máximo. Más es ruido visual.</li>
+      <li><strong>Bounce/elastic easing</strong> — se percibe anticuado. Curvas suaves 200–300 ms.</li>
+      <li><strong>Más de 3 colores activos</strong> por slide.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 6 — CTA
+     Cierre obligatorio. Pregunta o decisión explícita.
+     ============================================================ -->
+<section class="slide" aria-label="Llamado a la acción">
+  <span class="slide-eyebrow">Decisión solicitada</span>
+  <h2>¿Aprueban este Design System como base para todas las presentaciones del proyecto?</h2>
+  <div class="cta">
+    <span class="cta-question">Sí, lo adoptamos · Necesitamos ajustes · Volver a discutir</span>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll('.switcher button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const style = btn.dataset.set;
+      document.body.dataset.style = style;
+      document.querySelectorAll('.switcher button').forEach((b) => {
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

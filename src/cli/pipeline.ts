@@ -17,6 +17,8 @@ import type { GovernanceDetails } from "../engine/governance-resolver.js";
 import * as oc from "../generator/opencode/index.js";
 // Claude generators
 import * as cc from "../generator/claude/index.js";
+// Shared generators
+import { generatePresentationTemplate, teamUsesPresentations } from "../generator/design-system-generator.js";
 
 export interface PipelineResult {
   project: ResolvedProject;
@@ -72,6 +74,8 @@ function generateFiles(
     files.push(cc.generateClaudeConfig(adaptedRoles));
     files.push(cc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
+    if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
+
     return { files, orchestratorFile };
   }
 
@@ -86,6 +90,8 @@ function generateFiles(
   files.push(orchestratorFile);
   files.push(oc.generateOpenCodeConfig(adaptedRoles, mix));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
+
+  if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
 
   return { files, orchestratorFile };
 }
