@@ -70,6 +70,7 @@ agent:
 
 skills:
   - dependency-management
+  - git-collaboration
   - ci-cd-pipeline
   - containerization
   - deployment-plan
