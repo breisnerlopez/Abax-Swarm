@@ -2,7 +2,9 @@
 
 **Genera un equipo de agentes de IA listo para llevar tu proyecto de software de la idea al despliegue.**
 
-Abax Swarm te crea un equipo coordinado de agentes especializados — un Project Manager, un Business Analyst, un Solution Architect, desarrolladores, QA y más — que trabajan juntos siguiendo una metodología en cascada. Tú describes tu proyecto en un asistente interactivo (siete preguntas), y la herramienta produce los archivos que tu cliente de IA (OpenCode o Claude Code) necesita para poner a ese equipo a trabajar.
+Abax Swarm te crea un equipo coordinado de agentes especializados — un Project Manager, un Business Analyst, un Solution Architect, desarrolladores, QA y más — que trabajan juntos siguiendo una metodología en cascada. Tú describes tu proyecto en un asistente interactivo, y la herramienta produce los archivos que tu cliente de IA (OpenCode o Claude Code) necesita para poner a ese equipo a trabajar.
+
+**Tres modos de proyecto**: implementar algo nuevo (cascada completa), documentar un sistema existente (equipo curado + 5 fases + sitio MkDocs), o continuar un proyecto previo (detectores de stack, docs y git para no re-pedirte lo que ya hay).
 
 ---
 
@@ -38,27 +40,40 @@ Aparece un wizard en tu terminal con barra de progreso, resumen lateral y la pos
 
 ![Pantalla inicial del wizard](docs/screenshots/01-wizard-start.png)
 
-### 3. Responder las 7 preguntas
+![Selección del modo de proyecto](docs/screenshots/02-project-mode.png)
 
-No hace falta conocimiento técnico para responder. Cada paso te explica las opciones.
+### 3. Responder las preguntas del wizard
+
+No hace falta conocimiento técnico para responder. Cada paso te explica las opciones. El número exacto de preguntas depende del modo de proyecto que elijas en el paso 1.
 
 | Paso | Qué te pregunta | Cómo responder |
 |---|---|---|
-| 1. Directorio | ¿Dónde quieres tu proyecto? | Una ruta de carpeta. Si no existe, se crea. |
+| 1a. Directorio | ¿Dónde quieres tu proyecto? | Una ruta de carpeta. Si no existe, se crea. Por defecto, la carpeta donde ejecutas el comando. |
+| 1b. **Modo de proyecto** | ¿Implementar algo nuevo, documentar algo existente, o continuar un proyecto previo? | Determina el flujo y el equipo. Detalle abajo. |
 | 2. Plataforma | ¿OpenCode o Claude Code? | Lo que uses tú habitualmente. |
-| 3. Proveedor de IA | ¿Anthropic (Claude) u OpenAI (GPT)? | El asistente eligirá automáticamente un mix de modelos del mismo proveedor según la complejidad de cada rol (estratégico → opus / gpt-5, implementación → sonnet / mini, mecánico → haiku / nano). |
+| 3a. Asignación de modelos | ¿Personalizado por rol o heredar el default de tu config? | "Heredar" útil si no tienes acceso a Opus o GPT-5. |
+| 3b. Proveedor de IA | (Si elegiste personalizado) ¿Anthropic (Claude) u OpenAI (GPT)? | Mix automático: estratégico → opus / gpt-5, implementación → sonnet / mini, mecánico → haiku / nano. |
 | 4. Información | Nombre y descripción breve. | Para que los agentes sepan de qué va el proyecto. |
-| 5. Tamaño | ¿Pequeño, mediano o grande? | Pequeño = 3-6 personas, < 6 meses. Mediano = 7-15 / 6-12 meses. Grande = 15+ personas. |
-| 5b. Características | ¿El proyecto tiene datos sensibles? ¿integraciones? ¿móvil? | Marca con `Espacio` lo que aplique. Esto añade roles especialistas (security, integrations, mobile, etc). |
-| 6. Stack | ¿Qué tecnología usarán? | React, Angular, Python, .NET y 9 más. Si no estás seguro, pregunta a tu equipo técnico. |
+| 5. Tamaño + características | (Sólo modo "nuevo") Tamaño y criterios opcionales (datos sensibles, móvil, etc.). | Modo "documentar" salta este paso (equipo curado fijo). |
+| 6. Stack | ¿Qué tecnología usarán? | 13 stacks soportados. En modo "continuar", se detecta automáticamente y sólo te pide confirmar. |
 | 7. Equipo | Revisa el equipo propuesto. | Puedes quitar o agregar roles. El asistente te avisa si quitas uno indispensable. |
 | 8. Confirmación | Última vista previa con mix de modelos sugerido. | Pulsa Enter para generar los archivos. |
 
-![Asistente preguntando por criterios del proyecto](docs/screenshots/02-criteria-multiselect.png)
+#### Los tres modos de proyecto
 
-![Editor del equipo](docs/screenshots/03-team-editor.png)
+| Modo | Cuándo usarlo | Qué hace distinto |
+|---|---|---|
+| **Implementar algo nuevo** | Proyecto desde cero. | Flujo cascada completo (10 fases: discovery → inception → análisis → diseño → construcción → QA → UAT → despliegue → estabilización → cierre). Pregunta tamaño + criterios para definir el equipo. |
+| **Documentar algo existente** | Tienes código en producción sin docs vivas. Necesitas inventario técnico, funcional, negocio y operativo. | Equipo curado de 9 roles fijos (tech-writer, BA, PO, Solution Architect, Tech Lead, DBA, Integration Architect, UX, Change Manager) + Security Architect opcional. Flujo de 5 fases (descubrimiento → inventario → documentación → revisión → publicación). Genera scaffold **MkDocs Material** listo para `mkdocs serve`. Salta tamaño y criterios. |
+| **Continuar / partir de previo** | Quieres reutilizar la estructura de Abax Swarm sobre un proyecto que ya tiene código (y posiblemente git, docs, manifest). | Detecta automáticamente: stack tecnológico (13 heurísticas: `package.json` → next/nuxt/expo/etc., `pom.xml`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `*.csproj`), `.git/`, `docs/*.md`. Te ofrece mantener o cambiar lo detectado, no re-pregunta lo obvio. |
 
-![Confirmación con vista previa de archivos](docs/screenshots/05-confirmation.png)
+Si tu carpeta destino tiene git, el orquestador generado **sugiere un commit al cierre de cada fase** (no lo ejecuta — sólo te muestra el comando listo para copiar, respetando que el orquestador es por diseño un coordinador y no toca disco). Si ya hay `docs/*.md` existentes, los agentes los **actualizan** en lugar de reescribirlos desde cero.
+
+![Asistente preguntando por criterios del proyecto](docs/screenshots/03-criteria-multiselect.png)
+
+![Editor del equipo](docs/screenshots/04-team-editor.png)
+
+![Confirmación con vista previa de archivos y mix de modelos](docs/screenshots/05-confirmation.png)
 
 ### 4. Abrir tu proyecto en OpenCode o Claude Code
 
@@ -89,7 +104,7 @@ Si quieres ver lo que se generaría **sin tocar disco**, agrega `--dry-run`:
 abax-swarm init --dry-run
 ```
 
-![Resumen modo dry-run](docs/screenshots/04-dryrun-summary.png)
+![Resumen modo dry-run](docs/screenshots/06-dryrun-summary.png)
 
 ---
 
@@ -101,19 +116,34 @@ Cuando confirmas, Abax Swarm escribe esta estructura en tu carpeta:
 tu-proyecto/
 ├── .opencode/                    (o .claude/, según la plataforma elegida)
 │   ├── agents/
-│   │   ├── orchestrator.md       ← Coordina a todos los agentes
-│   │   ├── project-manager.md
+│   │   ├── orchestrator.md       ← Coordina a todos los agentes (color: rojo crimson)
+│   │   ├── project-manager.md    ← Color asignado de paleta (deterministic por id)
 │   │   ├── business-analyst.md
 │   │   ├── solution-architect.md
 │   │   ├── developer-backend.md
 │   │   └── …                     (entre 5 y 18 agentes según tamaño)
 │   ├── skills/                   ← Conocimientos reutilizables
 │   └── tools/                    ← Herramientas que los agentes pueden ejecutar
+├── docs/
+│   └── design-system/
+│       └── presentacion-template.html   ← Template HTML con 3 presets visuales
+│                                          (Corporate / Tech Editorial / Dark Premium)
 ├── opencode.json                 ← Configuración de la plataforma
 └── project-manifest.yaml         ← Metadata del proyecto
+
+# Solo en modo "documentar":
+├── mkdocs.yml                    ← Config MkDocs Material listo para `mkdocs serve`
+├── requirements.txt              ← `mkdocs-material>=9.5`
+└── docs/<fase>/index.md          ← Seeds por las 5 fases del flujo de docs
 ```
 
 Los agentes son archivos Markdown con instrucciones claras de qué hacer, qué entregar, cuándo intervenir y a quién consultar.
+
+### Detalles que mejoran la experiencia
+
+- **Colores en el TUI**: el orquestador siempre se pinta en rojo crimson (`#dc143c`); los demás agentes reciben colores vivos y distinguibles de una paleta curada de 24 hex (sin tonos rojos para no confundir). La asignación es determinista por `role.id`: mismo rol → mismo color en cada regeneración. Override por rol disponible vía `agent.color` en YAML. Detalle en [docs/agent-colors.md](docs/agent-colors.md).
+- **Glosario al cierre de cada entregable**: si un agente usa ≥3 acrónimos o términos técnicos (RACI, SLA, BPMN, OWASP, etc.), añade automáticamente una sección `## Glosario` con definiciones cortas (máx 7 términos, 1 línea). Hace los entregables legibles para sponsors / no técnicos.
+- **Presentaciones**: los agentes con el skill `presentation-design` generan HTML autónomo single-file con 3 presets visuales (Corporate Minimal / Tech Editorial / Dark Premium). Sin AI-slop (gradientes púrpura, gris puro, easings tipo bounce).
 
 ---
 
@@ -231,6 +261,21 @@ Edita el YAML del rol en `data/roles/<rol>.yaml`. Cambia `responsibilities`, `sk
 
 Cada rol declara `cognitive_tier` (`strategic` / `implementation` / `mechanical`) y `reasoning` (`none` / `low` / `medium` / `high`) en su YAML. El motor traduce eso a un modelo concreto del proveedor elegido. La tabla completa por rol con justificación, los tradeoffs considerados y las tres formas de override viven en [docs/model-mix.md](docs/model-mix.md).
 
+Si **no tienes acceso a los modelos premium** (Opus, GPT-5), elige "Heredar el default de mi configuración" en el paso 3 del wizard. Ningún agente recibirá `model:` en su frontmatter y OpenCode/Claude usarán tu modelo configurado globalmente.
+
+### Cambiar el color de un agente
+
+Por defecto el resolver determinista asigna un color a cada agente. Si quieres fijar uno explícito (por convención, por colisión con otro o porque prefieres una clave de tema):
+
+```yaml
+# data/roles/security-architect.yaml
+agent:
+  color: "error"          # clave de tema OpenCode (primary | accent | success | warning | error | info)
+  # o: color: "#ff4500"   # hex (siempre con comillas — bug del parser YAML)
+```
+
+Detalle en [docs/agent-colors.md](docs/agent-colors.md).
+
 ---
 
 ## Para desarrolladores
@@ -257,7 +302,7 @@ Documentación detallada: [docs/architecture.md](docs/architecture.md) y [docs/d
 
 ```bash
 npm install                       # instalar dependencias
-npm test                          # 216 tests (Vitest)
+npm test                          # 315+ tests (Vitest)
 npm run test:watch                # modo watch
 npm run typecheck                 # tsc --noEmit
 npm run lint                      # ESLint sobre src/ y tests/
@@ -295,13 +340,13 @@ src/
 
 data/            ← Datos canónicos (YAML, fuente de verdad)
 ├── roles/       ← 20 roles
-├── skills/      ← 70 habilidades
+├── skills/      ← 71 habilidades
 ├── tools/       ← 7 herramientas
 ├── stacks/      ← 13 stacks
-└── rules/       ← Matrices (size, RACI, dependencies, criteria)
+└── rules/       ← Matrices (size, RACI, dependencies, criteria, document-mode)
 
-templates/       ← Plantillas Handlebars (.md.hbs) para cada target
-tests/           ← Vitest, unit + integración (216 tests)
+templates/       ← Plantillas Handlebars (.md.hbs) + design-system/ (presentaciones HTML)
+tests/           ← Vitest, unit + integración (315+ tests)
 docs/            ← Documentación detallada
 ```
 
@@ -324,12 +369,14 @@ abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest exist
 
 | Documento | Para qué |
 |---|---|
-| [docs/architecture.md](docs/architecture.md) | Capas del sistema, flujo de datos |
+| [docs/architecture.md](docs/architecture.md) | Capas del sistema, flujo de datos, detectores y modos |
 | [docs/data-model.md](docs/data-model.md) | Esquemas YAML de cada entidad |
+| [docs/model-mix.md](docs/model-mix.md) | Mix de modelos por rol: tabla completa con justificación |
+| [docs/agent-colors.md](docs/agent-colors.md) | Política de colores y paleta para agentes en OpenCode |
 | [docs/guides/adding-roles.md](docs/guides/adding-roles.md) | Cómo agregar un rol |
 | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) | Cómo agregar una habilidad |
 | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) | Cómo agregar un stack |
-| [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) | Cómo opera el orquestador en runtime |
+| [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) | Cómo opera el orquestador (cascada y modo documentación) |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Resumen del sistema, convenciones, workflow Git |
 
 ---

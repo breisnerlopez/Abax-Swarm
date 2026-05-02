@@ -6,6 +6,22 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.12] — 2026-05-02
+
+### Fixed
+
+- `Header.tsx` reportaba `Abax Swarm · v0.1.1` (cadena hardcodeada). Ahora la versión se lee dinámicamente del `package.json` igual que `--version` (fix paralelo al de `app.ts` en 0.1.6).
+
+### Documentation
+
+- README ampliado con: tabla de los 3 modos de proyecto, mención de model-strategy / inherit, agent colors, sistema de presentaciones HTML, regla de glosario al cierre, y nueva captura del paso "Modo de proyecto".
+- `docs/architecture.md` actualizado: capa de detectores (`stack-detector`, `docs-detector`, `git-detector`, `project-context`), generador `docs-site-generator`, `color-resolver`, nueva sección de "Project modes", governance `documentation`, plantilla `design-system/`.
+- `docs/data-model.md` actualizado: `agent.color` y `cognitive_tier`/`reasoning` en role schema, `document-mode.yaml`, runtime types (`ProjectMode`, `ModelStrategy`, `ProjectContextDetection`), bump skills a 71.
+- `docs/guides/orchestrator-flow.md` extendido: flujo de modo documentación (5 fases, 4 ejes), protocolo de actualización de docs existentes, protocolo de commits por fase, regla de glosario.
+- `docs/README.md` reordenado: añadidas referencias a `model-mix.md` y `agent-colors.md`.
+- `scripts/capture-screenshots.sh` actualizado para reflejar el wizard de v0.1.11 (paso `project-mode` añadido, `model-strategy`, banner v0.1.12 leído dinámicamente). Genera 6 PNGs en vez de 5.
+- 6 capturas regeneradas (anteriormente eran 5 y mostraban `v0.1.1`).
+
 ## [0.1.11] — 2026-05-01
 
 ### Added
