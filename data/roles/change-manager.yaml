@@ -54,6 +54,7 @@ agent:
     bash: false
 
 skills:
+  - role-boundaries
   - change-impact-analysis
   - communication-plan
   - training-plan

@@ -98,13 +98,35 @@ Dos Tasks, dos roles, dos sesgos. Eso es lo correcto.
 
 Los 13 roles con riesgo de solapamiento, cada uno la lee al recibir Tasks:
 
-- `devops`, `qa-functional`, `qa-automation`, `qa-performance`
+- `devops`, `qa-functional`, `qa-automation`, `qa-performance`, `qa-lead`
 - `developer-backend`, `developer-frontend`, `dba`
 - `tech-lead`, `business-analyst`, `product-owner`
-- `solution-architect`, `security-architect`
-- `tech-writer`
+- `solution-architect`, `integration-architect`, `security-architect`
+- `change-manager`, `tech-writer`
 
-Roles fuera del listado (project-manager, change-manager, ux-designer, etc.) no la cargan porque su solapamiento con otros roles es estructuralmente bajo o ya esta resuelto por el flujo cascada.
+## Roles exentos (sin la skill, por diseño)
+
+Cuatro roles estan declarados explicitamente como exentos en `tests/integration/role-boundaries.test.ts` con razon documentada:
+
+| Rol | Razon de exencion |
+|---|---|
+| `orchestrator` | Es el orquestador mismo; no recibe Tasks, solo delega. Su mecanismo de prevencion vive en el template del orchestrator (matriz por fase). |
+| `project-manager` | Coordinador puro de planning/risks; no firma como `R` en actividades de ejecucion que otro rol tambien firme. |
+| `ux-designer` | Design-only handoff a developer-frontend; sin solapamiento de implementacion. |
+| `system-designer` | Meta-rol del propio proyecto Abax Swarm, no para proyectos generados. |
+
+## Como evitar que esto se repita con futuros roles
+
+El test `every role is classified` en `tests/integration/role-boundaries.test.ts` recorre TODOS los roles en `data/roles/` y exige que cada uno este en `used_by` (de la skill) **o** en `EXEMPT_FROM_ROLE_BOUNDARIES` (constante del test). Si se añade un rol nuevo sin clasificarlo, el test falla en CI antes de llegar a release.
+
+Cobertura adicional del test guard:
+- `no role is both in used_by and in EXEMPT` — listas mutuamente excluyentes.
+- `every role in used_by also lists role-boundaries in its skills` — sincronia bidireccional skill ↔ rol.
+- `EXEMPT roles do NOT declare role-boundaries` — sanity check inverso.
+
+La guia `docs/guides/adding-roles.md` §2 incluye la rubrica completa con los 4 criterios para decidir y el procedimiento paso a paso.
+
+`CLAUDE.md` (raiz del repo) recuerda esta regla en la seccion **"When modifying YAML data"** (paso 5) para que cualquier asistente o contribuidor se entere antes de comenzar.
 
 ## Cuando NO se aplica
 

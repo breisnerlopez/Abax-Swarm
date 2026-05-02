@@ -12,6 +12,7 @@ used_by:
   - qa-functional
   - qa-automation
   - qa-performance
+  - qa-lead
   - developer-backend
   - developer-frontend
   - dba
@@ -19,7 +20,9 @@ used_by:
   - business-analyst
   - product-owner
   - solution-architect
+  - integration-architect
   - security-architect
+  - change-manager
   - tech-writer
 content:
   when_to_use: |

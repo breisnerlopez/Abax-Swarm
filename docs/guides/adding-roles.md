@@ -53,7 +53,34 @@ phases: []            # Authorized project phases (e.g., construction, deploymen
 raci: {}              # RACI activity assignments (e.g., build_solution: R)
 ```
 
-## 2. Register in rules
+## 2. Decide on `role-boundaries` (REQUIRED)
+
+Every new role MUST be classified explicitly: either it carries the `role-boundaries` skill (because it could overlap with another master role) OR it is exempt with a documented reason. The integration test `tests/integration/role-boundaries.test.ts` enforces this — adding a role without classification will fail CI.
+
+**Add to `role-boundaries` if any of these apply** (covers most tier-1 roles):
+
+- The role has `bash: allow|ask` and operates on shared environments (devops, dba, devs).
+- The role validates work that another role implements (qa-*, tech-lead, business-analyst doing spec-compliance, security-architect).
+- The role is tier 1 in `construction`, `quality`, `deployment`, `data`, `architecture`, `analysis`, `business`, `security`, or `documentation` categories.
+- The role appears as `R` in any RACI activity that another role also signs as `R` or `A`.
+
+How:
+
+1. Add `- role-boundaries` as the **first** entry in the role's `skills:` list (convention — first skill is loaded first, sets the tone).
+2. Add the role ID to `used_by:` in `data/skills/role-boundaries.yaml`.
+3. Add a row in the master matrix (`data/skills/role-boundaries.yaml` → `content.instructions`) for the phase where this role is master. Update `docs/role-boundaries.md` to mirror it.
+4. If the role is master in a phase that already has another master, add a row to `pares criticos de no-solapamiento` in the same skill explaining how the two divide work.
+5. If the orchestrator template needs to know about the role (e.g., the new role is a master in some phase), add a `has<RoleName>` boolean in `src/generator/{opencode,claude}/orchestrator-generator.ts` and reference it in the matrix block of `templates/{opencode,claude}/orchestrator.md.hbs`.
+
+**Mark as exempt if**:
+
+- The role is a pure coordinator with no execution authority (e.g., `change-manager`, `agile-coach`, `scrum-master`).
+- The role is design-only with no implementation overlap (e.g., `ux-designer` does not need it because it doesn't implement the components — `developer-frontend` does).
+- The role has `bash: deny`, no `R` in any activity another role also has, and is at most `C/I` in everything.
+
+How: add the role ID to `EXEMPT_FROM_ROLE_BOUNDARIES` in `tests/integration/role-boundaries.test.ts` with a one-line comment explaining why. The test will pass; reviewers should question the exemption during code review.
+
+## 3. Register in rules
 
 ### `data/rules/size-matrix.yaml`
 Add the role ID in the appropriate classification per size:
@@ -96,13 +123,13 @@ criteria:
       - my-new-role
 ```
 
-## 3. Validate
+## 4. Validate
 
 ```bash
 npx abax-swarm validate
 ```
 
-## 4. Run tests
+## 5. Run tests
 
 ```bash
 npm test
@@ -114,7 +141,8 @@ Integration tests will verify:
 - Referenced dependencies exist
 - The size matrix references valid roles
 - RACI assignments reference valid roles and activities
+- **The role is classified for `role-boundaries`** (in `used_by` or in `EXEMPT_FROM_ROLE_BOUNDARIES`)
 
-## 5. Adding skills or tools
+## 6. Adding skills or tools
 
 Same pattern — create `data/skills/<id>.yaml` or `data/tools/<id>.yaml`, reference from roles, run tests.
