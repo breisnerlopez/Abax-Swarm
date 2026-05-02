@@ -74,6 +74,7 @@ skills:
   - migration-scripts
   - data-integrity
   - systematic-debugging
+  - reverse-engineering
 
 tools:
   - generate-diagram

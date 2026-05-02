@@ -8,6 +8,7 @@ import {
   IronLawsSchema,
   AntiRationalizationSchema,
   PhaseDeliverablesSchema,
+  DocumentModeSchema,
   type SizeMatrix,
   type CriteriaRules,
   type DependencyGraph,
@@ -15,6 +16,7 @@ import {
   type IronLaws,
   type AntiRationalization,
   type PhaseDeliverables,
+  type DocumentModeData,
 } from "./schemas.js";
 import { loadYamlFile } from "./yaml-loader.js";
 
@@ -49,6 +51,10 @@ export function loadPhaseDeliverables(dirPath: string = DEFAULT_RULES_DIR): Phas
   return loadYamlFile(join(dirPath, "phase-deliverables.yaml"), PhaseDeliverablesSchema).data;
 }
 
+export function loadDocumentMode(dirPath: string = DEFAULT_RULES_DIR): DocumentModeData {
+  return loadYamlFile(join(dirPath, "document-mode.yaml"), DocumentModeSchema).data;
+}
+
 export interface AllRules {
   sizeMatrix: SizeMatrix;
   criteria: CriteriaRules;
@@ -57,6 +63,7 @@ export interface AllRules {
   ironLaws: IronLaws;
   antiRationalization: AntiRationalization;
   phaseDeliverables: PhaseDeliverables;
+  documentMode: DocumentModeData;
 }
 
 export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
@@ -68,5 +75,6 @@ export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
     ironLaws: loadIronLaws(dirPath),
     antiRationalization: loadAntiRationalization(dirPath),
     phaseDeliverables: loadPhaseDeliverables(dirPath),
+    documentMode: loadDocumentMode(dirPath),
   };
 }

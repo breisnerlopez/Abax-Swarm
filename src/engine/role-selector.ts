@@ -1,5 +1,5 @@
 import type { ProjectSize, SizeMatrix, CriteriaRules } from "../loader/schemas.js";
-import type { RoleSelection, TeamScope } from "./types.js";
+import type { RoleSelection, TeamScope, DocumentMode } from "./types.js";
 
 /**
  * Selects roles based on project size using the size matrix.
@@ -74,4 +74,32 @@ export function selectRoles(
 ): RoleSelection[] {
   const bySize = selectBySize(size, matrix, scope);
   return applyCriteria(bySize, activeCriteriaIds, criteriaRules);
+}
+
+/**
+ * Curated team selection for ProjectMode === "document".
+ * Reads from data/rules/document-mode.yaml instead of size-matrix.yaml.
+ * Optional roles (e.g. security-architect) are added when their key is in
+ * `enabledOptional`.
+ */
+export function selectRolesForDocumentMode(
+  documentMode: DocumentMode,
+  enabledOptional: string[] = [],
+): RoleSelection[] {
+  const selections: RoleSelection[] = documentMode.roles.map((roleId) => ({
+    roleId,
+    reason: "indispensable",
+    removable: false,
+  }));
+  for (const optionalId of enabledOptional) {
+    if (documentMode.optional_roles[optionalId] && !selections.some((s) => s.roleId === optionalId)) {
+      selections.push({
+        roleId: optionalId,
+        reason: "criteria",
+        criteriaSource: optionalId,
+        removable: true,
+      });
+    }
+  }
+  return selections;
 }

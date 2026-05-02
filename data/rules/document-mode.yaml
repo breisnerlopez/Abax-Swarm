@@ -1,0 +1,54 @@
+id: document-mode
+name: Equipo curado para documentar un sistema existente
+
+# Equipo base — siempre incluido en modo "document".
+# Cubre los 4 ejes: técnico, funcional, negocio, operativo.
+roles:
+  - tech-writer            # lead de documentación
+  - business-analyst       # reglas de negocio + procesos AS-IS
+  - product-owner          # catálogo de funcionalidades + valor
+  - solution-architect     # arquitectura + ADRs (reverse)
+  - tech-lead              # comprensión de código
+  - dba                    # esquemas y datos
+  - integration-architect  # APIs e integraciones
+  - ux-designer            # user journeys y mapa de pantallas
+  - change-manager         # onboarding + capacitación
+
+# Roles que se añaden sólo si el usuario los habilita en el wizard.
+optional_roles:
+  security-architect:
+    question: ¿El sistema maneja datos sensibles, regulación (RGPD, HIPAA, PCI) o requiere análisis de superficie de ataque?
+
+# Skills que se incluyen automáticamente para este modo, además
+# de los que cada rol declara, porque son específicos de
+# "documentar lo que ya existe".
+extra_skills:
+  - reverse-engineering
+
+# Flujo de 5 fases en modo document. Sustituye la cascada de 10 fases del modo new.
+phases:
+  - id: discovery
+    name: Descubrimiento
+    description: >
+      Inspección inicial del sistema. El equipo identifica componentes, decide
+      el alcance de la documentación y prioriza las áreas críticas.
+  - id: inventory
+    name: Inventario
+    description: >
+      Catálogo de funcionalidades, módulos, integraciones, esquemas de datos,
+      stakeholders y procesos. Genera el mapa antes de profundizar.
+  - id: documentation
+    name: Documentación
+    description: >
+      Cada rol produce sus entregables en su eje (técnico, funcional, negocio,
+      operativo). Si ya hay docs, se actualizan en lugar de reescribirse.
+  - id: review
+    name: Revisión
+    description: >
+      Cross-review entre roles. El BA valida las reglas técnicas, el SA valida
+      el inventario funcional, el tech-writer revisa coherencia editorial.
+  - id: publication
+    name: Publicación
+    description: >
+      Cierre. Se publica el sitio MkDocs (si aplica), se entrega el changelog
+      de la documentación, y se deja el sistema listo para handoff.

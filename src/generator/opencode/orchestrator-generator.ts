@@ -27,6 +27,17 @@ interface PhaseGateInfo {
   deliverables: Array<{ name: string; responsible: string; mandatory: boolean }>;
 }
 
+export interface OrchestratorFlags {
+  /** "document" enables the documentation flow section. */
+  mode?: "new" | "document" | "continue";
+  /** When true, deliverables update existing files instead of overwriting. */
+  existingDocs?: boolean;
+  /** When true, the orchestrator emits a per-phase commit suggestion block. */
+  hasGit?: boolean;
+  /** Ordered phase list used in document mode (replaces the cascade flow). */
+  documentPhases?: Array<{ id: string; name: string; description: string }>;
+}
+
 /**
  * Generates the orchestrator agent file with dynamic team knowledge.
  */
@@ -37,6 +48,7 @@ export function generateOrchestratorFile(
   raciMatrix: RaciMatrix,
   governance: GovernanceDetails,
   phaseDeliverables?: PhaseDeliverables,
+  flags: OrchestratorFlags = {},
 ): GeneratedFile {
   const phases = buildPhases(agents, raciMatrix);
   const dependencyChain = buildDependencyChain(agents, depGraph);
@@ -51,9 +63,14 @@ export function generateOrchestratorFile(
     hasProductOwner: agentIds.has("product-owner"),
   };
 
+  const isDocumentMode = flags.mode === "document";
+  const description = isDocumentMode
+    ? `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo de documentacion (5 fases).`
+    : `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`;
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
-    description: `Orquestador del proyecto ${projectName}. Coordina ${agents.length} agentes siguiendo flujo cascada.`,
+    description,
     color: ORCHESTRATOR_COLOR,
     agents,
     phases,
@@ -61,6 +78,10 @@ export function generateOrchestratorFile(
     governance,
     phaseGates,
     discovery,
+    isDocumentMode,
+    existingDocs: !!flags.existingDocs,
+    hasGit: !!flags.hasGit,
+    documentPhases: flags.documentPhases ?? [],
   });
 
   return {

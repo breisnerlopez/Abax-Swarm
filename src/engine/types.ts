@@ -16,6 +16,31 @@ export type Provider = "anthropic" | "openai";
  */
 export type ModelStrategy = "custom" | "inherit";
 
+/**
+ * High-level intent for the run.
+ * - "new":      green-field. Full cascade flow.
+ * - "document": document an existing system (technical, functional, business, operative).
+ *               Curated team and a 5-phase doc flow; emits MkDocs scaffold.
+ * - "continue": resume a previous project. Detects stack/docs/git from the targetDir
+ *               so the user doesn't re-enter what's already there.
+ */
+export type ProjectMode = "new" | "document" | "continue";
+
+/**
+ * Result of inspecting the target directory before running selection.
+ * All flags are pure observations: the wizard / pipeline decide what to do with them.
+ */
+export interface ProjectContextDetection {
+  /** Detected stack id (matches data/stacks/*.yaml ids). null when no heuristic matched. */
+  stackId: string | null;
+  /** Human-readable evidence lines like "package.json contains next" — surfaced in the wizard. */
+  evidence: string[];
+  /** True when targetDir/docs/ exists and contains at least one .md file. */
+  existingDocs: boolean;
+  /** True when targetDir/.git exists and looks like a git repo. */
+  hasGit: boolean;
+}
+
 export interface ModelSpec {
   /** Provider-prefixed model id (e.g. "anthropic/claude-opus-4-7"). */
   model: string;
@@ -48,6 +73,10 @@ export interface ProjectConfig {
   modelOverrides?: Record<string, RoleModelOverride>;
   /** Defaults to "custom". When "inherit", no model is written and the host CLI's default applies. */
   modelStrategy?: ModelStrategy;
+  /** Defaults to "new". Affects role selection, phases and emitted files. */
+  mode?: ProjectMode;
+  /** Pre-computed context detection (stack/docs/git). Pipeline uses this to specialise output. */
+  detection?: ProjectContextDetection;
 }
 
 export interface RoleSelection {
@@ -67,7 +96,7 @@ export interface DependencyWarning {
 export interface SelectionResult {
   roles: RoleSelection[];
   warnings: DependencyWarning[];
-  governanceModel: "lightweight" | "controlled" | "corporate";
+  governanceModel: "lightweight" | "controlled" | "corporate" | "documentation";
 }
 
 export interface ResolvedProject {
@@ -77,6 +106,17 @@ export interface ResolvedProject {
   skills: Skill[];
   tools: Tool[];
   stack: Stack;
+}
+
+export interface DocumentMode {
+  /** Role ids that conform the curated documentation team. */
+  roles: string[];
+  /** Role ids that are added only when the user opts in (e.g. security). */
+  optional_roles: Record<string, { question: string }>;
+  /** Skills auto-included regardless of which roles request them. */
+  extra_skills: string[];
+  /** The 5-phase documentation flow, in order. */
+  phases: Array<{ id: string; name: string; description: string }>;
 }
 
 export interface DataContext {
@@ -89,4 +129,5 @@ export interface DataContext {
   dependencies: DependencyGraph;
   raci: RaciMatrix;
   phaseDeliverables: PhaseDeliverables;
+  documentMode?: DocumentMode;
 }

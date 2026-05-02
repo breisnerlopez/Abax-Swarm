@@ -8,6 +8,8 @@ import type {
   ProjectConfig,
   DataContext,
   ModelStrategy,
+  ProjectMode,
+  ProjectContextDetection,
   SelectionResult,
   TargetPlatform,
   TeamScope,
@@ -17,6 +19,7 @@ import { runSelection, runPipeline, writePipeline } from "./pipeline.js";
 import type { PipelineResult } from "./pipeline.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
 import { buildModelMix, groupMixBySpec } from "../engine/model-mapping.js";
+import { detectProjectContext } from "../engine/project-context.js";
 import { Header } from "./components/Header.js";
 import { StepHeader } from "./components/StepHeader.js";
 import { TextInput } from "./components/TextInput.js";
@@ -47,6 +50,9 @@ interface ExistingManifest {
 type StepName =
   | "target-dir"
   | "existing-confirm"
+  | "project-mode"
+  | "stack-detected"
+  | "document-options"
   | "platform"
   | "model-strategy"
   | "provider"
@@ -66,6 +72,9 @@ interface WizardData {
   rawPath?: string;
   targetDir?: string;
   existing?: ExistingManifest | null;
+  mode?: ProjectMode;
+  detection?: ProjectContextDetection;
+  enabledOptional?: string[]; // Document mode: which optional roles the user opted in
   target?: TargetPlatform;
   description?: string;
   size?: ProjectSize;
@@ -102,6 +111,7 @@ function stepNumber(step: StepName): number | null {
   switch (step) {
     case "target-dir":
     case "existing-confirm":
+    case "project-mode":
       return 1;
     case "platform":
       return 2;
@@ -109,11 +119,13 @@ function stepNumber(step: StepName): number | null {
     case "provider":
       return 3;
     case "description":
+    case "document-options":
       return 4;
     case "size":
     case "criteria":
       return 5;
     case "stack":
+    case "stack-detected":
       return 6;
     case "role-scope":
     case "role-edit":
@@ -291,18 +303,23 @@ export function WizardApp({ ctx, options }: Props) {
 
 function buildConfig(data: WizardData): ProjectConfig {
   const targetDir = data.targetDir!;
+  const mode = data.mode ?? "new";
+  // In document mode, criteria carries enabledOptional for the role-selector branch.
+  const criteria = mode === "document" ? (data.enabledOptional ?? []) : (data.criteria ?? []);
   return {
     name: data.existing?.project.name ?? basename(targetDir),
     description: data.description ?? `Proyecto ${basename(targetDir)}`,
     targetDir,
-    size: data.size!,
-    criteria: data.criteria ?? [],
+    size: data.size ?? "small",
+    criteria,
     stackId: data.stackId!,
     target: data.target!,
     teamScope: data.scope ?? "full",
     provider: data.provider ?? "anthropic",
     modelStrategy: data.modelStrategy ?? "custom",
     modelOverrides: data.modelOverrides,
+    mode,
+    detection: data.detection,
   };
 }
 
@@ -328,11 +345,13 @@ function renderStep(
               const targetDir = resolve(rawPath);
               if (!existsSync(targetDir)) mkdirSync(targetDir, { recursive: true });
               const existing = loadExistingManifest(targetDir);
+              const detection = detectProjectContext(targetDir);
               setData((d) => ({
                 ...d,
                 rawPath,
                 targetDir,
                 existing,
+                detection,
                 // Preload prior choices so "actualizar" defaults to what was used before.
                 ...(existing
                   ? {
@@ -342,7 +361,7 @@ function renderStep(
                     }
                   : {}),
               }));
-              go(existing ? "existing-confirm" : "platform");
+              go(existing ? "existing-confirm" : "project-mode");
             }}
           />
         </Box>
@@ -381,7 +400,121 @@ function renderStep(
                 setData((d) => ({ ...d, finalMessage: "Cancelado." }));
                 go("cancelled", false);
               } else {
-                go("platform");
+                go("project-mode");
+              }
+            }}
+          />
+        </Box>
+      );
+    }
+
+    case "project-mode": {
+      const det = data.detection;
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={1} total={TOTAL_STEPS} title="Modo de proyecto" />
+          <Box marginBottom={1} flexDirection="column">
+            <Text dimColor>
+              Implementar nuevo: flujo cascada completo (10 fases).
+            </Text>
+            <Text dimColor>
+              Documentar existente: equipo curado para inventariar y documentar (técnico + funcional + negocio + operativo).
+            </Text>
+            <Text dimColor>
+              Continuar previo: detectamos stack/docs/git de la carpeta y precargamos lo que ya existe.
+            </Text>
+            {det && (det.stackId || det.existingDocs || det.hasGit) ? (
+              <Box marginTop={1} flexDirection="column">
+                <Text>Detección automática de la carpeta:</Text>
+                {det.stackId ? <Text dimColor>  · stack: {det.stackId}</Text> : null}
+                {det.existingDocs ? <Text dimColor>  · docs/ existente con .md</Text> : null}
+                {det.hasGit ? <Text dimColor>  · es repositorio git</Text> : null}
+              </Box>
+            ) : null}
+          </Box>
+          <SelectInput<ProjectMode>
+            label="¿Qué quieres hacer?"
+            initialValue={data.mode}
+            options={[
+              { label: "Implementar algo nuevo", value: "new" },
+              { label: "Documentar algo existente", value: "document" },
+              { label: "Continuar / partir de un proyecto previo", value: "continue" },
+            ]}
+            onSubmit={(mode) => {
+              setData((d) => ({ ...d, mode }));
+              if (mode === "document") go("document-options");
+              else if (mode === "continue") go(det && (det.stackId || det.evidence.length) ? "platform" : "platform");
+              else go("platform");
+            }}
+          />
+        </Box>
+      );
+    }
+
+    case "document-options": {
+      const docMode = ctx.documentMode;
+      const optionalEntries = docMode ? Object.entries(docMode.optional_roles) : [];
+      const opts = optionalEntries.map(([id, info]) => ({ label: `${info.question} (incluye ${id})`, value: id }));
+      // If no optional roles defined, skip directly.
+      if (opts.length === 0) {
+        setData((d) => ({ ...d, enabledOptional: [] }));
+        go("platform", false);
+        return null;
+      }
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={4} total={TOTAL_STEPS} title="Opciones de documentación" />
+          <Box marginBottom={1}>
+            <Text dimColor>
+              Equipo base ({docMode?.roles.length ?? 0} roles) ya está incluido. Marca los opcionales que apliquen.
+            </Text>
+          </Box>
+          <MultiSelectInput<string>
+            label="Opcionales a incluir:"
+            options={opts}
+            onSubmit={(enabled) => {
+              setData((d) => ({ ...d, enabledOptional: enabled }));
+              go("platform");
+            }}
+          />
+        </Box>
+      );
+    }
+
+    case "stack-detected": {
+      const det = data.detection!;
+      const detectedStack = det.stackId ? ctx.stacks.get(det.stackId) : undefined;
+      const opts: Array<{ label: string; value: string }> = [];
+      if (detectedStack) opts.push({ label: `Mantener: ${detectedStack.name}`, value: det.stackId! });
+      opts.push({ label: "Elegir otro stack manualmente", value: "__pick__" });
+      opts.push({ label: "Continuar sin stack adapter", value: "__none__" });
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={6} total={TOTAL_STEPS} title="Stack tecnológico (detección)" />
+          <Box marginBottom={1} flexDirection="column">
+            {det.stackId ? (
+              <Text>Detecté <Text bold>{detectedStack?.name ?? det.stackId}</Text>:</Text>
+            ) : (
+              <Text>No detecté un stack soportado. Evidencia parcial:</Text>
+            )}
+            {det.evidence.map((e, i) => (
+              <Text dimColor key={i}>  · {e}</Text>
+            ))}
+          </Box>
+          <SelectInput<string>
+            label="¿Qué hacer?"
+            options={opts}
+            onSubmit={(choice) => {
+              if (choice === "__pick__") {
+                go("stack");
+              } else if (choice === "__none__") {
+                // Default to angular-springboot as a neutral fallback so the
+                // pipeline doesn't crash; agents won't get stack_overrides applied.
+                setData((d) => ({ ...d, stackId: "angular-springboot" }));
+                go("role-scope");
+              } else {
+                setData((d) => ({ ...d, stackId: choice }));
+                go("role-scope");
               }
             }}
           />
@@ -476,7 +609,10 @@ function renderStep(
             initialValue={data.description ?? defaultDesc}
             onSubmit={(description) => {
               setData((d) => ({ ...d, description: description || defaultDesc }));
-              go("size");
+              // Document mode skips size+criteria entirely; continue mode jumps to stack-detected.
+              if (data.mode === "document") go("stack");
+              else if (data.mode === "continue") go("stack-detected");
+              else go("size");
             }}
           />
         </Box>

@@ -63,6 +63,53 @@ Procedimiento:
 - Cambios: {{governance.change_control}}
 - Documentacion: {{governance.documentation_level}}
 
+{{#if isDocumentMode}}
+## Modo DOCUMENTACION
+
+Este proyecto opera en **modo documentacion**: el sistema ya existe y el equipo
+debe inventariarlo y producir documentacion verificable, no construir nada nuevo.
+Sustituye la cascada de 10 fases por un flujo de 5 fases:
+
+{{#each documentPhases}}
+- **{{this.name}}** (`{{this.id}}`): {{this.description}}
+{{/each}}
+
+### Reglas especificas del modo documentacion
+
+- Toda afirmacion sobre el sistema requiere evidencia (`archivo:linea`, query, log).
+- Si no hay evidencia suficiente, marcar como "comportamiento por confirmar".
+- Coordinar a los 4 ejes (tecnico, funcional, negocio, operativo) en paralelo cuando sea posible.
+- El entregable final de cada fase debe pasar por el cierre editorial (revision del tech-writer).
+{{/if}}
+
+{{#if existingDocs}}
+## Protocolo de actualizacion de documentacion existente
+
+Detectamos que el directorio `docs/` ya contiene archivos `.md`. **No reescribir desde cero**.
+Para cada delegacion donde el entregable apunta a un archivo que ya existe:
+
+1. Indica al agente: "**actualizar** `docs/<ruta>`, no crear desde cero".
+2. El agente debe leer el archivo existente primero, conservar la estructura de secciones, y modificar solo lo que cambio.
+3. Si el archivo existente esta desactualizado, preferir agregar un bloque `## Cambios <fecha>` con lo nuevo en lugar de reescribir.
+{{/if}}
+
+{{#if hasGit}}
+## Protocolo de commits por fase
+
+El proyecto destino es un repositorio git. **Al cierre de cada fase**, antes de
+delegar la siguiente, emite al usuario un bloque listo para copiar:
+
+```
+git add docs/<carpeta-de-la-fase>/
+git commit -m "docs(<fase-id>): cierre de <nombre-fase> - <breve resumen>"
+```
+
+Reglas:
+- **No ejecutes el commit tu mismo** — sugiere el comando para que el usuario lo apruebe.
+- Solo `git add` con la ruta especifica de los entregables, nunca `git add .` ni `git add -A`.
+- Mensaje en formato Conventional Commits (`docs:`, `feat:`, `chore:`).
+{{/if}}
+
 ## Reglas INQUEBRANTABLES
 
 1. FASE 1 PRIMERO — siempre. Sin excepciones.

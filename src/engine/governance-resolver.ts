@@ -1,6 +1,6 @@
 import type { ProjectSize } from "../loader/schemas.js";
 
-export type GovernanceModel = "lightweight" | "controlled" | "corporate";
+export type GovernanceModel = "lightweight" | "controlled" | "corporate" | "documentation";
 
 export interface GovernanceDetails {
   model: GovernanceModel;
@@ -72,6 +72,24 @@ const GOVERNANCE_MODELS: Record<ProjectSize, GovernanceDetails> = {
   },
 };
 
+/** Governance for the documentation flow. No comites por fase, sólo cierres editoriales. */
+export const DOCUMENTATION_GOVERNANCE: GovernanceDetails = {
+  model: "documentation",
+  name_es: "Equipo de Documentacion",
+  description: "Flujo enfocado en producir documentacion verificable de un sistema existente. Cierres editoriales por fase, sin comites tradicionales.",
+  committees: ["Revision editorial (al cierre de fase)", "Walkthrough con stakeholders (al cierre de inventario y review)"],
+  meeting_frequency: {
+    "Revision editorial": "Al cierre de cada fase",
+    "Walkthrough": "Al cierre de inventario y review",
+  },
+  change_control: "Versionado por commits + changelog editorial",
+  documentation_level: "Documentacion verificable - cada afirmacion con evidencia (archivo:linea)",
+};
+
 export function resolveGovernance(size: ProjectSize): GovernanceDetails {
   return GOVERNANCE_MODELS[size];
+}
+
+export function resolveDocumentGovernance(): GovernanceDetails {
+  return DOCUMENTATION_GOVERNANCE;
 }
