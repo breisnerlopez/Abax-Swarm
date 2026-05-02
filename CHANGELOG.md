@@ -6,6 +6,23 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.21] — 2026-05-02
+
+### Added — Guard rails para que role-boundaries no se diluya con futuros roles
+
+El test `every role is classified` recorre TODOS los roles en `data/roles/` y exige que cada uno este en `used_by` de la skill role-boundaries **o** en la constante `EXEMPT_FROM_ROLE_BOUNDARIES` del test, con razon documentada. Anadir un rol nuevo sin clasificarlo falla CI antes de release.
+
+- 3 roles añadidos a `used_by` y a sus `skills:` (`qa-lead`, `integration-architect`, `change-manager`) — la matriz maestra ya los mencionaba implicitamente como masters de actividades especificas.
+- 4 roles marcados explicitamente como exentos con razon: `orchestrator` (no recibe Tasks), `project-manager` (coordinador puro), `ux-designer` (design-only handoff), `system-designer` (meta-rol del proyecto Abax Swarm).
+- 4 nuevos tests guard: clasificacion exhaustiva, exclusion mutua, sincronia bidireccional skill↔rol, sanity check inverso para exentos.
+
+### Changed
+
+- `docs/guides/adding-roles.md` §2 nuevo: rubrica con 4 criterios para clasificar un rol nuevo + procedimiento paso a paso.
+- `CLAUDE.md` (paso 5 en "When modifying YAML data"): recuerda al asistente la regla antes de empezar.
+- `docs/role-boundaries.md`: lista expandida (16 roles) + tabla de 4 exentos + seccion "Como evitar que esto se repita con futuros roles".
+- Suite: 414 tests pasando (era 407), typecheck + validate OK, 76 skills (sin cambios).
+
 ## [0.1.20] — 2026-05-02
 
 ### Added — Limites de rol y reglas de rechazo

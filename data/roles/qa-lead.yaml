@@ -61,6 +61,7 @@ agent:
     bash: false
 
 skills:
+  - role-boundaries
   - presentation-design
   - test-strategy
   - quality-metrics
