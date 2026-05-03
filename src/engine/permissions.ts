@@ -21,7 +21,34 @@ export function buildOpenCodePermission(
   isolation: IsolationMode,
 ): unknown | undefined {
   if (mode === "strict") return undefined;
-  if (mode === "full") return "allow";
+  if (mode === "full") {
+    // Bug fix in 0.1.34: returning string "allow" was insufficient. OpenCode
+    // v1.14.x has hardcoded confirmation prompts for state-changing git
+    // operations (`git checkout -b`, `git commit`, `git push`, etc.) that
+    // bypass the simple string permission. The user got "vuelve a pedir
+    // permisos" despite picking `full`. Returning an explicit pattern object
+    // overrides those prompts. Destructive ops (force push, hard reset, rm
+    // -rf, sudo) stay in `ask` for safety even in full mode — full bypass of
+    // those is too risky to enable by default.
+    return {
+      bash: {
+        "*": "allow",
+        "git *": "allow",
+        "git push *": "allow",
+        "git push --force *": "ask",
+        "git push -f *": "ask",
+        "git reset --hard *": "ask",
+        "rm -rf *": "ask",
+        "sudo *": "ask",
+      },
+      edit: "allow",
+      read: "allow",
+      glob: "allow",
+      grep: "allow",
+      webfetch: "allow",
+      external_directory: "allow",
+    };
+  }
 
   // recommended
   const insideContainer = isolation === "devcontainer";

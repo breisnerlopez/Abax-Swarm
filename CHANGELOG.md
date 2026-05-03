@@ -6,6 +6,61 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.34] — 2026-05-03
+
+### Fixed — `permission_mode: full` ahora emite objeto de patterns explicito (override prompts hardcoded de OpenCode)
+
+Sintoma reportado: el usuario configuro `permission_mode: full`, root permission del opencode.json era `"allow"` (string), per-agent `bash: allow` para devops, pero **OpenCode v1.14.x sigue pidiendo confirmacion** para operaciones git que cambian estado del repo (`git checkout -b`, `git commit`, `git push`). Bash queda en `running` esperando aprobacion del usuario en la UI.
+
+Causa raiz: OpenCode v1.14.x tiene **prompts de confirmacion hardcoded** para state-changing git operations que no se overriden con un simple `permission: "allow"` (string). Hace falta un objeto explicito con patterns `bash` para que OpenCode los respete.
+
+Fix: `buildOpenCodePermission("full", ...)` ahora devuelve objeto explicito en lugar de string `"allow"`:
+
+```json
+{
+  "bash": {
+    "*": "allow",
+    "git *": "allow",
+    "git push *": "allow",
+    "git push --force *": "ask",
+    "git push -f *": "ask",
+    "git reset --hard *": "ask",
+    "rm -rf *": "ask",
+    "sudo *": "ask"
+  },
+  "edit": "allow",
+  "read": "allow",
+  "glob": "allow",
+  "grep": "allow",
+  "webfetch": "allow",
+  "external_directory": "allow"
+}
+```
+
+Cambios de comportamiento:
+- `git checkout -b`, `git commit`, `git push` (sin force) → ahora se ejecutan SIN pedir confirmacion en modo full.
+- `git push --force` / `git push -f` → siguen pidiendo confirmacion incluso en modo full (proteccion contra rewrites destructivos del historial remoto).
+- `git reset --hard *` → sigue pidiendo (destructivo local).
+- `rm -rf *` y `sudo *` → siguen pidiendo (destructivos sistema).
+
+Esos 4 vetos en `ask` son intencionales: full mode bypassa convenience prompts pero no las protecciones contra danos catastroficos accidentales.
+
+### Tests
+
+- `tests/integration/permissions-isolation.test.ts`: dos tests actualizados para verificar el nuevo formato. Sentinel: `oc.permission.bash["git *"] === "allow"` y `oc.permission.bash["git push --force *"] === "ask"`.
+
+Suite: **572 tests pasando** (sin cambio en numero), typecheck + validate OK.
+
+### Que necesita el usuario hacer
+
+```bash
+abax-swarm regenerate    # en el directorio del proyecto
+```
+
+Trae el nuevo opencode.json con el objeto explicito. Reiniciar opencode web para que cargue el config.
+
+Si modificaste manualmente el opencode.json del proyecto en versiones anteriores como workaround, regenerate lo sobreescribe con el patron oficial.
+
 ## [0.1.33] — 2026-05-03
 
 ### Added — Skill `publication-notification` (URLs publicas al usuario)
