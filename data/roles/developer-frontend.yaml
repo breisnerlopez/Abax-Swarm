@@ -106,6 +106,8 @@ skills:
   - systematic-debugging
   - verification-before-completion
 
+  - project-readme
+  - documentation-quality-bar
 tools:
   - run-tests
   - lint-code

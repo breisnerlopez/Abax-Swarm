@@ -1,0 +1,288 @@
+id: documentation-quality-bar
+name: Barra de Calidad de Documentacion
+description: >
+  Minimos no-negociables que cualquier documento generado por agentes Abax debe
+  cumplir antes de marcarse como completado: frontmatter de procedencia, comandos
+  reales validados, links que funcionan, sin TODO sin asignar, glosario si tiene
+  jerga, indice si supera 200 lineas. Aplica a README, runbooks, ADRs, manuales
+  de usuario, especificaciones funcionales y cualquier otro entregable de docs.
+used_by:
+  - tech-writer
+  - business-analyst
+  - developer-backend
+  - developer-frontend
+  - tech-lead
+  - solution-architect
+  - dba
+  - devops
+  - security-architect
+content:
+  when_to_use: |
+    - Antes de marcar como completado CUALQUIER entregable que sea documentacion (.md, .html, .pdf).
+    - En code review de PRs que tocan archivos en `docs/` o `README.md`.
+    - Al consolidar documentacion al cierre de fase (Construccion, Despliegue, Cierre).
+    - Cuando el orquestador pide actualizar documentacion existente.
+  instructions: |
+    ## Filosofia
+
+    Documentacion mediocre es PEOR que no tener documentacion: genera falsa
+    confianza y se cita como verdad. Cada doc que pasa por un agente Abax debe
+    cumplir 8 minimos. Si alguno falla, el doc NO se marca completado.
+
+    ## Los 8 minimos no-negociables
+
+    ### 1. Frontmatter de procedencia (al inicio de cada .md)
+
+    ```yaml
+    ---
+    fase: <ej. 4-construccion>
+    entregable: <id del entregable>
+    responsable: <rol que lo produjo, ej. tech-writer>
+    aprobado-por: <rol que lo aprobo, ej. tech-lead>
+    fecha: <YYYY-MM-DD>
+    estado: <borrador | en-revision | aprobado>
+    version: <opcional, util si el doc evoluciona>
+    ---
+    ```
+
+    Excepcion legitima: `README.md` de raiz no lleva frontmatter (es ruido
+    para humanos en GitHub). Pero internamente debe quedar registrado en
+    `docs/registro-entregables.md` quien lo produjo y cuando.
+
+    ### 2. Cada comando ejecutado, no inventado
+
+    Si el doc dice `npm run foo`, el autor DEBE haber corrido ese comando
+    contra el proyecto real y haber visto que funciona. Inventar comandos
+    "que probablemente funcionarian" es un anti-patron equivalente al
+    mock disfrazado de IA del incidente Abax-Memory.
+
+    Para validar: copiar literalmente el comando del doc, pegarlo en el
+    terminal del proyecto, ejecutarlo, capturar la salida en una nota
+    interna. Si el comando produce error, el doc se corrige antes de marcar
+    completado.
+
+    Excepcion: comandos contra ambientes no accesibles desde el agente
+    (ej. produccion, hardware especifico). En esos casos, MARCAR el comando
+    con un comentario:
+
+    ```bash
+    # NOT VALIDATED — requires production access. Validated against staging.
+    kubectl rollout restart deploy/api -n prod
+    ```
+
+    ### 3. Sin "TODO" / "TBD" / placeholder sin marcar
+
+    Si una seccion no se completo, AL MENOS:
+    - Tiene un encabezado `## <Tema> — pendiente`.
+    - Indica QUIEN debe completarla y CUANDO se espera.
+    - Esta listada en `docs/registro-entregables.md` como deuda explicita.
+
+    Anti-patron: dejar `TODO: completar esto` sin contexto. Mejor:
+
+    ```markdown
+    ## Procedimiento de rollback — pendiente
+
+    Pendiente de definir junto con devops antes del entregable
+    `rollback-plan` (fase 7). Owner: @devops. Deadline: 2026-05-15.
+    ```
+
+    ### 4. Links relativos validados
+
+    Cada link a otro archivo del repo debe apuntar a un archivo que EXISTE
+    en el momento del commit. Verificar antes de marcar completado:
+
+    ```bash
+    # Pseudocodigo — adaptar al stack:
+    grep -oE '\[.*\]\([^)]+\)' docs/mi-doc.md | grep -oE '\([^)]+\)' | tr -d '()' | while read url; do
+      [[ "$url" == http* ]] && continue
+      [[ -f "$url" ]] || echo "BROKEN: $url"
+    done
+    ```
+
+    ### 5. Bloques de codigo etiquetados
+
+    Cada bloque de codigo lleva el lenguaje detras de los tres backticks:
+
+    ✅ ` ```bash `, ` ```typescript `, ` ```sql `, ` ```yaml `
+
+    ❌ ` ``` ` solo (sin lenguaje) — pierde syntax highlighting y semantica.
+
+    Excepcion legitima: salidas de terminal mostradas como ejemplo (` ```text `).
+
+    ### 6. Glosario al cierre si usa >=3 acronimos o terminos especializados
+
+    Si el doc menciona >=3 de: API, REST, SLA, RPO/RTO, OWASP, CDN, JWT,
+    OAuth, RACI, BPMN, ETL, IaC, K8s, CRUD, DTO, ORM, PR, CI/CD, etc.,
+    o terminos del dominio del cliente (ej. "GMC", "CICS", "AS400"),
+    AGREGAR seccion al final:
+
+    ```markdown
+    ## Glosario
+
+    - **API**: Application Programming Interface. ...
+    - **OWASP**: Open Web Application Security Project. ...
+    - **CICS**: Customer Information Control System (sistema mainframe IBM).
+    ```
+
+    Maximo 7 entradas, una linea cada una.
+
+    ### 7. Indice si supera 200 lineas
+
+    Documentos > 200 lineas necesitan tabla de contenidos navegable al
+    inicio (despues del frontmatter, antes del contenido principal):
+
+    ```markdown
+    ## Tabla de contenidos
+
+    - [Seccion 1](#seccion-1)
+    - [Seccion 2](#seccion-2)
+      - [Subseccion 2.1](#subseccion-21)
+    - [Seccion 3](#seccion-3)
+    ```
+
+    Los anchors siguen la convencion GitHub: lowercase, espacios -> guiones,
+    sin caracteres especiales.
+
+    ### 8. Idioma consistente
+
+    Un mismo doc no mezcla ingles y espanol. El idioma del doc debe coincidir
+    con el idioma operativo del proyecto:
+    - Si el equipo trabaja en espanol y el cliente lee espanol → espanol.
+    - Si es un proyecto open-source con audiencia global → ingles.
+    - Si hay duda, preguntar al orquestador antes de empezar.
+
+    Excepcion legitima: terminos tecnicos sin traduccion natural se mantienen
+    en ingles (deploy, pipeline, frontend, microservice). NO traducir cuando
+    distorsiona (ej. "implementacion" en lugar de "deploy" suena raro).
+
+    ## Validacion antes de marcar completado
+
+    Checklist obligatorio. Si algun punto falla, NO marcar el entregable
+    como completado. Reportar al orquestador con la lista de gaps.
+
+    - [ ] Frontmatter completo (excepto README raiz).
+    - [ ] Cada comando del doc fue ejecutado al menos una vez.
+    - [ ] No hay `TODO`/`TBD`/placeholder sin marcar con owner+fecha.
+    - [ ] Cada link relativo apunta a archivo existente.
+    - [ ] Cada bloque de codigo lleva etiqueta de lenguaje.
+    - [ ] Glosario presente si hay >=3 acronimos especializados.
+    - [ ] Indice presente si > 200 lineas.
+    - [ ] Idioma consistente (no mezcla ingles/espanol).
+
+    ## Coordinacion con role-boundaries
+
+    El **tech-writer** es el approver final de la calidad de docs en fases
+    Construccion, Estabilizacion, Cierre. Los autores (developer-*, tech-lead,
+    BA, etc.) producen el contenido; el tech-writer revisa contra esta barra
+    y marca aprobado/rechazado.
+
+    Si NO hay tech-writer en el equipo (proyectos small), el rol approver es
+    el **tech-lead** quien aplica esta misma barra.
+
+    ## Escalamiento
+
+    Si el contenido del doc requiere conocimiento que el agente no tiene
+    (ej. credenciales de produccion, decision de negocio, valor de un secreto),
+    NO inventarlo. Reportar al orquestador y esperar.
+  guides:
+    - name: ejemplo-frontmatter
+      content: |
+        ## Ejemplos de frontmatter por tipo de doc
+
+        ### Especificacion funcional (BA, fase 2)
+
+        ```yaml
+        ---
+        fase: 2-analisis-funcional
+        entregable: functional-spec
+        responsable: business-analyst
+        aprobado-por: product-owner
+        fecha: 2026-05-10
+        estado: aprobado
+        version: 1.0
+        ---
+        ```
+
+        ### ADR (Solution Architect, fase 3)
+
+        ```yaml
+        ---
+        fase: 3-diseno-tecnico
+        entregable: architecture-doc
+        tipo: ADR-007
+        responsable: solution-architect
+        aprobado-por: tech-lead
+        fecha: 2026-05-15
+        estado: aprobado
+        decision: usar-postgres-en-lugar-de-mongo
+        ---
+        ```
+
+        ### Runbook (tech-writer, fase 7)
+
+        ```yaml
+        ---
+        fase: 7-despliegue
+        entregable: runbook
+        servicio: api-pagos
+        responsable: tech-writer
+        aprobado-por: tech-lead
+        fecha: 2026-05-20
+        estado: en-revision
+        oncall: equipo-pagos
+        ---
+        ```
+
+    - name: validacion-de-comandos
+      content: |
+        ## Como validar comandos antes de documentarlos
+
+        Patron general:
+
+        1. ABRIR terminal en el directorio del proyecto.
+        2. COPIAR el comando exacto del doc al terminal.
+        3. EJECUTAR. Capturar salida.
+        4. Si el comando falla:
+           - Si es por contexto faltante (ej. olvido `cd`, falta env var) → corregir el doc anadiendo el contexto.
+           - Si es por bug en el sistema → reportar al developer/devops, NO documentar el comando roto.
+        5. ANOTAR en `docs/comandos-validados.md` (o equivalente) con fecha y resultado.
+
+        Para comandos contra ambientes no accesibles (prod, hardware
+        especifico), seguir las reglas:
+
+        - Marcar con comentario `# NOT VALIDATED — <razon>`.
+        - Solo aceptable si el operador del ambiente confirmo el comando
+          contra el ambiente real (capturar el confirmador en el doc).
+
+    - name: como-detectar-gaps
+      content: |
+        ## Auditoria rapida de un doc existente
+
+        Para evaluar si un doc cumple la barra antes de heredarlo:
+
+        ```bash
+        DOC=docs/mi-doc.md
+
+        # 1. Frontmatter
+        head -1 "$DOC" | grep -q '^---$' || echo "FALTA frontmatter"
+
+        # 2. TODO sueltos
+        grep -nE 'TODO|TBD|FIXME|XXX' "$DOC" && echo "Tiene marcadores sin owner"
+
+        # 3. Bloques de codigo sin lenguaje
+        awk '/^```$/{c++} END{if(c%2==1) print "Bloque sin cerrar"}' "$DOC"
+        grep -nE '^```$' "$DOC" | head -5  # bloques sin lenguaje
+
+        # 4. Links rotos
+        grep -oE '\[[^]]+\]\([^)]+\)' "$DOC" | grep -oE '\([^)]+\)' | tr -d '()' | while read url; do
+          [[ "$url" == http* ]] && continue
+          [[ -f "$(dirname "$DOC")/$url" ]] || echo "ROTO: $url"
+        done
+
+        # 5. Length check
+        wc -l "$DOC"
+        # Si > 200 lineas, debe tener TOC
+        ```
+
+        Reportar los gaps al orquestador en formato matriz; NO arreglar
+        silenciosamente sin que el responsable original lo sepa.

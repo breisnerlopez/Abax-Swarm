@@ -86,6 +86,9 @@ skills:
   - project-tracking
   - reverse-engineering
 
+  - project-readme
+  - documentation-quality-bar
+  - project-documentation-structure
 tools:
   - lint-code
   - run-tests

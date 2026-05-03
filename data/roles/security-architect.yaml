@@ -74,6 +74,7 @@ skills:
   - owasp-review
   - compliance-check
 
+  - documentation-quality-bar
 tools:
   - create-document
 

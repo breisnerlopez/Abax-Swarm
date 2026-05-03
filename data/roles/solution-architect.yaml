@@ -79,6 +79,8 @@ skills:
   - presentation-design
   - reverse-engineering
 
+  - documentation-quality-bar
+  - project-documentation-structure
 tools:
   - generate-diagram
   - create-presentation

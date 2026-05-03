@@ -6,6 +6,43 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.24] — 2026-05-02
+
+### Added — 3 skills coordinadas para que los agentes generen documentacion consistente en proyectos cliente
+
+Hueco detectado: ningun skill ni guia sistematica existia para el `README.md` ni para la estructura general de la carpeta `docs/` que los agentes producen dentro de los proyectos cliente. Cada agente improvisaba — terminaba en READMEs de 30 lineas sin quickstart, o `docs/` planos con 30 archivos sueltos, o `TODO: completar esto` sin owner que envejecia para siempre.
+
+3 skills nuevas coordinadas:
+
+- **`project-readme`** — Como generar el `README.md` del proyecto cliente: 4 preguntas fundamentales (que es, por que importa, como pruebo en 2 min, donde aprendo mas), 18 secciones estandar, 10 reglas no-negociables (cada comando ejecutable, sin TODO sin owner, versiones explicitas, sin lenguaje promocional vacio), adaptacion por modo (`new`/`document`/`continue`) y por stack tecnologico (incluido `legacy-other`). 4 plantillas listas (modo new, modo document, stack legacy, checklist pre-commit). Wired a tech-writer + developer-backend + developer-frontend + tech-lead.
+- **`documentation-quality-bar`** — Los 8 minimos no-negociables que cualquier doc generado debe cumplir antes de marcarse completado: frontmatter de procedencia, comandos validados (no inventados), sin TODO sin owner, links relativos validados, bloques de codigo etiquetados con lenguaje, glosario si tiene >=3 acronimos, indice si > 200 lineas, idioma consistente. Checklist obligatorio + 3 guides (validacion de comandos, ejemplos de frontmatter por tipo de doc, auditoria rapida de gaps). Wired a 9 roles que producen documentacion.
+- **`project-documentation-structure`** — Estructura estandar de `docs/` en proyectos cliente: subcarpetas (`architecture`, `api`, `runbooks`, `user-guides`, `functional`, `deliverables`, `decisions`, `presentations`), indices intermedios obligatorios, convenciones de naming (kebab-case sin tildes, ADRs numerados NNNN), alineacion con MkDocs nav. Adaptacion por modo. 2 guides (skeleton script para generar arbol inicial, formato ADR estandar). Wired a tech-writer + tech-lead + solution-architect + business-analyst + devops.
+
+### Added — Entregables nuevos en fase 4 (Construccion)
+
+- **`project-readme`** (mandatory) — el README.md del proyecto cliente. Responsable: tech-writer. Approver: tech-lead.
+- **`docs-structure-skeleton`** (mandatory) — el esqueleto inicial de `docs/` con README placeholders. Responsable: tech-writer. Approver: tech-lead.
+
+Ambos bloquean la salida de fase 4 si no estan generados — los demas entregables de docs (api-documentation, runbook, etc.) los llenan con contenido a lo largo del proyecto.
+
+### Added — Tests integrales
+
+30 nuevos tests en `tests/integration/project-documentation.test.ts`:
+- Skill `project-readme`: 4 preguntas fundamentales, 18 secciones, 10 reglas, adaptacion por modo, guidance legacy-other, 4 plantillas, wiring.
+- Skill `documentation-quality-bar`: 8 minimos enumerados, checklist, conexion con role-boundaries, wiring a 9 roles, 3 guides.
+- Skill `project-documentation-structure`: arbol estandar, naming + indexing, adaptacion por modo, MkDocs nav, 2 guides, wiring a 5 roles.
+- Phase deliverables: project-readme + docs-structure-skeleton mandatorios en fase 4.
+- Pipeline: las 3 skills propagan a archivos de agente generados, archivos `SKILL.md` se crean en `.opencode/skills/<id>/`.
+- Modo document + legacy-other: las skills llegan al tech-writer del equipo curado.
+- Guard rail: bidireccional sync entre `used_by` y `role.skills`.
+
+Suite total: 476 tests pasando (era 446), typecheck + validate OK, 79 skills (era 76).
+
+### Documentation
+
+- `docs/project-documentation.md` (nuevo): describe el subsistema completo — por que existe, las 3 skills, las 4 preguntas del README, estructura `docs/` estandar, los 8 minimos, entregables nuevos, coordinacion con guard rails existentes, como añadir mejoras a futuro.
+- `README.md` y `docs/README.md` actualizados con la referencia.
+
 ## [0.1.23] — 2026-05-02
 
 ### Added — Stack `legacy-other` + deteccion de PHP / Java desktop / VB6 + fix de fallback silencioso

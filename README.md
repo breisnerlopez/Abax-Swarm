@@ -376,6 +376,7 @@ abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest exist
 | [docs/quality-gates.md](docs/quality-gates.md) | 3 capas anti-mock que cazan implementaciones falsas antes de QA |
 | [docs/role-boundaries.md](docs/role-boundaries.md) | Matriz maestra de roles por fase + protocolo 2-Tasks post-fix |
 | [docs/legacy-stacks.md](docs/legacy-stacks.md) | Stack `legacy-other` para sistemas no modelados (PHP, Java Swing, VB6) + detectores |
+| [docs/project-documentation.md](docs/project-documentation.md) | Cómo los agentes generan el README.md y la carpeta `docs/` en proyectos cliente con calidad consistente |
 | [docs/guides/adding-roles.md](docs/guides/adding-roles.md) | Cómo agregar un rol |
 | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) | Cómo agregar una habilidad |
 | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) | Cómo agregar un stack |
