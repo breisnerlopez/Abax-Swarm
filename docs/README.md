@@ -19,6 +19,7 @@
 | [Project Documentation](./project-documentation.md) | Como los agentes generan README.md y `docs/` en proyectos cliente. 3 skills coordinadas (project-readme, documentation-quality-bar, project-documentation-structure) + 2 entregables nuevos en fase 4 + 8 minimos no-negociables |
 | [Code Naming](./code-naming.md) | Regla "internals en ingles": variables, endpoints, parametros, env vars, tablas SQL siempre en ingles. Skill nueva + 3 skills corregidos + guard rail que escanea YAMLs y falla CI |
 | [Iteration Strategies](./iteration-strategies.md) | Manejo de docs preexistentes (anti-overwrite) + estrategias de iteracion mayor (v2/v3 sobre proyecto cerrado). Producto del incidente Abax-Memory v2 donde el orquestador sobreescribio 8 entregables de v1 silenciosamente |
+| [Delegation Discipline](./delegation-discipline.md) | Cuando usar roles del proyecto vs subagents nativos OpenCode (@explore, @general, @plan, @docs). Matriz de decision + 4 vetos criticos. Producto del incidente donde el orquestador delego exploracion a @explore en lugar de leer project-manifest.yaml directamente |
 | [Roadmap](./roadmap.md) | Tipos de proyecto futuros (audit, migration, onboarding, infra, data, ml, etc.) con priorizacion en tiers y criterios para promover |
 
 ## Guides

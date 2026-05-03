@@ -15,23 +15,46 @@ used_by:
   - tech-lead
 content:
   when_to_use: |
-    - Al inicio de una sesion donde el `bitacora.md` o `CHANGELOG.md` indica que el proyecto cerro previamente.
-    - Cuando el usuario menciona "v2", "v3", "siguiente fase", "evolucion mayor", "nueva iteracion".
+    - Al PRIMER mensaje del usuario, ANTES de delegar exploracion exhaustiva.
+    - Cuando el usuario menciona "v2", "v3", "siguiente fase", "evolucion", "iteracion", "nuevo alcance", "implementar propuesta".
     - Cuando el modo del wizard es `continue` y hay entregables completos en `docs/entregables/`.
+    - Cuando `bitacora.md` o `CHANGELOG.md` indica que el proyecto cerro previamente.
     - ANTES de delegar cualquier entregable de la nueva iteracion.
   instructions: |
-    ## Cuando esta skill aplica
+    ## Atajo de deteccion (lee 3 archivos sin delegar)
 
-    Esta skill se ACTIVA cuando se cumplen DOS condiciones simultaneas:
+    Antes de delegar nada (especialmente NO delegar exploracion exhaustiva
+    a `@explore`), el orquestador lee directamente:
 
-    1. El proyecto tiene historia previa (existe `docs/bitacora.md`,
-       `CHANGELOG.md` con releases, o `docs/entregables/fase-9-cierre/`).
-    2. La sesion actual implica trabajo NUEVO de alcance significativo
-       (no es un fix de bug del v1, es evolucion).
+    1. `project-manifest.yaml` (raiz del proyecto) — te da nombre, tamano, stack,
+       equipo, modo, fases. Es 1 sola lectura, 5 segundos.
+    2. `docs/bitacora.md` (si existe) — te da estado: cerrado/en curso/fase actual.
+    3. `CHANGELOG.md` (si existe) — te da releases publicados (v1.0.0 listada → cerrada).
 
-    Si solo aplica una condicion, esta skill NO se activa:
+    Con esos 3 archivos tienes el 80% del contexto del proyecto. Solo despues
+    decide si necesitas delegar exploracion adicional a `@explore` (skill
+    `delegation-discipline` define cuando es OK).
+
+    ## Cuando esta skill aplica (activacion bloqueante)
+
+    Se ACTIVA cuando se cumplen DOS condiciones simultaneas:
+
+    1. **Proyecto tiene historia previa**: `docs/bitacora.md` existe, o
+       `CHANGELOG.md` lista releases (`## [X.Y.Z]`), o `docs/entregables/fase-9-cierre/`
+       existe, o `project-manifest.yaml` tiene `mode: continue`.
+    2. **Sesion actual implica trabajo NUEVO de alcance significativo**:
+       - Usuario dice "v2", "v3", "iteracion", "evolucion", "siguiente fase", "implementar propuesta"
+       - O el archivo de propuesta menciona "nueva version", "nuevo alcance"
+       - O el cambio afecta dominio del producto (no solo bugs)
+
+    Si AMBAS se cumplen, **DETENTE antes de delegar** y aplica el procedimiento
+    bloqueante de la siguiente seccion. NO delegues exploracion exhaustiva a
+    `@explore` esperando "ver mas" — ya tienes suficiente para decidir
+    estrategia.
+
+    Si solo aplica una condicion:
     - Bug fix sobre v1 cerrado → usa `existing-docs-update-protocol` para
-      actualizar entregables relevantes (cambios menores).
+      actualizar entregables relevantes (cambios menores), no esta skill.
     - Proyecto nuevo desde cero sin historia → flujo cascada normal de Fase 0.
 
     ## Las 4 estrategias de iteracion

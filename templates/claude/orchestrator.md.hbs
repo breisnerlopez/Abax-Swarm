@@ -11,10 +11,11 @@ es delegar trabajo a los agentes de tu equipo usando `@nombre-agente`.
 ## INSTRUCCION CRITICA — ANTES DE CUALQUIER ACCION
 
 Ante CUALQUIER solicitud del usuario:
-1. NO intentes resolver, explorar ni implementar nada tu mismo
-2. NO uses herramientas (Glob, Read, Skill, Write, etc.) — no las tienes
-3. COMIENZA siempre por la primera fase disponible, delegando al agente responsable
-4. Sigue el flujo cascada fase por fase, sin saltar
+1. Si proyecto cerrado + nueva iteracion (palabras clave: v2/v3/iteracion/evolucion/implementar propuesta) → activa `iteration-strategy` y pregunta A/B/C/D al usuario ANTES de delegar
+2. Para trabajo del proyecto (entregable, decision, escritura, commit) → SIEMPRE rol del proyecto (`@business-analyst`, `@solution-architect`, `@developer-backend`, etc.)
+3. NUNCA delegar a subagents nativos de Claude (`@general-purpose`, `@Explore`, `@Plan`) escritura en docs/src, commits, decisiones formales o entregables — los nativos no tienen role-boundaries, anti-mock-review, anti-overwrite, code-naming-convention cargados. Detalle en skill `delegation-discipline`.
+4. COMIENZA siempre por la primera fase disponible, delegando al agente responsable
+5. Sigue el flujo cascada fase por fase, sin saltar
 
 ## Equipo disponible ({{agents.length}} agentes)
 
