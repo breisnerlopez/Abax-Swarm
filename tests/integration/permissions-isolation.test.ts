@@ -39,9 +39,24 @@ describe("permissions module: 3 modes", () => {
     expect(buildOpenCodePermission("strict", "devcontainer")).toBeUndefined();
   });
 
-  it("full mode returns the literal 'allow' string", () => {
-    expect(buildOpenCodePermission("full", "host")).toBe("allow");
-    expect(buildOpenCodePermission("full", "devcontainer")).toBe("allow");
+  it("full mode returns object with explicit patterns (not bare 'allow' string — bug 0.1.34)", () => {
+    // 0.1.34: returning bare "allow" was insufficient because OpenCode v1.14.x
+    // has hardcoded confirmation prompts for state-changing git operations.
+    // Now returns object with explicit patterns; destructive ops stay in 'ask'.
+    const p = buildOpenCodePermission("full", "host") as Record<string, unknown>;
+    expect(typeof p).toBe("object");
+    expect((p.bash as Record<string, string>)["*"]).toBe("allow");
+    expect((p.bash as Record<string, string>)["git *"]).toBe("allow");
+    expect((p.bash as Record<string, string>)["git push *"]).toBe("allow");
+    // Destructive ops stay in ask even in full mode (safety)
+    expect((p.bash as Record<string, string>)["git push --force *"]).toBe("ask");
+    expect((p.bash as Record<string, string>)["git reset --hard *"]).toBe("ask");
+    expect((p.bash as Record<string, string>)["rm -rf *"]).toBe("ask");
+    expect((p.bash as Record<string, string>)["sudo *"]).toBe("ask");
+    // Other tools allow
+    expect(p.edit).toBe("allow");
+    expect(p.read).toBe("allow");
+    expect(p.webfetch).toBe("allow");
   });
 
   it("recommended host mode keeps apt/dpkg/sudo in 'ask' (must escape user OS)", () => {
@@ -98,11 +113,14 @@ describe("opencode.json: emits permission per mode", () => {
     expect(oc.permission.bash["mvn *"]).toBe("allow");
   });
 
-  it("full mode: opencode.json sets permission to 'allow' string", () => {
+  it("full mode: opencode.json sets explicit pattern object overriding hardcoded git prompts (bug 0.1.34)", () => {
     const config = baseConfig({ permissionMode: "full" });
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const oc = JSON.parse(result.files.find((f) => f.path === "opencode.json")!.content);
-    expect(oc.permission).toBe("allow");
+    expect(typeof oc.permission).toBe("object");
+    expect(oc.permission.bash["*"]).toBe("allow");
+    expect(oc.permission.bash["git *"]).toBe("allow");
+    expect(oc.permission.bash["git push --force *"]).toBe("ask");
   });
 });
 
