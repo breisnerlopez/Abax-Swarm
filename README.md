@@ -341,7 +341,8 @@ abax-swarm init --dry-run                    # vista previa sin escribir
 abax-swarm roles                             # listar roles disponibles
 abax-swarm stacks                            # listar stacks
 abax-swarm validate                          # validar los YAML de data/
-abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest existente
+abax-swarm regenerate                        # regenerar desde manifest (carpeta actual)
+abax-swarm regenerate --dir /ruta/proyecto   # o especificar otra carpeta
 ```
 
 ---

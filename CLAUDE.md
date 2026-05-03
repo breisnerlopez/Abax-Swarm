@@ -34,7 +34,8 @@ npm run dev -- init
 npm run dev -- roles
 npm run dev -- stacks
 npm run dev -- validate
-npm run dev -- regenerate --dir /path/to/project
+npm run dev -- regenerate                   # carpeta actual
+npm run dev -- regenerate --dir /path/to/project   # otra carpeta
 ```
 
 ## Architecture

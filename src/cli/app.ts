@@ -88,8 +88,8 @@ program
 
 program
   .command("regenerate")
-  .description("Regenera el orquestador y archivos desde un project-manifest.yaml existente")
-  .option("-d, --dir <path>", "Directorio del proyecto", ".")
+  .description("Regenera el orquestador y archivos desde un project-manifest.yaml existente (carpeta actual por defecto)")
+  .option("-d, --dir <path>", "Directorio del proyecto (default: carpeta actual)", ".")
   .option("--dry-run", "Vista previa sin escribir archivos", false)
   .action((opts) => {
     try {
