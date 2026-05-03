@@ -9,6 +9,7 @@ import { loadDataContext } from "./data-context.js";
 import { runWizard } from "./wizard.js";
 import { runSelection, runPipeline, writePipeline } from "./pipeline.js";
 import { printBanner, printRoleTable, printStackTable, printFileList, printSuccess } from "./format.js";
+import { detectProjectContext } from "../engine/project-context.js";
 import type { ProjectConfig } from "../engine/types.js";
 
 // Read version from package.json so the binary always matches the published
@@ -104,6 +105,12 @@ program
       const manifest = yamlParse(readFileSync(manifestPath, "utf-8"));
       const ctx = loadDataContext();
 
+      // Re-run context detection so the orchestrator template emits the
+      // existingDocs/hasGit conditional blocks (anti-overwrite, distributed git).
+      // Bug 0.1.27 and earlier: regenerate omitted detection -> the reinforced
+      // anti-overwrite block of 0.1.26 never reached the orchestrator.md.
+      const detection = detectProjectContext(dir);
+
       const config: ProjectConfig = {
         name: manifest.project.name,
         description: manifest.project.description ?? "",
@@ -115,8 +122,10 @@ program
         teamScope: manifest.project.team_scope ?? "full",
         provider: manifest.project.provider ?? "anthropic",
         modelStrategy: manifest.project.model_strategy ?? "custom",
+        mode: manifest.project.mode,
         permissionMode: manifest.project.permission_mode ?? "recommended",
         isolationMode: manifest.project.isolation_mode ?? "devcontainer",
+        detection,
       };
 
       const selection = runSelection(config, ctx);

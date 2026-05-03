@@ -6,6 +6,22 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.28] — 2026-05-03
+
+### Fixed — `regenerate` no ejecutaba detection (anti-overwrite block nunca llegaba al orchestrator)
+
+Bug latente desde 0.1.16 (cuando se introdujo `existingDocs`): el comando `regenerate` construia el `ProjectConfig` desde `project-manifest.yaml` pero **omitia `detectProjectContext()`**. Resultado: `config.detection` quedaba `undefined`, y por lo tanto `flags.existingDocs`/`flags.hasGit` eran `undefined` en el orchestrator generator. Los bloques condicionales `{{#if existingDocs}}` y `{{#if hasGit}}` del template **nunca se renderizaban en proyectos regenerados**.
+
+Impacto especifico tras 0.1.26: la seccion reforzada **anti-overwrite con plantilla literal `ATENCION — POSIBLE ARCHIVO PREEXISTENTE`** no llegaba al orchestrator.md aunque el proyecto tuviera docs preexistentes — exactamente el escenario para el que se diseno. Solo la Capa B (skill cargada en sub-agents) funcionaba.
+
+Fix: `regenerate` ahora corre `detectProjectContext(dir)` y pasa el resultado en `config.detection`. Tambien lee `manifest.project.mode` (que tampoco se respetaba antes).
+
+2 tests nuevos en `tests/integration/regenerate-detection.test.ts` que ejecutan el binario real contra fixtures temporales:
+- Con docs/*.md preexistentes → orchestrator.md DEBE contener `Protocolo de actualizacion`, `anti-overwrite`, `ATENCION — POSIBLE`, `iteration-strategy`.
+- Sin docs/*.md → orchestrator.md NO debe contener ninguno de los anteriores.
+
+Suite total: **517 tests pasando** (era 515).
+
 ## [0.1.27] — 2026-05-03
 
 ### Changed — Help y docs de `regenerate` aclaran que `--dir` es opcional (default carpeta actual)
