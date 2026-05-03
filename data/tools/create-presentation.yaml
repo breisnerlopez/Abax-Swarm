@@ -57,10 +57,18 @@ implementation:
       kickoff: "Kickoff",
       "go-live": "Go-Live Readiness",
     };
-    const typeLabel = typeLabels[args.presentation_type] ?? args.presentation_type;
+    // Defaults at runtime — the OpenCode plugin doesn't always apply tool.schema defaults
+    // when the LLM omits the arg. Without this, `args.presentation_type === undefined`
+    // and `escape(undefined)` would throw `s.replace is not a function` (real incident
+    // 2026-05-03 ses_21088afdeffe... when BA omitted presentation_type creating the
+    // Discovery v2 presentation).
+    const presentationType = args.presentation_type ?? "status";
+    const audience = args.audience ?? "executive";
+    const typeLabel = typeLabels[presentationType] ?? presentationType;
 
-    const escape = (s: string): string =>
-      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    // Defensive escape: tolerate undefined/null inputs by coercing to empty string.
+    const escape = (s: unknown): string =>
+      String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
     // Minimal markdown → HTML for slide bodies. Lines: # → h1, ## → h2, ### → h3,
     // - / * → ul, | → table, > → blockquote, blank → paragraph break.
@@ -102,7 +110,7 @@ implementation:
 
     const meta: string[] = [
       `<p><strong>Tipo:</strong> ${escape(typeLabel)}</p>`,
-      `<p><strong>Audiencia:</strong> ${escape(args.audience)}</p>`,
+      `<p><strong>Audiencia:</strong> ${escape(audience)}</p>`,
       `<p><strong>Fecha:</strong> ${date}</p>`,
     ];
     if (args.phase) meta.push(`<p><strong>Fase:</strong> ${escape(args.phase)}</p>`);
