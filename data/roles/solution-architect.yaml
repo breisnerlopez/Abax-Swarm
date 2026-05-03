@@ -81,6 +81,7 @@ skills:
 
   - documentation-quality-bar
   - project-documentation-structure
+  - code-naming-convention
 tools:
   - generate-diagram
   - create-presentation

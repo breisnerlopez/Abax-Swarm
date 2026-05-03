@@ -60,7 +60,7 @@ Four layers, strict data flow from left to right:
 
 ## Conventions
 
-- **Code in English, UI/content in Spanish**: Variable names, functions, types in English. YAML content (agent prompts, skill instructions, TUI text) in Spanish.
+- **Code in English, UI/content in Spanish**: ALL identifiers — variables, functions, classes, endpoints, query/path params, env vars, SQL tables/columns, JSON/YAML keys, branches, code filenames — go in English. YAML *content* (agent prompts, skill instructions, TUI text) goes in Spanish, but when the prompts CITE identifiers they cite them in English. Enforced by skill `code-naming-convention` and guard rail `tests/integration/code-naming-convention.test.ts` which scans `data/*.yaml` and fails CI on Spanish-mixed identifiers (with documented exemptions for legacy DB tables, public APIs and dominio terms like RUC/CURP). See `docs/code-naming.md`.
 - **IDs are kebab-case**: `developer-backend`, `functional-analysis`, `react-nextjs`.
 - **Zod schemas are the single source of truth** for types: `Role`, `Skill`, `Tool`, `Stack` all inferred from Zod schemas in `schemas.ts`.
 - **Tests mirror source structure**: `tests/unit/engine/` tests `src/engine/`, `tests/unit/generator/` tests `src/generator/`, etc.

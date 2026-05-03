@@ -101,6 +101,7 @@ skills:
   - reverse-engineering
 
   - documentation-quality-bar
+  - code-naming-convention
 tools:
   - generate-diagram
   - db-migrate

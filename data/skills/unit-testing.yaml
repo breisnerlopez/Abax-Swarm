@@ -31,7 +31,7 @@ content:
        - No acceder a bases de datos, archivos ni red en pruebas unitarias.
     5. Nombrar las pruebas de forma descriptiva:
        - Formato: `metodo_escenario_resultadoEsperado`
-       - Ejemplo: `calcularDescuento_montoMayorA1000_retorna10Porciento`
+       - Ejemplo: `calculateDiscount_amountOver1000_returns10Percent`
     6. Ejecutar las pruebas y verificar que todas pasan antes de hacer commit.
     7. Revisar la cobertura de codigo y cubrir ramas no alcanzadas.
   guides:

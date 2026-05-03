@@ -59,6 +59,7 @@ skills:
   - regression-automation
   - ci-cd-pipeline
 
+  - code-naming-convention
 tools:
   - run-tests
   - lint-code

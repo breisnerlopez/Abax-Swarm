@@ -108,6 +108,7 @@ skills:
 
   - project-readme
   - documentation-quality-bar
+  - code-naming-convention
 tools:
   - run-tests
   - lint-code
