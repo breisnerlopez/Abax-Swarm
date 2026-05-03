@@ -148,6 +148,10 @@ iteraciones:
 Para activar las dos skills nuevas en un proyecto generado en versiones previas, regenerar:
 
 ```bash
+# Desde dentro de la carpeta del proyecto:
+abax-swarm regenerate
+
+# O apuntando a otra carpeta:
 abax-swarm regenerate --dir /ruta/proyecto
 ```
 

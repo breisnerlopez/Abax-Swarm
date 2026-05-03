@@ -6,6 +6,14 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.27] — 2026-05-03
+
+### Changed — Help y docs de `regenerate` aclaran que `--dir` es opcional (default carpeta actual)
+
+`abax-swarm regenerate` ya soportaba ejecutarse sin `--dir` (default `.`), pero el README, CLAUDE.md, docs/iteration-strategies.md y la descripcion de `--help` del comando lo presentaban siempre con `--dir <path>` como si fuera obligatorio. Ajustado para mostrar las dos formas: `abax-swarm regenerate` (carpeta actual) y `abax-swarm regenerate --dir /ruta/proyecto` (otra carpeta).
+
+Sin cambios funcionales — solo claridad de documentacion y `--help`.
+
 ## [0.1.26] — 2026-05-03
 
 ### Fixed — Sobrescritura silenciosa de docs preexistentes en iteracion v2 (incidente Abax-Memory v2)
