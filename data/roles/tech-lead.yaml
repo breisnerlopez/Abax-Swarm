@@ -92,6 +92,7 @@ skills:
   - code-naming-convention
   - existing-docs-update-protocol
   - iteration-strategy
+  - delegation-discipline
 tools:
   - lint-code
   - run-tests

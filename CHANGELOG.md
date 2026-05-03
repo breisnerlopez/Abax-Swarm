@@ -6,6 +6,46 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.29] — 2026-05-03
+
+### Added — Skill `delegation-discipline` (cuando nativos OpenCode vs roles del proyecto)
+
+En la sesion `ses_210f79b8effe...` (2026-05-03 18:09 UTC) el orquestador procesando una propuesta v2.0.0 sobre Abax-Memory delego exploracion exhaustiva a `@explore` (3+ minutos) y lectura de la propuesta a `@general` — ambos subagents nativos de OpenCode que NO tienen cargadas las skills criticas (role-boundaries, anti-mock-review, existing-docs-update-protocol, code-naming-convention, git-collaboration, documentation-quality-bar, iteration-strategy). Bypassed todo el sistema de salvaguardas que llevamos 0.1.19-0.1.28 construyendo.
+
+Decision arquitectural: **NO prohibir los nativos** (tienen usos legitimos donde su eficiencia justifica), sino **priorizar roles del proyecto** y vetar nativos en 4 casos criticos.
+
+Skill nueva `delegation-discipline` asignada a 6 roles coordinadores (project-manager, product-owner, business-analyst, tech-writer, solution-architect, tech-lead) con:
+
+- **Matriz de decision** de 12 filas: cuando rol del proyecto vs cuando nativo OK.
+- **4 vetos criticos** para nativos: (1) `write`/`edit` en docs/src/raiz, (2) `git commit`/`push`, (3) decisiones formales con approver RACI (ADRs, specs), (4) entregables formales de `phase-deliverables.yaml`.
+- **Atajo de deteccion**: leer `project-manifest.yaml` + `docs/bitacora.md` + `CHANGELOG.md` directamente (sin Task) antes de delegar exploracion. 80% del contexto en 3 reads.
+- 3 guides: ejemplos de nativos permitidos, ejemplos prohibidos, heuristicas rapidas (decision en 5 segundos).
+
+### Changed — `iteration-strategy` reforzado con activacion temprana
+
+`when_to_use` ahora incluye "PRIMER mensaje del usuario" + palabras clave `implementar propuesta`. `instructions` ampliadas con seccion "Atajo de deteccion" (leer manifest + bitacora + changelog antes de delegar) e instruccion explicita "NO delegues exploracion exhaustiva a `@explore` esperando ver mas — ya tienes suficiente para decidir estrategia".
+
+### Changed — Orchestrator template (opencode + claude)
+
+Sección nueva "ROLES DEL PROYECTO vs SUBAGENTS NATIVOS" que incluye:
+- Tabla de 5 casos donde nativos son OK (busqueda, lookup, bosquejo, sintesis, lectura individual)
+- Tabla de 4 vetos donde nativos NO se permiten (write, commit, decision RACI, entregable formal)
+- Atajo "Lee el manifest antes de explorar"
+- Instruccion critica reordenada: paso 1 lee manifest; paso 2 activa iteration-strategy si aplica; pasos 3-7 delega segun matriz
+
+CLAUDE.md template recibe la misma logica condensada.
+
+### Added — Tests integrales
+
+18 nuevos tests en `tests/integration/delegation-discipline.test.ts` cubriendo: skill content (matriz, 4 vetos, atajo, 3 guides), iteration-strategy reforzado, orchestrator template (sección ROLES vs NATIVOS, 4 vetos en template, atajo manifest, activacion iteration-strategy), CLAUDE.md template, pipeline (skill llega a agentes, SKILL.md generado), bidireccional sync.
+
+Suite total: **535 tests pasando** (era 517), typecheck + validate OK, **83 skills** (era 82).
+
+### Documentation
+
+- `docs/delegation-discipline.md` (nuevo): sintoma, causa raiz, decision "priorizar no prohibir", matriz, 4 vetos, refuerzo iteration-strategy, refuerzo orchestrator template, ejemplo paso a paso del flujo correcto.
+- `README.md` y `docs/README.md` actualizados (7 guard rails ahora visibles, era 6).
+
 ## [0.1.28] — 2026-05-03
 
 ### Fixed — `regenerate` no ejecutaba detection (anti-overwrite block nunca llegaba al orchestrator)

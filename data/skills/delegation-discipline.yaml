@@ -1,0 +1,278 @@
+id: delegation-discipline
+name: Disciplina de Delegacion (roles del proyecto vs nativos OpenCode)
+description: >
+  Cuando el orquestador delega via Task, debe decidir si delega a un rol del
+  proyecto (developer-backend, business-analyst, etc.) o a un subagent nativo
+  de OpenCode (@explore, @general, @plan, @docs). Esta skill define la matriz
+  de decision y los 4 vetos criticos donde NUNCA se permite usar nativos.
+  Nacida del incidente Abax-Memory v2 (mayo 2026) donde el orquestador delego
+  exploracion exhaustiva a @explore antes de activar iteration-strategy y
+  procesar la propuesta con el rol correcto.
+used_by:
+  - project-manager
+  - product-owner
+  - business-analyst
+  - tech-writer
+  - solution-architect
+  - tech-lead
+content:
+  when_to_use: |
+    - SIEMPRE antes de delegar via Task (verifica si la tarea cabe en un rol del proyecto o si justifica nativo).
+    - Cuando una tarea parezca "simple" o "exploratoria" y la tentacion sea usar @general o @explore.
+    - Cuando recibes el primer prompt del usuario y debes decidir como arrancar.
+  instructions: |
+    ## Principio fundamental
+
+    Los roles del proyecto (project-manager, business-analyst, developer-backend,
+    devops, etc.) cargan skills criticas: `role-boundaries`, `anti-mock-review`,
+    `existing-docs-update-protocol`, `code-naming-convention`, `git-collaboration`,
+    `documentation-quality-bar`, `iteration-strategy`. Los subagents nativos de
+    OpenCode (`@explore`, `@general`, `@plan`, `@docs`) **NO tienen ninguna de
+    esas skills cargadas**.
+
+    Por lo tanto:
+    - **Trabajo del proyecto** (entregables, decisiones, escritura) → SIEMPRE roles del proyecto.
+    - **Trabajo de soporte** (busqueda, lookup, exploracion read-only) → nativos OK porque son mas rapidos y eficientes.
+
+    Esto NO es prohibir los nativos. Es **priorizar roles del proyecto** para
+    todo lo que produce valor entregable, y **reservar nativos** para tareas
+    de soporte donde sus herramientas optimizadas justifican el uso.
+
+    ## Matriz de decision
+
+    | Tipo de trabajo | Quien lo hace | Razon |
+    |---|---|---|
+    | Entregables formales (vision-producto.md, source-code, runbook, ADR, etc.) | **Solo roles del proyecto** | Necesitan role-boundaries + approver RACI + skills de calidad |
+    | Decisiones formales (spec funcional, arquitectura, plan despliegue) | **Solo roles del proyecto** | Necesitan approver formal y trazabilidad |
+    | Modificacion de archivos en `docs/` (preexistentes o nuevos) | **Solo roles del proyecto** | Necesitan `existing-docs-update-protocol` + `documentation-quality-bar` |
+    | Modificacion de archivos en `src/` o cualquier codigo de produccion | **Solo roles del proyecto** | Necesitan `code-naming-convention` + `anti-mock-review` + tests |
+    | `git commit` / `git push` / cualquier operacion git | **Solo roles del proyecto** con bash y `git-collaboration` | Distributed flow + branch convention |
+    | Validacion contra spec / criterios de aceptacion | **Solo roles del proyecto** | Necesitan el sesgo del rol (BA, qa-functional) |
+    | Aprobacion de fase / gate | **Solo roles del proyecto** segun RACI | El approver debe estar definido por el RACI del proyecto |
+    | Exploracion read-only del codebase (grep, find, list) | `@explore` permitido (mas eficiente) | No produce entregables, no modifica nada |
+    | Research de librerias externas / documentacion oficial | `@docs` permitido | Lookup, no decision |
+    | Bosquejo exploratorio (lluvia de ideas, no compromete decision) | `@plan` permitido | Brainstorm previo, NO ADR formal |
+    | Resumen multi-tema sin entregable (status, comparativa) | `@general` permitido si NO escribe en docs/src ni hace commit | Coordinacion liviana |
+    | Lectura individual de un archivo conocido | El orquestador lo hace directamente con `read` (no necesita Task) | Innecesario delegar |
+
+    ## Los 4 vetos criticos para nativos
+
+    Cualquier nativo de OpenCode (`@explore`, `@general`, `@plan`, `@docs`)
+    NO puede hacer NINGUNA de estas 4 cosas, sin excepciones:
+
+    ### Veto 1 — `write` o `edit` en `docs/`, `src/`, raiz del proyecto
+
+    Si la tarea implica escribir o modificar un archivo del proyecto, va a un
+    rol del proyecto (BA para spec funcional, dev para codigo, tech-writer
+    para README, etc.).
+
+    Por que: los nativos no tienen `existing-docs-update-protocol` ni
+    `code-naming-convention` ni `documentation-quality-bar`. Sobrescribirian
+    archivos preexistentes silenciosamente o usarian convenciones inconsistentes.
+
+    ### Veto 2 — `git commit` o `git push`
+
+    Cualquier operacion de version control va a un rol del proyecto con
+    `bash: allow|ask` y skill `git-collaboration` (devops, developer-*, dba,
+    tech-lead).
+
+    Por que: distributed flow exige rama `abax/<project>`, autoria correcta
+    (`--author <rol> <rol@abax-swarm>`), prohibido force push, prohibido
+    commit a main. Los nativos no respetarian la convencion.
+
+    ### Veto 3 — Decision formal que requiere approver RACI
+
+    ADRs, spec funcional, plan de despliegue, aprobacion de fase, criterios
+    de aceptacion — todo lo que la matriz RACI marca con `R`/`A` para un rol
+    especifico va a ese rol.
+
+    Por que: el approver formal queda registrado en el frontmatter del
+    entregable. Si lo produjo `@general`, no hay approver — el entregable
+    es invalido.
+
+    ### Veto 4 — Produccion de entregable formal de fase
+
+    Lista en `data/rules/phase-deliverables.yaml`. Si el output de la Task
+    es uno de esos entregables, va al `responsible` definido alli.
+
+    Por que: el sistema de fases asume que cada entregable tiene responsable
+    y approver del proyecto. Bypass = perdida de trazabilidad.
+
+    ## Anti-patrones detectados (incidente Abax-Memory v2, mayo 2026)
+
+    En la sesion `ses_210f79b8effe...`, el orquestador procesando la propuesta
+    de v2.0.0 cometio estos errores:
+
+    1. **Delego exploracion exhaustiva a `@explore`** (3 minutos) cuando podia
+       leer `project-manifest.yaml` directamente (1 read, 5 segundos) y obtener
+       el 80% del contexto: nombre, tamano, stack, equipo, fases, configuracion.
+    2. **Delego lectura de la propuesta a `@general`** cuando ese archivo
+       deberia leerlo el `business-analyst` como entregable formal de
+       Discovery (es input al Documento de Vision).
+    3. **No activo `iteration-strategy`** despues de la exploracion — siguio
+       directo a delegar entregables sin preguntar A/B/C/D.
+
+    Resultado: 3+ minutos perdidos en exploracion redundante, contexto
+    fragmentado entre nativos y rol futuro, sin politica de iteracion definida.
+
+    ## Procedimiento correcto (lo que el orquestador debe hacer)
+
+    Al recibir el primer prompt del usuario:
+
+    ### 1. Lee `project-manifest.yaml` directamente (atajo, sin delegar)
+
+    Te da: nombre, descripcion, tamano, stack, equipo, modo, fases. Es 1 sola
+    lectura, no requiere Task.
+
+    ### 2. Lee `docs/bitacora.md` y `CHANGELOG.md` si existen (atajo, sin delegar)
+
+    Te da: estado del proyecto (cerrado, en curso, fase actual).
+
+    ### 3. Activa skills si corresponde
+
+    - Si proyecto cerrado + nueva iteracion mayor → activa `iteration-strategy`,
+      pregunta A/B/C/D ANTES de cualquier delegacion.
+    - Si docs/ tiene archivos → recuerda que cada Task que escriba en ellos
+      debe llevar el bloque ATENCION (skill `existing-docs-update-protocol`).
+
+    ### 4. Para tareas que SI delegues:
+
+    - **Trabajo del proyecto** → rol del proyecto correspondiente.
+    - **Lookup/exploracion read-only adicional** → nativos si justifica.
+
+    ### 5. Si dudas si una tarea cabe en un rol del proyecto:
+
+    Asume que SI cabe (default seguro). Solo usa nativo si la tarea es
+    indiscutiblemente de soporte read-only (grep en muchos archivos,
+    busqueda de docs externos).
+
+    ## Coordinacion con otras skills
+
+    - **`role-boundaries`**: define QUE rol del proyecto es responsable de cada
+      actividad. Esta skill define CUANDO usar rol del proyecto (siempre que
+      caiga en los vetos) vs nativo.
+    - **`iteration-strategy`**: si se activa, define la politica de docs ANTES
+      de delegar. Esta skill complementa: una vez decidida la estrategia,
+      las delegaciones siguen las reglas de aqui.
+    - **`existing-docs-update-protocol`**: el sub-agent del proyecto que recibe
+      Task con write en docs/ aplica el protocolo. Esta skill garantiza que
+      esa Task vaya a un rol del proyecto, NO a un nativo.
+    - **`anti-mock-review`**: el tech-lead revisa entregables de codigo.
+      Solo aplica si el codigo lo escribio un rol del proyecto. Si lo escribio
+      `@general`, no hay quien lo revise.
+  guides:
+    - name: ejemplos-nativos-permitidos
+      content: |
+        ## Casos donde @explore / @general / @plan / @docs son OK
+
+        ### `@explore`: busqueda eficiente sin context overhead
+
+        > "Busca en el codebase todas las llamadas a `OpenAI.completions.create`
+        > para ver donde se usa el modelo legacy."
+
+        OK porque: read-only, no produce entregable, herramienta optimizada
+        para grep masivo. Un developer-backend cargaria todo su contexto
+        (system_prompt, skills, stack overrides) para hacer un grep.
+
+        ### `@docs`: lookup de libreria externa
+
+        > "Mira la doc oficial de Quarkus 3.20 sobre native-image y resume
+        > los breaking changes desde 3.10."
+
+        OK porque: research externo, no decision arquitectural, no escribe
+        en proyecto. Solo si despues va a producir un ADR (decision), eso si
+        va al solution-architect.
+
+        ### `@plan`: bosquejo previo, NO ADR
+
+        > "Bosqueja como podria estructurarse el motor de perfiles de
+        > dominio (3 alternativas) antes de que el solution-architect tome
+        > la decision formal."
+
+        OK porque: explorar opciones, NO comprometer una decision. El
+        solution-architect leera el bosquejo y producira el ADR formal.
+
+        ### `@general`: resumen multi-area sin entregable
+
+        > "Resume el estado actual de los 5 entregables de fase 4 que estan
+        > en revision para que pueda decidir si avanzo a fase 5."
+
+        OK porque: lectura multi-area + sintesis, no produce ningun documento,
+        no toma decision. El orquestador usa el resumen para decidir.
+
+    - name: ejemplos-nativos-prohibidos
+      content: |
+        ## Casos donde nativos VIOLARIAN un veto y deben rechazarse
+
+        ### Veto 1 violado — escritura en docs/
+
+        > "@general escribe el documento de vision del producto en
+        > `docs/entregables/fase-0-descubrimiento/vision-producto.md`"
+
+        MAL: escribe en docs/, sin `existing-docs-update-protocol` (puede
+        sobreescribir v1), sin frontmatter de procedencia
+        (`documentation-quality-bar`), sin approver RACI.
+
+        Correcto: `@business-analyst` con instruccion de seguir
+        `existing-docs-update-protocol` si el archivo preexiste.
+
+        ### Veto 2 violado — git commit
+
+        > "@general haz commit del archivo nuevo y push a main"
+
+        MAL: no respeta rama `abax/<project>`, no usa `--author`, podria
+        hacer push a main directamente.
+
+        Correcto: `@devops` o el `@developer-backend` que lo escribio,
+        siguiendo `git-collaboration`.
+
+        ### Veto 3 violado — decision formal
+
+        > "@plan decide cual es la mejor arquitectura entre microservicios
+        > y modular monolito y registra la decision como ADR."
+
+        MAL: ADR es decision formal con approver. `@plan` puede bosquejar
+        opciones pero NO firmar la decision.
+
+        Correcto: `@solution-architect` produce ADR-NNNN con approver
+        `@tech-lead`.
+
+        ### Veto 4 violado — entregable formal
+
+        > "@explore lee la propuesta y produce el Documento de Vision."
+
+        MAL: Documento de Vision es entregable formal de fase 0 (esta en
+        `phase-deliverables.yaml`), responsible business-analyst.
+
+        Correcto: `@explore` puede leer la propuesta y devolver un resumen
+        al orquestador. El orquestador delega despues a `@business-analyst`
+        para producir el entregable formal.
+
+    - name: heuristicas-rapidas
+      content: |
+        ## Heuristicas rapidas para decidir en 5 segundos
+
+        Pregunta 1: ¿La Task escribira algo en `docs/` o `src/`?
+        - SI → rol del proyecto (no negociable, Veto 1)
+        - NO → continua
+
+        Pregunta 2: ¿La Task hara `git commit` o `push`?
+        - SI → rol del proyecto con bash + git-collaboration (Veto 2)
+        - NO → continua
+
+        Pregunta 3: ¿La Task producira un entregable de phase-deliverables.yaml?
+        - SI → rol del proyecto definido como `responsible` (Veto 4)
+        - NO → continua
+
+        Pregunta 4: ¿La Task tomara una decision formal con approver RACI?
+        - SI → rol del proyecto (Veto 3)
+        - NO → continua
+
+        Pregunta 5: ¿La Task es exploracion/lookup/research read-only?
+        - SI → nativo OK (`@explore` para grep, `@docs` para lookup externo,
+          `@plan` para bosquejo, `@general` para sintesis multi-area)
+        - NO → rol del proyecto por default (caso ambiguo, default seguro)
+
+        Pregunta 6 (atajo): ¿Necesitas info del proyecto en general?
+        - LEE `project-manifest.yaml`, `docs/bitacora.md`, `CHANGELOG.md`
+          DIRECTAMENTE sin delegar. Es el camino mas corto.
