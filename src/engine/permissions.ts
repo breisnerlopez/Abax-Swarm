@@ -22,30 +22,28 @@ export function buildOpenCodePermission(
 ): unknown | undefined {
   if (mode === "strict") return undefined;
   if (mode === "full") {
-    // Bug fix in 0.1.34: returning string "allow" was insufficient. OpenCode
-    // v1.14.x has hardcoded confirmation prompts for state-changing git
-    // operations (`git checkout -b`, `git commit`, `git push`, etc.) that
-    // bypass the simple string permission. The user got "vuelve a pedir
-    // permisos" despite picking `full`. Returning an explicit pattern object
-    // overrides those prompts. Destructive ops (force push, hard reset, rm
-    // -rf, sudo) stay in `ask` for safety even in full mode — full bypass of
-    // those is too risky to enable by default.
+    // Bug fix in 0.1.35: 0.1.34 returned object with explicit per-tool keys
+    // (bash/edit/read/glob/grep/webfetch/external_directory) but FORGOT the
+    // ROOT-level `"*": "allow"` catch-all. OpenCode docs:
+    //   "Rules are evaluated by pattern match, with the last matching rule
+    //    winning. Common pattern: catch-all '*' first, then more specific."
+    // Without the root `"*"`, tools NOT listed (task, skill, websearch, write,
+    // patch, todowrite, notebookedit, etc.) fell to their per-tool default of
+    // `ask`. User reported "echo me pide permisos" — actually internal tools
+    // not listed in 0.1.34 were prompting.
+    //
+    // Fix: include `"*": "allow"` at root for tools not explicitly listed,
+    // and only override `bash` with patterns to keep destructive ops in `ask`.
     return {
+      "*": "allow",
       bash: {
         "*": "allow",
-        "git *": "allow",
-        "git push *": "allow",
         "git push --force *": "ask",
         "git push -f *": "ask",
         "git reset --hard *": "ask",
         "rm -rf *": "ask",
         "sudo *": "ask",
       },
-      edit: "allow",
-      read: "allow",
-      glob: "allow",
-      grep: "allow",
-      webfetch: "allow",
       external_directory: "allow",
     };
   }
