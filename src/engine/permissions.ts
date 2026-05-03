@@ -22,30 +22,27 @@ export function buildOpenCodePermission(
 ): unknown | undefined {
   if (mode === "strict") return undefined;
   if (mode === "full") {
-    // 0.1.36: el usuario solicito explicitamente "no quiero que git pregunte".
-    // Removidos los patterns de git destructivos (git push --force, git reset
-    // --hard) del ask list. En full mode todo git pasa sin confirmacion.
-    // Mantenidos solo `rm -rf *` y `sudo *` como salvaguardas sistema-wide
-    // (no son git, son destructivos del filesystem/permisos).
+    // 0.1.37: full = TOTAL bypass por decision del usuario.
+    // Solicitud explicita: "esa opcion es la de permisos completos, esa es
+    // la que deberia setearll" — full debe significar full sin asteriscos.
     //
-    // Si necesitas que TODO bypass — incluyendo rm -rf y sudo — usa
-    // `permission: "allow"` (string) directamente en tu opencode.json o el
-    // global `~/.config/opencode/opencode.json`. Es el bypass total.
+    // Cero patterns en `ask`. Estructura objeto explicita para evitar el bug
+    // de OpenCode v1.14.x con hardcoded git prompts (que ocurria con string
+    // "allow" en 0.1.13-0.1.33).
     //
-    // Historia del bug:
-    // - 0.1.13-0.1.33: full devolvia string "allow" -> OpenCode v1.14.x
-    //   pedia confirmacion para git checkout -b, etc. (prompts hardcoded).
-    // - 0.1.34: cambio a objeto explicito pero faltaba root "*" catch-all
-    //   -> tools no listadas (task, skill, write) caian a ask.
-    // - 0.1.35: agregado root "*": allow, mantenia git destructivos en ask.
-    // - 0.1.36: removidos todos los patterns git, solo rm -rf y sudo en ask.
+    // Si el usuario quiere alguna salvaguarda (ej. preservar rm -rf en ask),
+    // usar mode `recommended` que tiene safety patterns extensos por defecto.
+    // `full` es opt-in explicito a "no me pidas nada, se lo que hago".
+    //
+    // Historia:
+    // - 0.1.13-0.1.33: full devolvia string "allow" -> bug v1.14.x con git.
+    // - 0.1.34: objeto explicito sin root catch-all -> echo pedia permission.
+    // - 0.1.35: agregado root "*", git destructivos en ask.
+    // - 0.1.36: removidos git destructivos, solo rm -rf y sudo en ask.
+    // - 0.1.37: removidos rm -rf y sudo. Full = full. Sin asteriscos.
     return {
       "*": "allow",
-      bash: {
-        "*": "allow",
-        "rm -rf *": "ask",
-        "sudo *": "ask",
-      },
+      bash: { "*": "allow" },
       external_directory: "allow",
     };
   }

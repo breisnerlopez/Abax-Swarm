@@ -39,23 +39,19 @@ describe("permissions module: 3 modes", () => {
     expect(buildOpenCodePermission("strict", "devcontainer")).toBeUndefined();
   });
 
-  it("full mode: root catch-all + bash overrides (only rm -rf and sudo in ask) — 0.1.36", () => {
-    // 0.1.36: el usuario solicito "no quiero que git pregunte". Removidos
-    // patterns de git destructivos del ask list. Mantenidos solo rm -rf y
-    // sudo (system-wide destructivos no-git).
+  it("full mode: bypass TOTAL sin asteriscos (0.1.37)", () => {
+    // 0.1.37: el usuario explicito "esa opcion es la de permisos completos,
+    // esa es la que deberia setearll". Full = full sin excepciones.
+    // CERO patterns en ask. Si el usuario quiere salvaguardas, usa recommended.
     const p = buildOpenCodePermission("full", "host") as Record<string, unknown>;
     expect(typeof p).toBe("object");
-    // Root catch-all
     expect(p["*"]).toBe("allow");
-    // Bash catch-all
     expect((p.bash as Record<string, string>)["*"]).toBe("allow");
-    // Solo dos patterns destructivos NO-git en ask
-    expect((p.bash as Record<string, string>)["rm -rf *"]).toBe("ask");
-    expect((p.bash as Record<string, string>)["sudo *"]).toBe("ask");
-    // Git destructivos NO deben aparecer (todos pasan por el catch-all)
-    expect((p.bash as Record<string, string>)["git push --force *"]).toBeUndefined();
-    expect((p.bash as Record<string, string>)["git push -f *"]).toBeUndefined();
-    expect((p.bash as Record<string, string>)["git reset --hard *"]).toBeUndefined();
+    // NINGUN pattern de ask en bash
+    const bashKeys = Object.keys(p.bash as Record<string, string>);
+    expect(bashKeys).toEqual(["*"]);
+    const askPatterns = Object.entries(p.bash as Record<string, string>).filter(([, v]) => v === "ask");
+    expect(askPatterns, `Found ask patterns in full mode: ${JSON.stringify(askPatterns)}`).toEqual([]);
     expect(p.external_directory).toBe("allow");
   });
 
@@ -113,15 +109,15 @@ describe("opencode.json: emits permission per mode", () => {
     expect(oc.permission.bash["mvn *"]).toBe("allow");
   });
 
-  it("full mode: opencode.json sin git en ask, solo rm -rf y sudo (0.1.36)", () => {
+  it("full mode: opencode.json bypass total sin patterns ask (0.1.37)", () => {
     const config = baseConfig({ permissionMode: "full" });
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const oc = JSON.parse(result.files.find((f) => f.path === "opencode.json")!.content);
     expect(typeof oc.permission).toBe("object");
     expect(oc.permission["*"]).toBe("allow");
     expect(oc.permission.bash["*"]).toBe("allow");
-    expect(oc.permission.bash["rm -rf *"]).toBe("ask");
-    expect(oc.permission.bash["sudo *"]).toBe("ask");
+    expect(oc.permission.bash["rm -rf *"]).toBeUndefined();
+    expect(oc.permission.bash["sudo *"]).toBeUndefined();
     expect(oc.permission.bash["git push --force *"]).toBeUndefined();
     expect(oc.permission.external_directory).toBe("allow");
   });

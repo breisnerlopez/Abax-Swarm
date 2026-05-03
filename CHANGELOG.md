@@ -6,6 +6,53 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.37] — 2026-05-03
+
+### Changed — `full` mode = bypass TOTAL sin asteriscos (semantica del usuario)
+
+Solicitud explicita del usuario: *"esa opcion es la de permisos completos, esa es la que deberia setearll, consideralo tambien en el regenerate"*.
+
+Removidos los ultimos dos patterns en `ask` (`rm -rf *` y `sudo *`). En `full` mode AHORA **cero comandos piden confirmacion**.
+
+Estructura final:
+
+```json
+{
+  "*": "allow",
+  "bash": { "*": "allow" },
+  "external_directory": "allow"
+}
+```
+
+Aplicado tambien en `regenerate` (que usa la misma funcion `buildOpenCodePermission`), por lo tanto el proximo `abax-swarm regenerate` trae la nueva config.
+
+### Razonamiento semantico
+
+- `strict` mode = sin override del root (todo per-tool por default OpenCode = ask)
+- `recommended` mode = pattern extenso con safety por default (apt/sudo en ask, dev tools en allow)
+- `full` mode = **bypass TOTAL**. Sin asteriscos. El usuario que elige full sabe lo que hace.
+
+Si el usuario quiere alguna salvaguarda especifica (ej. preservar `rm -rf` en ask) puede:
+1. Usar `recommended` que tiene safety patterns extensos por default.
+2. Editar manualmente el `opencode.json` post-regenerate.
+3. Configurar el global `~/.config/opencode/opencode.json`.
+
+Pero por default, `full` significa full.
+
+### Tests
+
+Tests actualizados para verificar que `bash` keys = `["*"]` exactamente (cero `ask` patterns). Suite **572 tests pasando** sin cambio.
+
+### Historia completa de la evolucion de full mode
+
+| Version | Comportamiento | Sintoma |
+|---|---|---|
+| 0.1.13-0.1.33 | `permission: "allow"` (string) | Bug v1.14.x: git ops pedian confirmacion por hardcoded prompts |
+| 0.1.34 | objeto explicito sin root `"*"` catch-all | echo y otros tools no listados pedian permission |
+| 0.1.35 | objeto con root `"*"` + git destructivos en ask | git push --force pedia permission aun en full |
+| 0.1.36 | sin git en ask, mantiene rm -rf y sudo en ask | rm -rf y sudo seguian pidiendo |
+| **0.1.37** | bypass TOTAL, cero asks | full = full sin excepciones |
+
 ## [0.1.36] — 2026-05-03
 
 ### Changed — `full` mode no pide confirmacion para git (solicitud explicita del usuario)
