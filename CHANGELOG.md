@@ -6,6 +6,31 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.32] — 2026-05-03
+
+### Fixed — `create-presentation` tool: `escape(undefined)` cuando el LLM omitia args opcionales
+
+En la sesion `ses_21088afdeffe...` (2026-05-03 20:11 UTC) el `@business-analyst` intento crear la "Presentación de Descubrimiento v2" via `create-presentation` y la herramienta fallo dos veces con: `undefined is not an object (evaluating 's.replace')`.
+
+Causa raiz: el LLM omitio `presentation_type` (no lo paso en los args). El plugin `@opencode-ai/plugin` no aplica los `tool.schema.string().default("status")` cuando el args llega faltante desde el LLM (default es solo a nivel de validacion, no de runtime). Resultado: `args.presentation_type === undefined` → `typeLabels[undefined] === undefined` → `escape(undefined)` → `s.replace is not a function`.
+
+El BA fallo, hizo fallback a `write` directo construyendo el HTML manualmente — lo cual funciono pero saltea toda la logica de templates corporate-minimal/tech-editorial/dark-premium del tool.
+
+Fix: en `data/tools/create-presentation.yaml`:
+- **Defaults a runtime**: `const presentationType = args.presentation_type ?? "status"` y `const audience = args.audience ?? "executive"` antes de usarlos.
+- **Defensive `escape`**: `(s: unknown) => String(s ?? "").replace(...)` en vez de `(s: string) => s.replace(...)`. Tolera undefined/null sin lanzar.
+- **Comentario citando el incidente** para que futuros mantenedores entiendan por que existe el fallback.
+
+4 tests nuevos en `tests/integration/create-presentation-defaults.test.ts` que verifican la presencia del runtime default, defensive escape, uso de variables locales en vez de args.X en HTML emission, y la cita al incidente.
+
+Suite total: **549 tests pasando** (era 545), typecheck + validate OK.
+
+### Por que esto pasa con plugin defaults
+
+El SDK `@opencode-ai/plugin` define `tool.schema.string().default("...")` para describir el contrato del tool al LLM. Pero el LLM puede ignorar el default y simplemente omitir el arg. Cuando el args llega al `execute()`, el SDK no rellena los valores ausentes con sus defaults — eso es responsabilidad del codigo del tool. Esta es una trampa comun (similar al patron `Object.assign` para defaults en JS) y aplicable a cualquier otro tool del catalogo que tenga args opcionales con default.
+
+**Auditoria pendiente**: revisar los demas tools (`create-document`, `create-dashboard`, `generate-diagram`, `db-migrate`, `lint-code`, `run-tests`) por el mismo patron. Si encontramos casos similares, fix incremental con los mismos defensive defaults + escape.
+
 ## [0.1.31] — 2026-05-03
 
 ### Fixed — `permission_mode: full` no elevaba per-agent permissions
