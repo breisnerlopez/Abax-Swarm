@@ -3,7 +3,7 @@ import type { Role, Skill, Tool, Stack } from "../../loader/schemas.js";
 import type { ModelMix, ModelSpec, PermissionMode, IsolationMode, ProjectConfig, SelectionResult } from "../../engine/types.js";
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import { resolveAgentColor, ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
-import { buildOpenCodePermission } from "../../engine/permissions.js";
+import { buildOpenCodePermission, applyModeToAgentPermissions } from "../../engine/permissions.js";
 import type { GeneratedFile } from "./agent-generator.js";
 
 function applySpec(target: Record<string, unknown>, spec: ModelSpec | undefined): void {
@@ -26,13 +26,16 @@ export function generateOpenCodeConfig(
 ): GeneratedFile {
   const agentConfig: Record<string, unknown> = {};
 
-  // Add orchestrator entry (primary agent)
+  // Add orchestrator entry (primary agent).
+  // Permissions are intentionally restrictive: orchestrator is a pure
+  // coordinator. `applyModeToAgentPermissions` preserves the `deny` values
+  // even in `full` mode — only `task: allow` stays as `allow`.
   const orch: Record<string, unknown> = {
     description: orchestratorDescription ?? "Orquestador principal del proyecto. Coordina agentes siguiendo flujo cascada.",
     mode: "primary",
     color: ORCHESTRATOR_COLOR,
     temperature: 0.3,
-    permission: {
+    permission: applyModeToAgentPermissions({
       read: "deny",
       edit: "deny",
       glob: "deny",
@@ -42,7 +45,7 @@ export function generateOpenCodeConfig(
       skill: "deny",
       webfetch: "deny",
       todowrite: "deny",
-    },
+    }, permissionMode),
   };
   applySpec(orch, mix?.["orchestrator"]);
   agentConfig["orchestrator"] = orch;
@@ -54,7 +57,9 @@ export function generateOpenCodeConfig(
       mode: agent.agent.mode,
       color: resolveAgentColor(agent),
       temperature: agent.agent.temperature,
-      permission: agent.agent.permissions,
+      // Apply permission mode: in `full`, ask -> allow (preserves deny);
+      // in `strict`, allow -> ask (preserves deny). `recommended` = pass-through.
+      permission: applyModeToAgentPermissions(agent.agent.permissions, permissionMode),
     };
     applySpec(entry, mix?.[agent.id]);
     agentConfig[agent.id] = entry;

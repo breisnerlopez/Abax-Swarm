@@ -6,6 +6,36 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.31] — 2026-05-03
+
+### Fixed — `permission_mode: full` no elevaba per-agent permissions
+
+Bug latente desde 0.1.13 (cuando se introdujo `permissionMode`): `buildOpenCodePermission()` escribia el `permission` raiz de `opencode.json` correctamente (`"allow"` en modo full), pero **cada agente mantenia los permisos definidos en su rol YAML**. Como OpenCode trata el per-agent permission como override del root, los `bash: ask`, `webfetch: ask`, etc. seguian pidiendo confirmacion al usuario aunque hubiera elegido `full`.
+
+Sintoma reportado por el usuario: *"me está pidiendo aprobaciones cuando no debería ya que en una versión anterior lo configuré para que tenga todos los accesos"*.
+
+Fix: nueva funcion `applyModeToAgentPermissions(perms, mode)` en `src/engine/permissions.ts`:
+
+| Modo | Comportamiento |
+|---|---|
+| `full` | Eleva todos los `ask` → `allow`. **Preserva `deny`** (especialmente para el orchestrator que es coordinador puro por diseno). |
+| `recommended` | Pass-through (sin cambios — comportamiento previo). |
+| `strict` | Demote todos los `allow` → `ask`. Preserva `deny`. Mas conservador. |
+
+Aplicada en `config-generator.ts` para los permisos del orquestador y de cada sub-agente. El orquestador mantiene `read: deny`/`bash: deny`/etc. en TODOS los modos porque son arquitecturales.
+
+### Tests
+
+9 nuevos tests en `tests/integration/permission-mode-elevation.test.ts`:
+- `applyModeToAgentPermissions`: pass-through en recommended, elevation en full, demote en strict, preserva deny en todos los modos.
+- `generateOpenCodeConfig`: en full, developer-backend `bash` pasa de `ask` a `allow`; orchestrator `bash: deny` se preserva. En recommended, sin cambios. En strict, `read`/`edit` demote a `ask`.
+
+Suite total: **545 tests pasando** (era 536), typecheck + validate OK, **83 skills** (sin cambios).
+
+### Nota arquitectural
+
+El orquestador tiene `read: deny`, `edit: deny`, `bash: deny`, `task: allow` por DISEÑO — es coordinador puro. Estos `deny` se mantienen INCLUSO en modo full, porque elevarlos romperia la arquitectura del sistema (orquestador puro coordinator + roles especializados). Si necesitas que el orquestador haga read/write/bash directamente, eso seria un cambio mayor de modelo (no un ajuste de permisos).
+
 ## [0.1.30] — 2026-05-03
 
 ### Fixed — `read directly` instruction was impossible (orchestrator OpenCode no tiene `read`)

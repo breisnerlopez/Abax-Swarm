@@ -108,3 +108,38 @@ export function buildOpenCodePermission(
     external_directory: "ask",
   };
 }
+
+/**
+ * Adjust a per-agent permission map according to the project permission mode.
+ *
+ * Why this exists (bug fixed in 0.1.31):
+ * `buildOpenCodePermission()` returns the ROOT permission of opencode.json.
+ * In `full` mode the root is `"allow"`. But OpenCode's per-agent permission
+ * (`agent.<id>.permission`) **overrides** the root, so each agent kept the
+ * defaults from its role YAML — typically `bash: ask`, `webfetch: ask`,
+ * `glob: deny`, etc. Result: user picked `full` but still got approval
+ * prompts because per-agent overrides leaked through.
+ *
+ * Behaviour:
+ * - `full`:        elevate every `ask` to `allow`. Preserve `deny` so the
+ *                  orchestrator (coordinator-only by design) keeps its
+ *                  `read: deny`/`bash: deny`/etc. intact.
+ * - `recommended`: pass-through. Defaults from role YAML stay as they are.
+ * - `strict`:      demote every `allow` to `ask`. Preserve `deny`. Most
+ *                  conservative — every agent action requires confirmation.
+ */
+export function applyModeToAgentPermissions(
+  perms: Record<string, string | boolean | undefined> | undefined,
+  mode: PermissionMode,
+): Record<string, string | boolean | undefined> | undefined {
+  if (!perms) return perms;
+  if (mode === "recommended") return perms;
+  const out: Record<string, string | boolean | undefined> = { ...perms };
+  for (const key of Object.keys(out)) {
+    const value = out[key];
+    if (value === "deny") continue; // architectural — preserve always
+    if (mode === "full" && value === "ask") out[key] = "allow";
+    else if (mode === "strict" && value === "allow") out[key] = "ask";
+  }
+  return out;
+}
