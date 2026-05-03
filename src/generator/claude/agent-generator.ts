@@ -1,5 +1,6 @@
 import type { Role, Skill } from "../../loader/schemas.js";
 import type { ModelMix, ModelSpec } from "../../engine/types.js";
+import { computeAgentTools } from "../../engine/agent-tools.js";
 import type { GeneratedFile } from "../opencode/agent-generator.js";
 import { renderTemplate } from "./template-engine.js";
 
@@ -14,6 +15,7 @@ export function generateAgentFile(role: Role, skills: Skill[], spec?: ModelSpec)
     model: spec?.model,
     thinking: spec?.thinking,
     reasoningEffort: spec?.reasoningEffort,
+    availableTools: computeAgentTools(role),
   });
 
   return {

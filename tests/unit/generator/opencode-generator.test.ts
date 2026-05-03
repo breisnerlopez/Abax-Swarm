@@ -65,6 +65,35 @@ describe("AgentGenerator", () => {
     expect(file.content).toContain("Entrega resultados a");
     expect(file.content).toContain("@solution-architect");
   });
+
+  // 0.1.38: incident — @business-analyst tried to call `bash` for `mkdir -p`
+  // and burned a round trip on `tool: invalid`. The agent prompt now lists
+  // available + denied tools so the model picks the right one on the first
+  // try.
+  it("agent prompt lists available + denied tools (anti tool: invalid round trip)", () => {
+    const ba = roles.get("business-analyst")!;
+    const file = generateAgentFile(ba, []);
+    expect(file.content).toContain("Herramientas disponibles");
+    expect(file.content).toContain("Puedes llamar:");
+    expect(file.content).toContain("`write`");
+    expect(file.content).toContain("`read`");
+    expect(file.content).toContain("NO puedes llamar:");
+    expect(file.content).toContain("`bash`");
+    // The escape hatch advice — `write` auto-creates parent dirs is the
+    // direct fix for the original incident
+    expect(file.content).toMatch(/write.*crea automaticamente carpetas padre/);
+  });
+
+  it("agent prompt for a bash-allowed role does NOT show the denied block", () => {
+    const dev = roles.get("developer-backend")!;
+    const file = generateAgentFile(dev, []);
+    expect(file.content).toContain("Puedes llamar:");
+    expect(file.content).toContain("`bash`");
+    // developer-backend has webfetch denied, so the denied block IS rendered,
+    // but bash must not appear there
+    const deniedBlock = file.content.split("NO puedes llamar:")[1] ?? "";
+    expect(deniedBlock).not.toMatch(/`bash`/);
+  });
 });
 
 describe("SkillGenerator", () => {

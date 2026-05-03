@@ -6,6 +6,35 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.38] — 2026-05-03
+
+### Added — agent prompt declares its tool catalog (anti `tool: invalid` round trip)
+
+Cada `.opencode/agents/<role>.md` y `.claude/agents/<role>.md` ahora incluye una seccion **Herramientas disponibles** con dos listas explicitas:
+
+- **Puedes llamar:** built-ins permitidos por el rol + custom tools del catalogo
+- **NO puedes llamar:** built-ins denegados por `permissions: deny` o `tools_enabled: false`
+
+Mas tres recetas de fallback para los bloqueos mas comunes:
+- crear directorios → `write` directamente (auto-crea padres)
+- shell/build/tests/migraciones → delegar al rol con permiso (devops, developer-backend, qa-automation, dba)
+- read/grep si tu rol los tiene denegados → delegar via orquestador
+
+### Por que
+
+Incidente real: en una sesion 0.1.37 el `@business-analyst` quiso ejecutar `mkdir -p docs/entregables/v2/fase-2-analisis/` antes de escribir un archivo. Como el BA tiene `bash: deny` por diseno (es analista funcional, no tecnico), OpenCode rechazo la llamada con `tool: invalid` y el modelo perdio un round trip. Ironicamente el `mkdir` era redundante: el siguiente `write` auto-crea las carpetas padre.
+
+El LLM no tenia forma estatica de saber que `bash` estaba bloqueado para su rol — el catalogo del prompt mostraba todas las herramientas disponibles del runtime, no las filtradas por rol. Ahora el prompt mismo le dice exactamente que puede y que no puede llamar, y la primera receta es justamente "para crear directorios usa `write`".
+
+### Implementacion
+
+- Nuevo helper puro `src/engine/agent-tools.ts::computeAgentTools(role)` que cruza `permissions` + `tools_enabled` y devuelve `{allowed, denied, custom}`.
+- Tanto `src/generator/opencode/agent-generator.ts` como `src/generator/claude/agent-generator.ts` lo invocan y lo pasan al template como `availableTools`.
+- Templates `templates/{opencode,claude}/agent.md.hbs` actualizados con la seccion.
+- Tests: `tests/unit/engine/agent-tools.test.ts` (5 casos) + 2 casos nuevos en `tests/unit/generator/opencode-generator.test.ts` que verifican que el BA tiene `bash` en denied y la receta de `write` para mkdir.
+
+El orquestador NO se ve afectado: usa su propia plantilla `orchestrator.md.hbs`, no `agent.md.hbs`.
+
 ## [0.1.37] — 2026-05-03
 
 ### Changed — `full` mode = bypass TOTAL sin asteriscos (semantica del usuario)
