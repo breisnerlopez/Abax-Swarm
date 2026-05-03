@@ -78,6 +78,7 @@ skills:
   - existing-docs-update-protocol
   - iteration-strategy
   - delegation-discipline
+  - publication-notification
 tools:
   - create-document
   - generate-diagram

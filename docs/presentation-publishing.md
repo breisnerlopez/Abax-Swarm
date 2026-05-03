@@ -84,3 +84,61 @@ Para cambiar quien es responsable de una presentacion:
 - Audit 1 + 2 (cross-references).
 
 `tests/e2e/wizard-flow.test.ts` (E2E) cubre que el wizard completo navega los 12 steps incluido cuando team termina con `presentation-design` activo.
+
+
+## Activacion de GitHub Pages — modo Actions vs legacy (importante)
+
+GitHub Pages tiene dos modos de servir el sitio:
+
+### Modo "Deploy from a branch" (legacy)
+
+- Source: una rama (`main`) y un path (`/docs` o raiz)
+- Sirve archivos estaticos directamente. **Los .md devuelven 404** salvo que tengas Jekyll activo (que tiene sus propias limitaciones).
+- El workflow `pages.yml` que generamos **NO se ejecuta** en este modo. Es como si no existiera.
+
+### Modo "GitHub Actions" (recomendado)
+
+- Source: workflow definido por ti.
+- El workflow `pages.yml` que generamos en `.github/workflows/` se ejecuta en cada push a main.
+- Si existe `mkdocs.yml` corre MkDocs Material y los **.md se renderean a HTML**.
+- Si no existe `mkdocs.yml`, copia `docs/` tal cual (mismo problema que legacy con .md).
+
+### Como activarlo
+
+Opcion 1 — UI de GitHub:
+1. Repository -> Settings -> Pages
+2. Source: cambia a "GitHub Actions"
+3. Listo. El proximo push a main dispara el workflow.
+
+Opcion 2 — gh CLI:
+```bash
+gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow
+```
+
+### Verificar el modo actual
+
+```bash
+gh api repos/<owner>/<repo>/pages | jq -r '.build_type'
+# 'legacy' = modo branch (workflow ignorado)
+# 'workflow' = modo Actions (workflow corre)
+```
+
+### Por que importa para .md
+
+Si tu equipo produce documentacion en .md (no solo HTML), querras modo Actions + `mkdocs.yml`. De lo contrario solo se sirven los .html y los .md devuelven 404 — sintoma del incidente Abax-Memory v2 (2026-05-03) donde la presentacion .html se publico OK pero los entregables .md no.
+
+### Plantilla mkdocs.yml minima
+
+Si NO usas modo `document` pero quieres .md publicados:
+
+```yaml
+site_name: Mi Proyecto
+docs_dir: docs
+theme:
+  name: material
+  language: es
+```
+
+Commitea, push, y los .md de `docs/` quedan accesibles en URLs sin extension:
+- `docs/entregables/v2/fase-0/vision-producto.md` -> `https://owner.github.io/repo/entregables/v2/fase-0/vision-producto/`
+

@@ -24,6 +24,11 @@ implementation:
       description: Contenido principal del documento en Markdown
   returns: string
   body: |
-    const header = "# " + args.title + "\n\n";
-    const meta = "| Campo | Valor |\n|---|---|\n| Tipo | " + args.doc_type + " |\n| Fecha | " + new Date().toISOString().split("T")[0] + " |\n| Estado | Borrador |\n\n---\n\n";
-    return header + meta + args.content;
+    // Runtime defaults — el plugin OpenCode no aplica los .default() del schema
+    // cuando el LLM omite el arg (incidente create-presentation 2026-05-03 0.1.32).
+    const title = args.title || "(sin titulo)";
+    const docType = args.doc_type || "functional";
+    const content = args.content || "";
+    const header = "# " + title + "\n\n";
+    const meta = "| Campo | Valor |\n|---|---|\n| Tipo | " + docType + " |\n| Fecha | " + new Date().toISOString().split("T")[0] + " |\n| Estado | Borrador |\n\n---\n\n";
+    return header + meta + content;

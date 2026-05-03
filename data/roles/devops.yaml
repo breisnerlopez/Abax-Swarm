@@ -83,6 +83,8 @@ skills:
   - project-documentation-structure
   - existing-docs-update-protocol
   - existing-docs-update-protocol
+  - publication-notification
+  - publication-notification
 tools:
   - run-tests
   - lint-code

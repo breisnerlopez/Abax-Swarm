@@ -1,0 +1,192 @@
+id: publication-notification
+name: Notificacion de URLs Publicas al Usuario
+description: >
+  Cuando un entregable HTML se completa (presentacion, dashboard, sitio
+  generado, etc.) y el proyecto tiene GitHub Pages activo, el rol responsable
+  reporta al orquestador la URL publica prevista. El orquestador la incluye
+  en su mensaje al usuario al cerrar el entregable. Resuelve el gap detectado
+  en la sesion ses_21088afdeffe... donde el BA produjo la presentacion v2 pero
+  ningun rol notifico la URL al usuario, quedando el entregable invisible.
+used_by:
+  - tech-writer
+  - business-analyst
+  - devops
+  - project-manager
+  - product-owner
+  - solution-architect
+content:
+  when_to_use: |
+    - Al completar cualquier entregable HTML que va a `docs/` (presentacion, dashboard, sitio).
+    - Al cerrar fase con entregables HTML pendientes de publicar.
+    - Cuando el orquestador delega "publicar X" o "comunicar Y al sponsor".
+    - Cuando se aplica una iteracion mayor (v2, v3) y los entregables nuevos van a un folder distinto.
+  instructions: |
+    ## Principio fundamental
+
+    Un entregable publicado en GitHub Pages que el usuario NO sabe que existe
+    es invisible. La produccion no es completa hasta que el sponsor / equipo
+    relevante recibe la URL para abrirlo.
+
+    Esta skill nacio del incidente de la sesion `ses_21088afdeffe...`
+    (2026-05-03 20:11 UTC): el `@business-analyst` produjo la "Presentación
+    de Descubrimiento v2" en `docs/entregables/v2/fase-0-descubrimiento/
+    presentacion-descubrimiento.html`. GitHub Pages la sirvio correctamente
+    (HTTP 200), pero el orquestador NO le envio la URL al usuario al cerrar
+    la Task. El usuario tuvo que pedir explicitamente "no veo que haya creado
+    o enviado las urls para github pages" para enterarse.
+
+    ## Procedimiento al completar un entregable HTML
+
+    ### 1. Detecta si el proyecto tiene Pages activo
+
+    Si existe `.github/workflows/pages.yml` Y el proyecto esta pusheado a
+    GitHub, asume Pages activo. (En proyectos generados con Abax Swarm
+    >= 0.1.18 esto es default.)
+
+    Si no estas seguro, leer (sin Task, directamente o delegando un read
+    al @devops):
+
+    ```bash
+    test -f .github/workflows/pages.yml && echo "PAGES_OK"
+    git remote -v | grep github.com
+    ```
+
+    ### 2. Construye la URL publica prevista
+
+    Formato: `https://<owner>.github.io/<repo>/<path-relativo-a-docs>`
+
+    Donde:
+    - `<owner>` y `<repo>` se extraen de `git remote get-url origin`
+      (ej: `git@github.com:breisnerlopez/abax-memory.git` -> owner=`breisnerlopez`, repo=`abax-memory`).
+    - `<path-relativo-a-docs>` es el path del archivo desde la raiz de `docs/`.
+      Ej: `docs/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html`
+      -> `entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html`
+
+    Resultado:
+    `https://breisnerlopez.github.io/abax-memory/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html`
+
+    ### 3. Reporta al orquestador en formato estructurado
+
+    Al cerrar la Task, incluye al final del reporte:
+
+    ```markdown
+    ## URLs publicas
+
+    | Entregable | URL | Status |
+    |---|---|---|
+    | Presentacion de Descubrimiento v2 | https://breisnerlopez.github.io/abax-memory/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html | Publicada (HTTP 200 esperado tras proximo deploy) |
+    ```
+
+    Si tienes acceso bash y curl, valida el HTTP code antes de reportar.
+    Si no, marca como "Publicada (pendiente deploy)" — el siguiente push
+    a `main` disparara el workflow `pages.yml`.
+
+    ### 4. El orquestador comunica al usuario
+
+    El orquestador (al recibir tu reporte con URLs) DEBE incluir esa tabla
+    de URLs en su mensaje al usuario al cerrar el entregable:
+
+    ```markdown
+    Entregable completado: Presentacion de Descubrimiento v2
+
+    Disponible en:
+    https://breisnerlopez.github.io/abax-memory/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html
+    ```
+
+    No es opcional. Sin esto el usuario no sabe que existe.
+
+    ## Cuando NO aplica esta skill
+
+    - Entregables `.md` puro (a menos que estos se procesen a HTML por
+      MkDocs en el pipeline de Pages — verifica si existe `mkdocs.yml`).
+    - Documentacion interna que NO va a publicarse (ej. `docs/notes/`,
+      `.archive/`).
+    - Outputs de tools que no salen a `docs/` (ej. logs, reportes ad-hoc).
+
+    ## Coordinacion con otras skills
+
+    - **`presentation-design`**: produce el HTML. Esta skill se aplica DESPUES
+      de cada generacion para reportar la URL.
+    - **`iteration-strategy`**: si la estrategia es "folder por release"
+      (v1/v2), las URLs incluyen el prefijo de release (`/v2/`).
+    - **`existing-docs-update-protocol`**: si el HTML preexiste y se actualiza,
+      la URL no cambia pero se reporta igual con nota "Actualizada".
+    - **`presentation-publishing`**: skill complementaria que documenta el
+      workflow de Pages.
+
+    ## Plantilla de reporte completo (cierre de entregable HTML)
+
+    ```markdown
+    ## Entregable completado: <Nombre>
+
+    Path local: docs/entregables/<...>/<archivo>.html
+    Tamano: <X KB, Y slides>
+
+    ## URLs publicas
+
+    | Entregable | URL | Status |
+    |---|---|---|
+    | <Nombre> | <URL> | Publicada |
+
+    ## Notas
+    - <cualquier dato relevante: presets visuales aplicados, audiencia objetivo, etc.>
+    ```
+
+    El orquestador al cerrar la Task envia esta tabla al usuario integramente.
+  guides:
+    - name: como-construir-url
+      content: |
+        ## Como construir la URL publica desde un path local
+
+        ### Caso A — proyecto con Pages legacy (source: main:/docs)
+
+        Local: `docs/entregables/v2/fase-0-descubrimiento/presentacion.html`
+        Remoto: `git@github.com:breisnerlopez/abax-memory.git`
+
+        URL: `https://breisnerlopez.github.io/abax-memory/entregables/v2/fase-0-descubrimiento/presentacion.html`
+
+        Pasos:
+        1. `git remote get-url origin` -> extraer owner y repo
+        2. URL base = `https://<owner>.github.io/<repo>/`
+        3. Append path quitando el prefijo `docs/`
+
+        ### Caso B — proyecto con Pages workflow (GitHub Actions + MkDocs)
+
+        Si existe `mkdocs.yml`, los `.md` se procesan a HTML. La URL pierde
+        el `.md` y se queda con la ruta de carpeta:
+
+        Local: `docs/entregables/v2/fase-0-descubrimiento/vision-producto.md`
+        URL: `https://<owner>.github.io/<repo>/entregables/v2/fase-0-descubrimiento/vision-producto/`
+        (con slash final, MkDocs usa pretty URLs por default)
+
+        Si NO existe `mkdocs.yml` y Pages esta en modo Actions, los `.md` no
+        se sirven (devuelven 404). En ese caso, solo reportar URLs de archivos
+        `.html`.
+
+        ### Caso C — repo privado
+
+        Si el repo es privado, GitHub Pages requiere plan Pro/Team/Enterprise.
+        Si Pages no esta disponible, reportar al usuario:
+
+        > Entregable disponible en `<path-local>`. Pages no esta activo en
+        > este repo (privado en plan free). Para visualizar, abrir el HTML
+        > local con un navegador.
+
+    - name: validar-status-url
+      content: |
+        ## Como validar status de la URL antes de reportar
+
+        Si tienes `bash: allow|ask` y curl disponible:
+
+        ```bash
+        URL="https://breisnerlopez.github.io/abax-memory/entregables/v2/fase-0-descubrimiento/presentacion.html"
+        curl -s -o /dev/null -w "HTTP %{http_code}\n" "$URL"
+        ```
+
+        Codigos esperados:
+        - 200 = publicado y accesible
+        - 404 = aun no se ha hecho deploy (esperar al proximo push a main)
+        - 403 = repo privado sin Pages
+        - 5xx = problema temporal de GitHub
+
+        Si 404, marca status como "Publicada (deploy pendiente — siguiente push a main lo activa)".
