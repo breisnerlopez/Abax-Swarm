@@ -109,6 +109,7 @@ skills:
   - project-readme
   - documentation-quality-bar
   - code-naming-convention
+  - existing-docs-update-protocol
 tools:
   - run-tests
   - lint-code

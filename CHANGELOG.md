@@ -6,6 +6,62 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.26] — 2026-05-03
+
+### Fixed — Sobrescritura silenciosa de docs preexistentes en iteracion v2 (incidente Abax-Memory v2)
+
+En la sesion `ses_21170157cffe...` (2026-05-03), el orquestador procesando una propuesta de v2.0.0 sobre el proyecto v1 cerrado Abax-Memory delego al business-analyst tareas tipo "Elabora el Documento de Vision del Producto v2.0.0" sin instruccion explicita de preservar el archivo v1 existente. El BA ejecuto `write` sobre las mismas rutas, **sobreescribiendo silenciosamente 8 entregables de v1** (Vision, Epicas, Historias, Backlog, Presentacion Discovery, Acta de Constitucion, Registro Interesados, Template de presentacion) en cuestion de minutos. Solo se rescato porque no estaban commiteados.
+
+Causa raiz: el "Protocolo de actualizacion de documentacion existente" del orchestrator template SI mencionaba "no reescribir desde cero" pero esa instruccion vivia solo en el prompt del orquestador y NO se reinyectaba en el prompt de cada Task delegada — el subagent en su sesion hija nunca lo leia. Ademas, no habia politica explicita para nueva iteracion mayor sobre proyecto cerrado.
+
+### Added — Skill `existing-docs-update-protocol` (anti-overwrite)
+
+Asignada a 15 roles que escriben docs (BA, PO, tech-writer, todos los developers, DBA, arquitectos, tech-lead, devops, QA, PM, change-manager). Da al sub-agent el procedimiento exacto antes de cualquier `write`:
+
+1. Verificar si el archivo existe (`test -f`).
+2. Si NO existe → escribir normal.
+3. Si EXISTE → **escalar al orquestador** con plantilla "DOCUMENTO PREEXISTE — solicito instruccion antes de escribir" y esperar estrategia A/B/C/D.
+
+Las 4 estrategias documentadas con plantillas listas: A (bloque "## Cambios <fecha>" al final), B (secciones tachadas + nuevo abajo), C (archivo paralelo o folder por release), D (archivar v1 a `docs/.archive/v1/` y reescribir). Anti-patrones explicitos. Coordinacion con role-boundaries y documentation-quality-bar.
+
+### Added — Skill `iteration-strategy` (politica antes de delegar)
+
+Asignada a 6 roles coordinadores (PM, PO, BA, tech-writer, sol-arch, tech-lead). Cuando el orquestador detecta proyecto cerrado + nueva iteracion mayor, esta skill se activa **bloqueante**: el orquestador DEBE preguntar al usuario antes de delegar el primer entregable de la nueva iteracion cual de las 4 estrategias aplicar. Decision documentada en `docs/iteration-log.md` y aplicada consistentemente a TODOS los entregables de la iteracion (no mezclar A para uno y C para otro).
+
+### Changed — Orchestrator template (`existingDocs` block reforzado)
+
+Cuando `existingDocs === true`, el bloque ahora:
+- Cita el incidente Abax-Memory v2 por nombre y fecha como motivacion.
+- Provee plantilla LITERAL "ATENCION — POSIBLE ARCHIVO PREEXISTENTE" que el orquestador debe inyectar en CADA Task delegado a docs preexistentes.
+- Explica las 2 capas independientes de defensa (Capa A = orquestador inyecta, Capa B = sub-agent valida con la skill).
+- Instruye uso de `iteration-strategy` cuando hay v2/v3.
+
+Replicado en CLAUDE.md template.
+
+### Added — Tests integrales
+
+23 nuevos tests en `tests/integration/anti-overwrite.test.ts`:
+- Skill `existing-docs-update-protocol`: existencia, prohibicion de write silencioso, 4 estrategias, anti-patrones, wiring a 15 roles, 3 guides.
+- Skill `iteration-strategy`: detection condiciones, 4 estrategias, requerimiento de PREGUNTAR (BLOQUEANTE), `iteration-log.md` obligatorio, prohibicion de mezclar estrategias, wiring a 6 roles, 3 ejemplos guides.
+- Orchestrator template: con `existingDocs=true` emite plantilla literal + cita incidente + capas A/B + iteration-strategy. Con `existingDocs=false` NO emite la seccion.
+- CLAUDE.md template: misma logica replicada.
+- Pipeline: ambas skills propagan a archivos de agente generados.
+- Bidireccional sync: `used_by` <-> `role.skills` consistente.
+
+Suite total: **515 tests** pasando (era 492), typecheck + validate OK, **82 skills** (era 80).
+
+### Documentation
+
+- `docs/iteration-strategies.md` (nuevo): incidente que lo motivo, las 3 capas, las 4 estrategias con cuando aplicarlas, estructura `docs/` segun cada estrategia, como aplicar a un proyecto existente, como añadir mejoras a futuro.
+- `README.md` y `docs/README.md` actualizados con la referencia (6 guard rails ahora visibles).
+
+### Recovery aplicada al proyecto Abax-Memory v1 (no parte del package)
+
+Capa 1 ejecutada el 2026-05-03 12:13:
+- Drafts v2 preservados en `docs/.archive/v2-draft-2026-05-03/` (no perder trabajo del BA).
+- v1 restaurado al working tree desde `HEAD` (los overwrites no estaban commiteados).
+- `docs/iteration-log.md` creado con narrativa del incidente y decision pendiente sobre estrategia (A/B/C/D) para v2.
+
 ## [0.1.25] — 2026-05-03
 
 ### Fixed — Mix de espanol/ingles en identificadores de codigo (sintoma reportado por usuario)

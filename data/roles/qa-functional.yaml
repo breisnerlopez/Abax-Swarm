@@ -74,6 +74,8 @@ skills:
   - acceptance-criteria
   - verification-before-completion
 
+  - existing-docs-update-protocol
+  - existing-docs-update-protocol
 tools:
   - run-tests
   - create-document

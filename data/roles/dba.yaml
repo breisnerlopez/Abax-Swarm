@@ -102,6 +102,7 @@ skills:
 
   - documentation-quality-bar
   - code-naming-convention
+  - existing-docs-update-protocol
 tools:
   - generate-diagram
   - db-migrate

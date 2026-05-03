@@ -66,6 +66,9 @@ skills:
   - project-readme
   - documentation-quality-bar
   - project-documentation-structure
+  - existing-docs-update-protocol
+  - existing-docs-update-protocol
+  - iteration-strategy
 tools:
   - create-document
   - generate-diagram

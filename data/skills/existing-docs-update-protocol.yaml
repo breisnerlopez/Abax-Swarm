@@ -1,0 +1,297 @@
+id: existing-docs-update-protocol
+name: Protocolo de actualizacion de documentacion existente (anti-overwrite)
+description: >
+  Cuando un agente recibe una Task que apunta a un archivo de documentacion que
+  YA EXISTE, NUNCA debe sobreescribirlo silenciosamente. Esta skill le da el
+  procedimiento exacto: leer primero, preservar estructura, agregar bloque de
+  cambios o crear archivo paralelo. Nacida del incidente Abax-Memory v2 (mayo
+  2026) donde el BA sobreescribio 8 entregables de v1 al recibir Tasks de v2
+  sin instruccion explicita de preservacion.
+used_by:
+  - business-analyst
+  - product-owner
+  - tech-writer
+  - developer-backend
+  - developer-frontend
+  - dba
+  - solution-architect
+  - integration-architect
+  - security-architect
+  - tech-lead
+  - devops
+  - qa-functional
+  - qa-lead
+  - project-manager
+  - change-manager
+content:
+  when_to_use: |
+    - SIEMPRE al inicio de una Task que escribe en una ruta de docs/.
+    - Antes de ejecutar `write` sobre un archivo que el agente NO creo en esta misma sesion.
+    - Cuando el orquestador delega un entregable cuyo path puede coincidir con uno previo.
+    - En modo `continue` o cuando el proyecto tiene historia previa (segunda iteracion, v2/v3, etc.).
+  instructions: |
+    ## Principio fundamental
+
+    Un archivo de documentacion preexistente representa trabajo aprobado en
+    una iteracion previa. Sobreescribirlo silenciosamente:
+
+    - Borra contexto historico y decisiones tomadas.
+    - Rompe la trazabilidad fase 0 -> cierre.
+    - Genera "perdida silenciosa" — el usuario no sabe que algo desaparecio
+      hasta que abre el archivo y ve algo que no esperaba.
+
+    Esta skill nacio del **incidente Abax-Memory v2 (2026-05-03)**: el BA
+    recibio 8 Tasks para "elaborar entregables v2" y, sin instruccion explicita
+    de preservar v1, escribio sobre los archivos existentes. Se perdio en
+    cuestion de minutos toda la documentacion de Discovery e Inicio de v1.
+    Los archivos solo se rescataron porque no se habian commiteado.
+
+    ## Protocolo obligatorio antes de cualquier `write`
+
+    Para CADA Task que pueda escribir en `docs/`, ejecuta este flujo:
+
+    ### 1. Verifica si el archivo existe
+
+    ```bash
+    test -f "<ruta-objetivo>" && echo "EXISTE" || echo "NUEVO"
+    ```
+
+    ### 2. Si NO existe → escribe normalmente
+
+    Crea el archivo con frontmatter de procedencia (ver skill
+    `documentation-quality-bar`). Sin protocolo adicional.
+
+    ### 3. Si EXISTE → escala primero al orquestador
+
+    NUNCA escribas directamente. Reporta al orquestador con esta plantilla:
+
+    ```
+    DOCUMENTO PREEXISTE — solicito instruccion antes de escribir
+
+    Archivo: <ruta-objetivo>
+    Tamano actual: <X lineas>
+    Frontmatter actual: fase=<F>, version=<V>, fecha=<D>, responsable=<R>
+
+    La Task que recibi pide producir contenido para esta misma ruta.
+    Antes de proceder necesito que el orquestador (o el sponsor) confirme
+    una de las siguientes estrategias:
+
+    A. ACTUALIZAR EN SITIO con bloque "## Cambios <fecha-iteracion>" al final
+       (preserva estructura v1, agrega delta v2 al final).
+
+    B. ACTUALIZAR EN SITIO con secciones tachadas
+       (marca contenido obsoleto como `~~tachado~~ — desactualizado al <fecha>`
+       y agrega nuevo abajo. Util cuando hay correcciones, no aditivos).
+
+    C. CREAR ARCHIVO PARALELO con sufijo de iteracion
+       Ej. `<ruta>.v2.md` o folder `docs/entregables/v2/<misma-ruta>`.
+       (Preserva v1 intacto, v2 vive aparte. Recomendado para iteracion mayor.)
+
+    D. ARCHIVAR Y REESCRIBIR
+       Mover existing a `docs/.archive/<version-anterior>/<ruta>` y crear v_actual
+       limpio. (Reescritura completa intencional.)
+
+    Mi parte si aplica: <lo que YA puedo escribir en archivo NUEVO sin tocar el preexistente>
+    ```
+
+    ### 4. Espera la instruccion y sigue la elegida
+
+    El orquestador debe responder con A/B/C/D. Sigue la convencion exactamente.
+    Si te pide "haz lo que creas mejor" sin elegir, INSISTE — esta es una
+    decision de gobierno, no tecnica.
+
+    ## Plantillas para cada estrategia
+
+    ### Plantilla A — Actualizar en sitio con bloque de cambios
+
+    ```markdown
+    <... contenido v1 INTACTO ...>
+
+    ---
+
+    ## Cambios v2.0.0 — 2026-05-03
+
+    ### Que cambia
+    - <cambio 1 con justificacion>
+    - <cambio 2>
+
+    ### Que se mantiene de v1
+    - <punto que sigue valido>
+
+    ### Que se deprecia
+    - <punto reemplazado>
+    ```
+
+    Header del archivo se actualiza:
+    ```yaml
+    ---
+    fase: <misma>
+    entregable: <misma>
+    iteraciones:
+      - version: 1.0.0
+        fecha: <fecha-original>
+        responsable: <agente-original>
+      - version: 2.0.0
+        fecha: <hoy>
+        responsable: <agente-actual>
+        cambios: ver bloque "## Cambios v2.0.0"
+    ---
+    ```
+
+    ### Plantilla C — Crear archivo paralelo
+
+    Mantener `docs/entregables/fase-0-descubrimiento/vision-producto.md` (v1).
+    Crear `docs/entregables/fase-0-descubrimiento/vision-producto.v2.md` (nuevo).
+
+    O preferiblemente, folder por release:
+    ```
+    docs/entregables/v1/fase-0-descubrimiento/vision-producto.md
+    docs/entregables/v2/fase-0-descubrimiento/vision-producto.md
+    ```
+
+    Crear ademas `docs/release-mapping.md` explicando la relacion v1 <-> v2.
+
+    ### Plantilla D — Archivar y reescribir
+
+    ```bash
+    mkdir -p docs/.archive/v1/<misma-ruta-padre>/
+    mv docs/entregables/<ruta-anterior> docs/.archive/v1/<misma-ruta-padre>/
+    # Ahora escribir v2 limpio en docs/entregables/<ruta-anterior>
+    ```
+
+    Documentar el move en `docs/iteration-log.md`.
+
+    ## Anti-patrones (lo que NUNCA hacer)
+
+    - **`write` directo sobre archivo preexistente sin escalar.** El sintoma
+      del incidente Abax-Memory v2.
+    - **Asumir que "v2" implica empezar de cero.** Puede ser actualizacion,
+      paralelo, archivado — siempre PREGUNTAR.
+    - **Mezclar contenido v1 + v2 sin marcar version.** El lector no sabe que
+      es viejo y que es nuevo.
+    - **Modificar el frontmatter (fecha, responsable) sin tocar el contenido.**
+      Da impresion de archivo actualizado pero el cuerpo es viejo.
+
+    ## Coordinacion con otras skills
+
+    - **`documentation-quality-bar`**: el frontmatter de procedencia debe reflejar
+      iteraciones (campo `iteraciones:` cuando hay > 1 version).
+    - **`role-boundaries`**: el approver del entregable es el mismo que aprobo v1
+      (continuidad de responsabilidad), salvo que la iteracion incluya cambio de rol.
+    - **`anti-mock-review`**: si hay archivos preexistentes con MOCK marcado,
+      el agente debe verificar si el mock sigue vigente o ya fue resuelto antes
+      de actualizar.
+
+    ## Coordinacion con el orquestador
+
+    El orquestador (en sus prompts de Task) DEBE indicar:
+    1. Si el archivo objetivo puede preexistir.
+    2. Cual estrategia (A/B/C/D) aplicar.
+    3. Cual es la version/iteracion actual.
+
+    Si el orquestador NO indica, esta skill obliga al agente a escalar antes
+    de escribir. Es el ultimo cinturon de seguridad.
+  guides:
+    - name: ejemplos-frontmatter-iterado
+      content: |
+        ## Frontmatter para archivos con multiples iteraciones
+
+        ### v1 original (creado en proyecto inicial)
+
+        ```yaml
+        ---
+        fase: 0-descubrimiento
+        entregable: vision-producto
+        responsable: business-analyst
+        aprobado-por: product-owner
+        fecha: 2026-05-01
+        version: 1.0.0
+        estado: aprobado
+        ---
+        ```
+
+        ### v2 actualizado en sitio (estrategia A)
+
+        ```yaml
+        ---
+        fase: 0-descubrimiento
+        entregable: vision-producto
+        version: 2.0.0
+        estado: aprobado
+        iteraciones:
+          - version: 1.0.0
+            fecha: 2026-05-01
+            responsable: business-analyst
+            aprobado-por: product-owner
+          - version: 2.0.0
+            fecha: 2026-05-03
+            responsable: business-analyst
+            aprobado-por: product-owner
+            cambios: |
+              Evoluciona de PMOA (IT ops) a motor generico con perfiles de dominio.
+              Ver bloque "## Cambios v2.0.0" al final del documento.
+        ---
+        ```
+
+        ### v2 paralelo (estrategia C)
+
+        Header del archivo `vision-producto.v2.md` (o en folder `v2/`):
+
+        ```yaml
+        ---
+        fase: 0-descubrimiento
+        entregable: vision-producto
+        version: 2.0.0
+        relacion-iteracion-anterior: docs/entregables/v1/fase-0-descubrimiento/vision-producto.md
+        responsable: business-analyst
+        aprobado-por: product-owner
+        fecha: 2026-05-03
+        estado: borrador
+        ---
+        ```
+
+    - name: como-detectar-preexistencia
+      content: |
+        ## Como detectar si un archivo preexiste antes de escribir
+
+        Las herramientas a usar (sin tocar disco):
+
+        ```bash
+        # 1. Existe?
+        test -f "<ruta>" && echo EXISTE || echo NUEVO
+
+        # 2. Cuanta historia tiene?
+        wc -l "<ruta>"
+
+        # 3. Que dice el frontmatter?
+        head -15 "<ruta>"
+
+        # 4. Cuando se modifico la ultima vez?
+        stat -c '%y  %n' "<ruta>"
+
+        # 5. Tiene historia git?
+        git log --oneline --follow "<ruta>" | head -3
+        ```
+
+        Reporta los 5 datos al orquestador en el escalamiento (ver Plantilla en
+        seccion "3. Si EXISTE → escala primero al orquestador").
+
+    - name: que-no-cuenta-como-preexistente
+      content: |
+        ## Que NO requiere escalamiento (puedes escribir directamente)
+
+        Estos casos son escritura legitima sin protocolo de actualizacion:
+
+        - **Archivos creados por TI MISMO en esta misma sesion** (estas iterando
+          sobre tu propio borrador). El protocolo solo aplica a docs de iteraciones/
+          sesiones previas.
+        - **Archivos generados automaticamente por tooling** (mkdocs.yml, .github/
+          workflows generados por Abax). Estos se regeneran consistentemente.
+        - **Archivos en `docs/.archive/`**. Por convencion no se modifican; si
+          hay que cambiarlos es un caso muy especial.
+        - **Archivos en carpetas `node_modules/`, `target/`, `dist/`, `.opencode/`,
+          `.claude/`, `vendor/`** — son artefactos generados.
+        - **Comments / strings en codigo fuente** — esos van por code review,
+          no son entregables de docs.
+
+        Si tienes duda, escala. Mejor pregunta extra que overwrite silencioso.

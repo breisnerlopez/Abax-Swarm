@@ -81,6 +81,8 @@ skills:
 
   - documentation-quality-bar
   - project-documentation-structure
+  - existing-docs-update-protocol
+  - existing-docs-update-protocol
 tools:
   - run-tests
   - lint-code
