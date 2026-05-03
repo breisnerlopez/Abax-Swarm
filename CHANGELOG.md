@@ -6,6 +6,65 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.33] — 2026-05-03
+
+### Added — Skill `publication-notification` (URLs publicas al usuario)
+
+Asignada a 6 roles (tech-writer, business-analyst, devops, project-manager, product-owner, solution-architect). Cuando un entregable HTML se completa, el rol responsable construye la URL publica esperada (`https://<owner>.github.io/<repo>/<path>`) y la reporta al orquestador. El orquestador la incluye en su mensaje al usuario al cerrar la Task. Resuelve el sintoma del incidente `ses_21088afdeffe...` donde el BA produjo `presentacion-descubrimiento.html` v2 pero ningun rol notifico la URL al sponsor.
+
+### Added — Entregable obligatorio "Reporte de URLs publicas" al cierre de fase
+
+Anadido al orchestrator template (opencode + claude). Cuando se cierra fase con HTMLs producidos, el ULTIMO entregable obligatorio es una tabla con TODOS los HTMLs publicados en esa fase + URLs + status. Path: `docs/entregables/<fase>/urls-publicas.md`. Responsable PM o tech-writer. Si la fase no produjo HTMLs, se omite.
+
+### Changed — `iteration-strategy` extendido con tarea post-rename
+
+Cuando aplica estrategia A (folder por release) y el devops mueve `docs/entregables/fase-X/` → `docs/entregables/v1/fase-X/`, **TODAS las referencias en `docs/index.html` quedan rotas**. La skill ahora obliga al orquestador a delegar al `@devops` (o `@tech-writer`) inmediatamente despues del rename: reescribir prefijos, agregar seccion v2, preservar design system, reportar URL via `publication-notification`. Sin esto el sitio publico queda con N links rotos (incidente Abax-Memory v2 dejo 16).
+
+### Fixed — Auditoria de los 7 tools: runtime defaults para args opcionales
+
+El plugin `@opencode-ai/plugin` define `tool.schema.string().default("X")` pero NO aplica el default en runtime cuando el LLM omite el arg (incidente create-presentation 0.1.32). Aplicado el mismo patron defensivo a los 6 tools restantes:
+
+| Tool | Args con runtime default agregado |
+|---|---|
+| `create-document` | title, doc_type, content |
+| `create-dashboard` | dashboard_type, project_name, data |
+| `generate-diagram` | description (diagram_type ya defensivo via `validTypes.includes`) |
+| `db-migrate` | action, name |
+| `lint-code` | path (fix ya defensivo via boolean ternary) |
+| `run-tests` | test_type, path |
+
+Patron uniforme: `const x = args.x || "<default>";` antes de cualquier uso.
+
+**Test guard nuevo** `tests/integration/tool-runtime-defaults.test.ts`: escanea cada tool con `default:` en su schema y exige runtime fallback (acepta `||`, `??`, `includes() ?`, `has() ?`, ternario boolean defensivo). Falla CI si un nuevo tool olvida el patron.
+
+### Changed — Pages workflow: documentacion explicita modo Actions vs legacy
+
+`pages-generator.ts` ahora emite `pages.yml` con comentarios extensos sobre:
+- Modo "GitHub Actions" (workflow corre, soporta MkDocs si existe `mkdocs.yml`)
+- Modo "legacy" (source: branch — bypassea el workflow)
+- Como verificar el modo actual con `gh api repos/<owner>/<repo>/pages | jq -r '.build_type'`
+- Como activar Actions con UI o `gh api -X PUT ... -f build_type=workflow`
+- Plantilla `mkdocs.yml` minima para que `.md` se rendericen en HTML aun en modo `new`
+
+`docs/presentation-publishing.md` extendido con seccion "Activacion de GitHub Pages — modo Actions vs legacy".
+
+### Tests
+
+- `tests/integration/publication-notification.test.ts`: 14 tests (skill content, guides, wiring, orchestrator emission opencode + claude, pipeline)
+- `tests/integration/tool-runtime-defaults.test.ts`: 9 tests (guard rail para los 7 tools + verificacion del defensive escape de create-presentation + comment markers)
+
+Suite total: **572 tests pasando** (era 549), typecheck + validate OK, **84 skills** (era 83).
+
+### Documentation
+
+- `docs/publication-notification.md` (nuevo): descripcion completa del release con las 6 piezas + ejemplo de aplicacion al proyecto cliente.
+- `docs/presentation-publishing.md` extendido.
+- `docs/README.md` actualizado.
+
+### Nota sobre regenerate y presentaciones existentes
+
+`abax-swarm regenerate` toca `.opencode/`, `.claude/`, configs, design-system, `.devcontainer/`, `.github/workflows/pages.yml`. **NO toca** `docs/entregables/*` porque esos son outputs del orquestador del proyecto cliente. Para regenerar una presentacion HTML existente con el tool `create-presentation` actualizado, abrir sesion OpenCode y pedir al BA o tech-writer "regenerar la presentacion X usando el tool actualizado".
+
 ## [0.1.32] — 2026-05-03
 
 ### Fixed — `create-presentation` tool: `escape(undefined)` cuando el LLM omitia args opcionales

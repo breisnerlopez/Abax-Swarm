@@ -27,33 +27,38 @@ implementation:
       required: false
   returns: string
   body: |
+    // Runtime defaults — el plugin OpenCode no aplica los .default() del schema
+    // cuando el LLM omite el arg (incidente create-presentation 2026-05-03 0.1.32).
+    const dashboardType = args.dashboard_type || "status-summary";
+    const projectName = args.project_name || "Proyecto sin nombre";
+    const data = args.data || "(sin datos)";
     const date = args.report_date || new Date().toISOString().split("T")[0];
-    let output = `# Dashboard: ${args.project_name}\n`;
-    output += `> Generado: ${date} | Tipo: ${args.dashboard_type}\n\n`;
+    let output = `# Dashboard: ${projectName}\n`;
+    output += `> Generado: ${date} | Tipo: ${dashboardType}\n\n`;
 
-    if (args.dashboard_type === "gantt") {
+    if (dashboardType === "gantt") {
       output += "```mermaid\ngantt\n";
-      output += `  title ${args.project_name} - Cronograma\n`;
+      output += `  title ${projectName} - Cronograma\n`;
       output += "  dateFormat YYYY-MM-DD\n";
-      output += args.data + "\n";
+      output += data + "\n";
       output += "```\n";
-    } else if (args.dashboard_type === "status-summary") {
+    } else if (dashboardType === "status-summary") {
       output += "## Resumen Ejecutivo\n\n";
       output += "| Indicador | Valor | Semaforo |\n|---|---|---|\n";
-      output += args.data + "\n";
-    } else if (args.dashboard_type === "deliverables") {
+      output += data + "\n";
+    } else if (dashboardType === "deliverables") {
       output += "## Control de Entregables\n\n";
       output += "| Fase | Total | Aprobados | En Progreso | Pendientes | % |\n|---|---|---|---|---|---|\n";
-      output += args.data + "\n";
-    } else if (args.dashboard_type === "burndown") {
+      output += data + "\n";
+    } else if (dashboardType === "burndown") {
       output += "```mermaid\nxychart-beta\n";
-      output += `  title "${args.project_name} - Burndown"\n`;
+      output += `  title "${projectName} - Burndown"\n`;
       output += "  x-axis [S1, S2, S3, S4, S5, S6, S7, S8]\n";
-      output += args.data + "\n";
+      output += data + "\n";
       output += "```\n";
-    } else if (args.dashboard_type === "kanban") {
+    } else if (dashboardType === "kanban") {
       output += "## Tablero Kanban\n\n";
-      output += args.data + "\n";
+      output += data + "\n";
     }
 
     output += "\n---\n*Dashboard generado automaticamente*\n";

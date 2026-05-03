@@ -340,6 +340,38 @@ Ejemplo:
   Incluye: nombre del entregable, archivo donde se guardo, agente responsable, estado.
   Tambien actualiza docs/registro-entregables.md con el dashboard de estado.")
 
+### Reporte de URLs publicas (obligatorio al cerrar fase con HTMLs)
+
+Al cerrar fase, si la fase produjo entregables HTML (presentaciones, dashboards,
+sitio generado, etc.), el ULTIMO entregable obligatorio antes del gate es:
+
+```
+Entregable: Reporte de URLs publicas
+Responsable: project-manager (o tech-writer si esta en el equipo)
+Approver: gate approver de la fase
+Path: docs/entregables/<fase>/urls-publicas.md
+Skill: publication-notification (cargada en el rol responsable)
+```
+
+El reporte incluye tabla con TODOS los HTMLs publicados en esa fase + URL
+publica + status:
+
+```markdown
+## Entregables HTML publicados en fase <X>
+
+| Entregable | Path local | URL publica | Status |
+|---|---|---|---|
+| Presentacion de Discovery v2 | docs/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html | https://<owner>.github.io/<repo>/entregables/v2/fase-0-descubrimiento/presentacion-descubrimiento.html | Publicada |
+| ... | ... | ... | ... |
+```
+
+El orquestador, al cerrar fase, **DEBE** incluir esa tabla en el mensaje al
+usuario. Sin esto los entregables publicados quedan invisibles (incidente
+ses_21088afdeffe... 2026-05-03 donde el BA produjo presentacion v2 pero
+ningun rol comunico la URL).
+
+Si la fase NO produjo HTMLs, este entregable se omite (no aplica).
+
 ### Protocolo de Presentaciones HTML
 
 TODAS las presentaciones del proyecto deben ser archivos HTML autonomos
