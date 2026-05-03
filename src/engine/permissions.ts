@@ -22,25 +22,27 @@ export function buildOpenCodePermission(
 ): unknown | undefined {
   if (mode === "strict") return undefined;
   if (mode === "full") {
-    // Bug fix in 0.1.35: 0.1.34 returned object with explicit per-tool keys
-    // (bash/edit/read/glob/grep/webfetch/external_directory) but FORGOT the
-    // ROOT-level `"*": "allow"` catch-all. OpenCode docs:
-    //   "Rules are evaluated by pattern match, with the last matching rule
-    //    winning. Common pattern: catch-all '*' first, then more specific."
-    // Without the root `"*"`, tools NOT listed (task, skill, websearch, write,
-    // patch, todowrite, notebookedit, etc.) fell to their per-tool default of
-    // `ask`. User reported "echo me pide permisos" — actually internal tools
-    // not listed in 0.1.34 were prompting.
+    // 0.1.36: el usuario solicito explicitamente "no quiero que git pregunte".
+    // Removidos los patterns de git destructivos (git push --force, git reset
+    // --hard) del ask list. En full mode todo git pasa sin confirmacion.
+    // Mantenidos solo `rm -rf *` y `sudo *` como salvaguardas sistema-wide
+    // (no son git, son destructivos del filesystem/permisos).
     //
-    // Fix: include `"*": "allow"` at root for tools not explicitly listed,
-    // and only override `bash` with patterns to keep destructive ops in `ask`.
+    // Si necesitas que TODO bypass — incluyendo rm -rf y sudo — usa
+    // `permission: "allow"` (string) directamente en tu opencode.json o el
+    // global `~/.config/opencode/opencode.json`. Es el bypass total.
+    //
+    // Historia del bug:
+    // - 0.1.13-0.1.33: full devolvia string "allow" -> OpenCode v1.14.x
+    //   pedia confirmacion para git checkout -b, etc. (prompts hardcoded).
+    // - 0.1.34: cambio a objeto explicito pero faltaba root "*" catch-all
+    //   -> tools no listadas (task, skill, write) caian a ask.
+    // - 0.1.35: agregado root "*": allow, mantenia git destructivos en ask.
+    // - 0.1.36: removidos todos los patterns git, solo rm -rf y sudo en ask.
     return {
       "*": "allow",
       bash: {
         "*": "allow",
-        "git push --force *": "ask",
-        "git push -f *": "ask",
-        "git reset --hard *": "ask",
         "rm -rf *": "ask",
         "sudo *": "ask",
       },

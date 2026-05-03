@@ -39,24 +39,23 @@ describe("permissions module: 3 modes", () => {
     expect(buildOpenCodePermission("strict", "devcontainer")).toBeUndefined();
   });
 
-  it("full mode returns object with root catch-all + bash patterns (bug fix 0.1.35)", () => {
-    // 0.1.34 bug: returned object without root `"*": "allow"`, so OpenCode tools
-    // not explicitly listed (task, skill, websearch, write, patch, etc.) fell
-    // to per-tool default `ask`. User reported "echo me pide permisos".
-    // 0.1.35: include root `"*": "allow"` catch-all + only override bash patterns.
+  it("full mode: root catch-all + bash overrides (only rm -rf and sudo in ask) — 0.1.36", () => {
+    // 0.1.36: el usuario solicito "no quiero que git pregunte". Removidos
+    // patterns de git destructivos del ask list. Mantenidos solo rm -rf y
+    // sudo (system-wide destructivos no-git).
     const p = buildOpenCodePermission("full", "host") as Record<string, unknown>;
     expect(typeof p).toBe("object");
-    // Root catch-all for any tool not explicitly listed (task, skill, write, patch, etc.)
+    // Root catch-all
     expect(p["*"]).toBe("allow");
-    // bash override with patterns
+    // Bash catch-all
     expect((p.bash as Record<string, string>)["*"]).toBe("allow");
-    // Destructive ops stay in ask even in full mode (safety)
-    expect((p.bash as Record<string, string>)["git push --force *"]).toBe("ask");
-    expect((p.bash as Record<string, string>)["git push -f *"]).toBe("ask");
-    expect((p.bash as Record<string, string>)["git reset --hard *"]).toBe("ask");
+    // Solo dos patterns destructivos NO-git en ask
     expect((p.bash as Record<string, string>)["rm -rf *"]).toBe("ask");
     expect((p.bash as Record<string, string>)["sudo *"]).toBe("ask");
-    // External dir explicit
+    // Git destructivos NO deben aparecer (todos pasan por el catch-all)
+    expect((p.bash as Record<string, string>)["git push --force *"]).toBeUndefined();
+    expect((p.bash as Record<string, string>)["git push -f *"]).toBeUndefined();
+    expect((p.bash as Record<string, string>)["git reset --hard *"]).toBeUndefined();
     expect(p.external_directory).toBe("allow");
   });
 
@@ -114,14 +113,16 @@ describe("opencode.json: emits permission per mode", () => {
     expect(oc.permission.bash["mvn *"]).toBe("allow");
   });
 
-  it("full mode: opencode.json has root catch-all + bash overrides (bug fix 0.1.35)", () => {
+  it("full mode: opencode.json sin git en ask, solo rm -rf y sudo (0.1.36)", () => {
     const config = baseConfig({ permissionMode: "full" });
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const oc = JSON.parse(result.files.find((f) => f.path === "opencode.json")!.content);
     expect(typeof oc.permission).toBe("object");
     expect(oc.permission["*"]).toBe("allow");
     expect(oc.permission.bash["*"]).toBe("allow");
-    expect(oc.permission.bash["git push --force *"]).toBe("ask");
+    expect(oc.permission.bash["rm -rf *"]).toBe("ask");
+    expect(oc.permission.bash["sudo *"]).toBe("ask");
+    expect(oc.permission.bash["git push --force *"]).toBeUndefined();
     expect(oc.permission.external_directory).toBe("allow");
   });
 });
