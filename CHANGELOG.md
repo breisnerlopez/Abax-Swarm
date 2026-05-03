@@ -6,6 +6,58 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.35] — 2026-05-03
+
+### Fixed — `permission_mode: full` faltaba root catch-all `"*"` (regression de 0.1.34)
+
+Sintoma reportado: en 0.1.34 algunos comandos triviales como `echo` empezaron a pedir permiso, comportamiento que NO existia en versiones anteriores.
+
+Causa: 0.1.34 cambio el formato de `permission` de string `"allow"` a un objeto con keys explicitas (`bash`, `edit`, `read`, `glob`, `grep`, `webfetch`, `external_directory`). Pero **olvido el catch-all `"*"` al ROOT** del objeto. Segun la doc oficial de OpenCode (https://opencode.ai/docs/permissions):
+
+> *"Rules are evaluated by pattern match, with the **last matching rule winning**. A common pattern is to put the catch-all `"*"` rule first, and more specific rules after it."*
+
+Sin el `"*"` root, las herramientas internas de OpenCode NO listadas (`task`, `skill`, `websearch`, `write`, `patch`, `todowrite`, `notebookedit`, etc.) caen al per-tool default que es `ask`. Esto manifesto como prompts inesperados.
+
+Fix: estructura simplificada con root catch-all + override solo de `bash` con patterns destructivos:
+
+```json
+{
+  "*": "allow",
+  "bash": {
+    "*": "allow",
+    "git push --force *": "ask",
+    "git push -f *": "ask",
+    "git reset --hard *": "ask",
+    "rm -rf *": "ask",
+    "sudo *": "ask"
+  },
+  "external_directory": "allow"
+}
+```
+
+Cambios respecto a 0.1.34:
+- **Agregado** `"*": "allow"` al root (cubre `task`, `skill`, `websearch`, `write`, `patch`, `todowrite`, `notebookedit`, etc.).
+- **Removido** `git *` y `git push *` redundantes en bash (ya cubiertos por bash `"*"`).
+- **Removido** `edit/read/glob/grep/webfetch` redundantes en root (ya cubiertos por root `"*"`).
+- **Mantenido** los 5 vetos destructivos en bash + `external_directory: "allow"` explicito.
+
+Resultado practico:
+- `echo "..."`, `curl ...`, `task(...)`, `skill(...)`, `write(...)` → allow sin prompt
+- `git checkout -b ...`, `git commit ...`, `git push origin main` → allow sin prompt
+- `git push --force`, `git push -f`, `git reset --hard`, `rm -rf`, `sudo` → siguen pidiendo confirmacion
+
+### Tests
+
+`tests/integration/permissions-isolation.test.ts`: 2 tests actualizados para verificar nueva estructura. Sentinel: `oc.permission["*"] === "allow"` (root catch-all presente) + `oc.permission.bash["git push --force *"] === "ask"`.
+
+Suite: **572 tests pasando** (sin cambio en numero).
+
+### Lecciones aprendidas
+
+1. Cuando OpenCode acepta tanto string como objeto para `permission`, el formato **string `"allow"`** es mas seguro como bypass total — funciona en TODAS las herramientas sin necesidad de listar cada una.
+2. El formato **objeto** requiere `"*"` root catch-all SIEMPRE para evitar que tools no listadas caigan a `ask`.
+3. La regla de OpenCode es **last matching wins**, no most-specific-wins. Patterns mas especificos van DESPUES del catch-all.
+
 ## [0.1.34] — 2026-05-03
 
 ### Fixed — `permission_mode: full` ahora emite objeto de patterns explicito (override prompts hardcoded de OpenCode)
