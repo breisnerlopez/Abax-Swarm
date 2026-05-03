@@ -6,6 +6,53 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.36] — 2026-05-03
+
+### Changed — `full` mode no pide confirmacion para git (solicitud explicita del usuario)
+
+Sintoma: el usuario eligio `permission_mode: full` y aun asi `git push --force`, `git push -f` y `git reset --hard` pedian confirmacion. La intencion del usuario fue clara: *"no quiero que git pregunte"*.
+
+Fix: removidos los patterns de git destructivos (`git push --force *`, `git push -f *`, `git reset --hard *`) del `ask` list en modo full. Ahora **TODOS los comandos git pasan sin confirmacion** en modo full, incluyendo force push y hard reset.
+
+Mantenidos como `ask` solo dos patterns sistema-wide no relacionados con git:
+- `rm -rf *` (proteccion contra borrado masivo de filesystem)
+- `sudo *` (proteccion contra escalamiento de privilegios)
+
+Estructura final modo full:
+
+```json
+{
+  "*": "allow",
+  "bash": {
+    "*": "allow",
+    "rm -rf *": "ask",
+    "sudo *": "ask"
+  },
+  "external_directory": "allow"
+}
+```
+
+### Bypass total disponible
+
+Si el usuario quiere que TAMBIEN `rm -rf` y `sudo` pasen sin confirmacion (bypass absoluto), el patron correcto es editar manualmente el opencode.json o el global `~/.config/opencode/opencode.json`:
+
+```json
+{ "permission": "allow" }
+```
+
+Esto es bypass total sin objeto de patterns. Esa es decision del usuario fuera del scope de Abax Swarm.
+
+### Tests
+
+Tests actualizados para verificar que `git push --force *`, `git push -f *`, `git reset --hard *` ya NO aparecen en el objeto. Verifican explicitamente que solo `rm -rf *` y `sudo *` quedan en ask. Suite **572 tests pasando** sin cambio.
+
+### Historia del bug
+
+- 0.1.13-0.1.33: full devolvia string `"allow"` -> OpenCode v1.14.x pedia confirmacion para git ops por prompts hardcoded.
+- 0.1.34: cambio a objeto explicito pero faltaba root `"*"` catch-all -> tools no listadas (task, skill, write) caian a ask.
+- 0.1.35: agregado root `"*": "allow"`, mantenia git destructivos en ask.
+- **0.1.36**: usuario explicitamente pidio remover git del ask. Solo rm -rf y sudo quedan.
+
 ## [0.1.35] — 2026-05-03
 
 ### Fixed — `permission_mode: full` faltaba root catch-all `"*"` (regression de 0.1.34)
