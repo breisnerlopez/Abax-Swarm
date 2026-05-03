@@ -1,0 +1,386 @@
+id: iteration-strategy
+name: Estrategia de Iteracion (v2/v3 sobre proyecto cerrado)
+description: >
+  Cuando el orquestador detecta que un proyecto cerrado recibe nueva iteracion
+  mayor (v2.0.0, v3.0.0, etc.), esta skill define el procedimiento para decidir
+  CON EL USUARIO la estrategia de manejo de docs preexistentes ANTES de delegar
+  el primer entregable. Evita el patron del incidente Abax-Memory v2 donde el
+  orquestador asumio overwrite sin preguntar.
+used_by:
+  - project-manager
+  - product-owner
+  - business-analyst
+  - tech-writer
+  - solution-architect
+  - tech-lead
+content:
+  when_to_use: |
+    - Al inicio de una sesion donde el `bitacora.md` o `CHANGELOG.md` indica que el proyecto cerro previamente.
+    - Cuando el usuario menciona "v2", "v3", "siguiente fase", "evolucion mayor", "nueva iteracion".
+    - Cuando el modo del wizard es `continue` y hay entregables completos en `docs/entregables/`.
+    - ANTES de delegar cualquier entregable de la nueva iteracion.
+  instructions: |
+    ## Cuando esta skill aplica
+
+    Esta skill se ACTIVA cuando se cumplen DOS condiciones simultaneas:
+
+    1. El proyecto tiene historia previa (existe `docs/bitacora.md`,
+       `CHANGELOG.md` con releases, o `docs/entregables/fase-9-cierre/`).
+    2. La sesion actual implica trabajo NUEVO de alcance significativo
+       (no es un fix de bug del v1, es evolucion).
+
+    Si solo aplica una condicion, esta skill NO se activa:
+    - Bug fix sobre v1 cerrado → usa `existing-docs-update-protocol` para
+      actualizar entregables relevantes (cambios menores).
+    - Proyecto nuevo desde cero sin historia → flujo cascada normal de Fase 0.
+
+    ## Las 4 estrategias de iteracion
+
+    ### A. Folder por release (RECOMENDADO para cambios mayores)
+
+    **Cuando**: la nueva iteracion cambia el alcance de manera significativa
+    (dominio distinto, audiencia distinta, arquitectura diferente). Ejemplo
+    Abax-Memory: v1 = motor IT operations, v2 = motor generico multi-dominio.
+
+    **Estructura**:
+    ```
+    docs/
+      entregables/
+        v1/
+          fase-0-descubrimiento/
+            vision-producto.md
+            ...
+        v2/
+          fase-0-descubrimiento/
+            vision-producto.md
+            ...
+      release-mapping.md      <- explica relacion v1 <-> v2
+      iteration-log.md        <- bitacora de decisiones de iteracion
+    ```
+
+    **Ventajas**: separacion clara, cada iteracion es completa y navegable,
+    historico preservado intacto, facil comparar.
+
+    **Desventajas**: duplicacion parcial de contenido que no cambia.
+
+    ### B. Bloque "## Cambios <version>" al final (RECOMENDADO para refinamientos)
+
+    **Cuando**: la iteracion ajusta o agrega sin cambiar el espiritu del
+    documento. Ej. v1.1.0 = "agregamos integracion con Slack", v2.0.0 NO.
+
+    **Estructura**:
+    ```markdown
+    <... contenido v1 INTACTO ...>
+
+    ---
+
+    ## Cambios v1.1.0 — 2026-06-01
+
+    ### Que agregamos
+    - Integracion con Slack como nuevo destino de notificaciones.
+
+    ### Que se mantiene
+    - Email y Teams (no cambian).
+    ```
+
+    Frontmatter del archivo:
+    ```yaml
+    ---
+    iteraciones:
+      - version: 1.0.0
+        fecha: 2026-05-01
+      - version: 1.1.0
+        fecha: 2026-06-01
+        cambios: ver bloque "## Cambios v1.1.0"
+    ---
+    ```
+
+    **Ventajas**: una sola fuente, evolucion como diff legible.
+
+    **Desventajas**: archivos crecen indefinidamente, leer "v1 puro" requiere
+    git history.
+
+    ### C. Archivado + nuevo (para reescritura intencional)
+
+    **Cuando**: la nueva iteracion es tan distinta que la anterior es ruido
+    para entender la actual (ej. cambio total de stack, pivote producto).
+
+    **Estructura**:
+    ```bash
+    mkdir -p docs/.archive/v1/
+    mv docs/entregables docs/.archive/v1/entregables
+    mv docs/bitacora.md docs/.archive/v1/
+    mv docs/registro-entregables.md docs/.archive/v1/
+    # Crear estructura limpia para v2
+    mkdir -p docs/entregables/fase-0-descubrimiento/
+    ```
+
+    **Ventajas**: contexto actual limpio, historico preservado intacto.
+
+    **Desventajas**: navegacion entre v1 y v2 requiere cambiar de carpeta.
+    Si el equipo es nuevo, no descubre v1 sin que se lo digan.
+
+    ### D. Branch git en lugar de iteracion en docs
+
+    **Cuando**: la iteracion es experimental y puede no salir adelante
+    (R&D, prototipo). Mantener v1 como `main` y trabajar v2 en branch
+    `release/v2`. Solo merge si v2 prospera.
+
+    **Estructura**:
+    - `main` branch: v1 intacto.
+    - `release/v2` branch: clones docs/ y modifica para v2.
+    - Si v2 sale adelante → merge a main, posiblemente con estrategia A o C.
+    - Si v2 se cancela → branch se descarta sin contaminar el historico.
+
+    **Ventajas**: cero riesgo de mezclar prematuramente, reversibilidad total.
+
+    **Desventajas**: menos visibilidad del progreso de v2 en `main`. Equipo
+    debe coordinar branches activamente.
+
+    ## Procedimiento obligatorio del orquestador
+
+    ### 1. Detectar la condicion
+
+    Al inicio de la sesion, antes de delegar cualquier Task, verifica:
+
+    ```bash
+    test -f docs/bitacora.md && echo "TIENE_BITACORA"
+    test -f CHANGELOG.md && grep -q '^## \[' CHANGELOG.md && echo "TIENE_CHANGELOG"
+    test -d docs/entregables/fase-9-cierre && echo "TIENE_CIERRE"
+    ```
+
+    Si al menos uno es positivo Y la solicitud actual es nueva iteracion mayor,
+    activa el flujo.
+
+    ### 2. Preguntar al usuario (BLOQUEANTE)
+
+    Antes de delegar, pregunta literalmente:
+
+    > **Iteracion mayor detectada sobre proyecto con historia**
+    >
+    > El proyecto `<nombre>` tiene `<N>` entregables completos de la iteracion
+    > anterior (`<version-anterior>` cerrada el `<fecha>`). La solicitud actual
+    > implica nueva iteracion (`<version-nueva>`). Antes de delegar el primer
+    > entregable, necesito que confirmes la **estrategia de manejo de docs
+    > preexistentes**:
+    >
+    > **A** — Folder por release: `docs/entregables/v2/...` paralelo a `v1/`.
+    >        Recomendado si v2 cambia alcance significativamente.
+    > **B** — Bloque "## Cambios v2" al final de cada archivo afectado.
+    >        Recomendado si v2 es refinamiento incremental.
+    > **C** — Archivar v1 a `docs/.archive/v1/` y reescribir limpio.
+    >        Solo si v2 es reescritura intencional.
+    > **D** — Branch git `release/v2`, no tocar `main` hasta merge.
+    >        Recomendado si v2 es experimental.
+    >
+    > ¿Cual aplico para esta iteracion?
+
+    ### 3. Documentar en `docs/iteration-log.md`
+
+    Una vez confirmada, escribe (o actualiza si ya existe) `docs/iteration-log.md`
+    con un bloque para esta iteracion:
+
+    ```markdown
+    ## v2.0.0 — Iniciada YYYY-MM-DD
+
+    ### Estrategia: <A/B/C/D> — <nombre completo>
+
+    Justificacion: <por que se eligio>
+
+    ### Estructura aplicada
+    <descripcion concreta de paths donde van los entregables v2>
+
+    ### Que se preserva de la iteracion anterior
+    <lista>
+    ```
+
+    ### 4. Aplicar consistentemente
+
+    A partir de aqui, TODOS los Tasks delegados de esta iteracion usan la
+    estrategia elegida. Si el orquestador delega "Vision v2" con estrategia A,
+    no puede luego delegar "Backlog v2" con estrategia C — eso fragmenta la
+    documentacion y confunde al equipo.
+
+    Cada Task delegado debe incluir el path final correcto:
+    - Estrategia A: `docs/entregables/v2/<fase>/<entregable>.md`
+    - Estrategia B: misma ruta que v1, instruccion de "agregar bloque ## Cambios v2"
+    - Estrategia C: `docs/entregables/<fase>/<entregable>.md` (limpio, ya archivado v1)
+    - Estrategia D: misma ruta que v1, pero el orquestador trabaja en branch `release/v2`
+
+    ## Anti-patrones (lo que NO hacer)
+
+    - **Delegar el primer entregable v2 sin preguntar estrategia.** Esto causo
+      el incidente Abax-Memory v2.
+    - **Mezclar estrategias en la misma iteracion.** Vision con A, Backlog con
+      C → caos navegacional.
+    - **Asumir "actualizar es seguro" sin que el sub-agente lo sepa.** Aunque
+      tu pongas en el prompt "actualiza, no reescribas", si el sub-agente no
+      tiene `existing-docs-update-protocol`, no sabe COMO actualizar.
+    - **No documentar la decision en `iteration-log.md`.** Sin registro, la
+      proxima iteracion no entiende por que las cosas estan donde estan.
+
+    ## Coordinacion con otras skills
+
+    - **`existing-docs-update-protocol`**: la skill que el sub-agente carga
+      para validar antes de cualquier `write`. Esta skill (`iteration-strategy`)
+      define la POLITICA, la otra define el PROCEDIMIENTO.
+    - **`project-documentation-structure`**: la estructura estandar de `docs/`.
+      Para estrategia A, esa estructura se replica con prefijo `v2/`.
+    - **`change-control`**: si la iteracion implica cambio de alcance formal
+      (no solo de version), debe pasar primero por control de cambios.
+  guides:
+    - name: ejemplo-decision-folder-por-release
+      content: |
+        ## Ejemplo completo — Estrategia A aplicada a Abax-Memory v2
+
+        ### Contexto
+
+        Proyecto Abax-Memory v1.0.0 cerrado el 2026-05-02. v1 era PMOA
+        (memoria operativa para IT). Usuario solicita evolucion a v2 como
+        motor de memoria generica para cualquier dominio.
+
+        ### Decision
+
+        Estrategia A — Folder por release. Justificacion: cambio mayor de
+        alcance (dominio especifico → multi-dominio), audiencia distinta
+        (IT ops → cualquier industria), arquitectura interna evoluciona
+        (perfiles de dominio nuevos).
+
+        ### Estructura aplicada
+
+        ```
+        docs/
+          entregables/
+            v1/                                  <- mover lo existente aqui
+              fase-0-descubrimiento/
+              fase-1-inicio/
+              ...
+              fase-9-cierre/
+            v2/                                  <- NUEVO, donde van los Tasks v2
+              fase-0-descubrimiento/
+                vision-producto.md
+                epicas-features.md
+                historias-usuario.md
+                backlog-priorizado.md
+                presentacion-descubrimiento.html
+              (mas fases conforme avanzan)
+          release-mapping.md                     <- relacion v1 <-> v2
+          iteration-log.md                       <- bitacora de iteracion
+        ```
+
+        ### Comandos de migracion (una sola vez)
+
+        ```bash
+        cd <proyecto>
+        mkdir -p docs/entregables/v1
+        # Mover fases existentes (no las archives, las renombras a v1/)
+        for f in docs/entregables/fase-*; do
+          mv "$f" docs/entregables/v1/
+        done
+        # Crear placeholder de v2 con seed README
+        mkdir -p docs/entregables/v2/fase-0-descubrimiento/
+        echo "# v2 — En curso" > docs/entregables/v2/README.md
+        # Documentar
+        cat > docs/release-mapping.md << EOF
+        # Release Mapping
+
+        ## v1.0.0 → v2.0.0
+
+        | v1 | v2 | Cambia? |
+        |---|---|---|
+        | PMOA (IT operations memory) | Motor generico multi-dominio | SI: alcance |
+        | Backend Quarkus + PG + Qdrant + Keycloak + OpenAI | Mismo stack, perfiles de dominio | NO: stack |
+        | API REST en español | API REST en ingles (English-Only Internals) | SI: convencion |
+
+        EOF
+        ```
+
+        Cada Task delegado de fase 0 v2 escribe en
+        `docs/entregables/v2/fase-0-descubrimiento/<entregable>.md`.
+
+    - name: ejemplo-decision-bloque-cambios
+      content: |
+        ## Ejemplo completo — Estrategia B aplicada a un refinamiento v1.1.0
+
+        ### Contexto
+
+        Proyecto en produccion v1.0.0. Usuario reporta que necesita agregar
+        notificaciones via Slack (antes solo email + Teams). Es un agregado,
+        no cambio de alcance.
+
+        ### Decision
+
+        Estrategia B — Bloque "## Cambios v1.1.0" al final de los archivos
+        afectados.
+
+        ### Aplicacion
+
+        Archivos a actualizar (NO sobreescribir):
+        - `docs/entregables/fase-2-analisis/especificacion-funcional.md`
+        - `docs/entregables/fase-3-diseno-tecnico/integration-design-doc.md`
+        - `docs/entregables/fase-4-construccion/source-code/` (referenciar codigo nuevo)
+        - `docs/entregables/fase-7-despliegue/runbook.md` (agregar comando de config Slack)
+
+        En cada uno, agregar al final:
+
+        ```markdown
+        ---
+
+        ## Cambios v1.1.0 — 2026-06-15
+
+        ### Que agregamos
+        - Integracion con Slack para notificaciones operativas (canal `#alerts-prod`).
+        - Webhook configurado en variable de entorno `SLACK_WEBHOOK_URL`.
+
+        ### Que NO cambia
+        - Email y Microsoft Teams (canales originales) siguen activos.
+        - Logica de filtrado de severidades (sin cambios).
+
+        ### Migracion
+        Sin migracion necesaria. Si la variable `SLACK_WEBHOOK_URL` no esta
+        seteada, el canal Slack queda desactivado (default seguro).
+        ```
+
+        Y actualizar el header del archivo:
+
+        ```yaml
+        ---
+        fase: 2-analisis
+        entregable: especificacion-funcional
+        iteraciones:
+          - version: 1.0.0
+            fecha: 2026-05-01
+            responsable: business-analyst
+          - version: 1.1.0
+            fecha: 2026-06-15
+            responsable: business-analyst
+            cambios: integracion Slack notifications
+        ---
+        ```
+
+    - name: como-detectar-iteracion-mayor
+      content: |
+        ## Como detectar que es iteracion mayor (vs fix menor)
+
+        Senales de iteracion MAYOR (activa esta skill):
+
+        - Usuario menciona "v2", "v3", "next gen", "evolucion".
+        - El propuesta cambia uno o mas de:
+          - Dominio del producto (IT → Finance).
+          - Stack tecnologico principal (Java → Go).
+          - Audiencia objetivo (B2B → B2C).
+          - Modelo de negocio (free → SaaS).
+          - Arquitectura central (monolito → microservicios).
+        - El esfuerzo estimado es comparable a la fase 0-9 original.
+
+        Senales de fix MENOR (NO activa esta skill, usa `existing-docs-update-protocol`
+        directamente con estrategia B):
+
+        - Usuario menciona "bug", "fix", "ajuste", "correccion", "agregado pequeno".
+        - Cambio afecta < 20% de los entregables.
+        - Esfuerzo estimado es dias, no semanas.
+        - Stack tecnologico no cambia.
+        - Equipo del proyecto puede ser el mismo (no requiere onboarding).
+
+        En zona gris, **PREGUNTA al usuario directamente**: "¿Esto lo manejamos
+        como nueva iteracion mayor (v2) o como ajuste sobre v1?".

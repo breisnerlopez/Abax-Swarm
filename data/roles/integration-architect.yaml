@@ -74,6 +74,7 @@ skills:
   - reverse-engineering
 
   - code-naming-convention
+  - existing-docs-update-protocol
 tools:
   - generate-diagram
 

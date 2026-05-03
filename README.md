@@ -250,7 +250,7 @@ Detalle exhaustivo en [docs/guides/adding-roles.md](docs/guides/adding-roles.md)
 
 ## Guard rails (lo que NO te deja hacer)
 
-Cinco reglas sistémicas activas, cada una nacida de un incidente concreto y cubierta por tests automatizados que fallan en CI si alguien intenta diluirlas:
+Seis reglas sistémicas activas, cada una nacida de un incidente concreto y cubierta por tests automatizados que fallan en CI si alguien intenta diluirlas:
 
 | Guard rail | Qué impide | Documentación |
 |---|---|---|
@@ -259,6 +259,7 @@ Cinco reglas sistémicas activas, cada una nacida de un incidente concreto y cub
 | `git-collaboration` | Que un rol con `bash` haga commits a `main` o sin convención `abax/<project>` + `--author` | [docs/git-collaboration.md](docs/git-collaboration.md) |
 | `deployment-planning` | Que se llegue a deploy sin contestar las 12 preguntas (URL, dominio, DNS, monitoring, rollback) y sin aprobación del sponsor | [docs/deployment-planning.md](docs/deployment-planning.md) |
 | `code-naming-convention` | Que los agentes mezclen español e inglés en identificadores de código (variables, endpoints, parámetros, env vars, tablas SQL) — todo internal en inglés | [docs/code-naming.md](docs/code-naming.md) |
+| `existing-docs-update-protocol` + `iteration-strategy` | Que un agente sobreescriba silenciosamente docs preexistentes al recibir Tasks de v2 sin preservar v1 (incidente Abax-Memory v2) | [docs/iteration-strategies.md](docs/iteration-strategies.md) |
 
 Más una capa preventiva contra el bug del fallback silencioso a Spring Boot cuando el stack no se reconoce: ver [docs/legacy-stacks.md](docs/legacy-stacks.md).
 

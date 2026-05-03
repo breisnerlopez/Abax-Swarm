@@ -90,6 +90,8 @@ skills:
   - documentation-quality-bar
   - project-documentation-structure
   - code-naming-convention
+  - existing-docs-update-protocol
+  - iteration-strategy
 tools:
   - lint-code
   - run-tests

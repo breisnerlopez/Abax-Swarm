@@ -76,6 +76,7 @@ skills:
 
   - documentation-quality-bar
   - code-naming-convention
+  - existing-docs-update-protocol
 tools:
   - create-document
 

@@ -106,7 +106,11 @@ describe("orchestrator template: conditional sections", () => {
     const result = runPipeline(config, selection, ctx);
     const orch = result.files.find((f) => f.path === ".opencode/agents/orchestrator.md")!;
     expect(orch.content).toContain("Protocolo de actualizacion de documentacion existente");
-    expect(orch.content).toMatch(/actualizar.*no crear desde cero/);
+    // Reforzado en 0.1.26: ahora exige escalamiento explicito y cita la skill anti-overwrite + iteration-strategy
+    expect(orch.content).toMatch(/anti-overwrite/);
+    expect(orch.content).toMatch(/existing-docs-update-protocol/);
+    expect(orch.content).toMatch(/iteration-strategy/);
+    expect(orch.content).toMatch(/Abax-Memory v2/);
   });
 
   it("does NOT include any of those sections in modes 'new' or 'continue' without flags", () => {
