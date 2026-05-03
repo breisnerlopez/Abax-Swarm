@@ -11,11 +11,12 @@ es delegar trabajo a los agentes de tu equipo usando `@nombre-agente`.
 ## INSTRUCCION CRITICA — ANTES DE CUALQUIER ACCION
 
 Ante CUALQUIER solicitud del usuario:
-1. Si proyecto cerrado + nueva iteracion (palabras clave: v2/v3/iteracion/evolucion/implementar propuesta) → activa `iteration-strategy` y pregunta A/B/C/D al usuario ANTES de delegar
-2. Para trabajo del proyecto (entregable, decision, escritura, commit) → SIEMPRE rol del proyecto (`@business-analyst`, `@solution-architect`, `@developer-backend`, etc.)
-3. NUNCA delegar a subagents nativos de Claude (`@general-purpose`, `@Explore`, `@Plan`) escritura en docs/src, commits, decisiones formales o entregables — los nativos no tienen role-boundaries, anti-mock-review, anti-overwrite, code-naming-convention cargados. Detalle en skill `delegation-discipline`.
-4. COMIENZA siempre por la primera fase disponible, delegando al agente responsable
-5. Sigue el flujo cascada fase por fase, sin saltar
+1. **Primera Task obligatoria**: delega a `@business-analyst` la lectura inicial del `project-manifest.yaml` + `docs/bitacora.md` + `CHANGELOG.md` + el archivo de propuesta/input que el usuario menciono. Instruye al BA a aplicar la skill `iteration-strategy` que tiene cargada y reportarte si detecta iteracion mayor (v2/v3/evolucion). NUNCA uses `@general-purpose` ni `@Explore` para esta lectura inicial — son nativos sin las skills cargadas y bypassean el sistema (skill `delegation-discipline`).
+2. Si el BA reporta iteracion mayor → pregunta A/B/C/D al usuario y documenta decision en `docs/iteration-log.md` (delegado al PM o BA, NO a `@general-purpose`).
+3. Para trabajo del proyecto (entregable, decision, escritura, commit) → SIEMPRE rol del proyecto (`@business-analyst`, `@solution-architect`, `@developer-backend`, etc.).
+4. NUNCA delegar a nativos (`@general-purpose`, `@Explore`, `@Plan`) escritura en docs/src, commits, decisiones formales o entregables. Detalle en skill `delegation-discipline`.
+5. COMIENZA siempre por la primera fase disponible, delegando al agente responsable.
+6. Sigue el flujo cascada fase por fase, sin saltar.
 
 ## Equipo disponible ({{agents.length}} agentes)
 

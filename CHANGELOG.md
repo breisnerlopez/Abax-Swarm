@@ -6,6 +6,44 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.30] — 2026-05-03
+
+### Fixed — `read directly` instruction was impossible (orchestrator OpenCode no tiene `read`)
+
+Bug introducido en 0.1.29: el orchestrator template instruia "lee `project-manifest.yaml` directamente sin Task". Pero el orquestador en OpenCode tiene `permission.read: deny` por diseno (es coordinador puro). Resultado: 4 intentos de `tool|invalid()` consecutivos, despues caia al patron viejo de delegar a `@general` (lo que 0.1.29 trataba de evitar).
+
+Fix: reemplazar el "atajo de lectura directa" por **"primera Task obligatoria al `@business-analyst`"** que lee manifest+bitacora+CHANGELOG+propuesta en una sola delegacion, aplica `iteration-strategy` (skill cargada en BA) y reporta resumen + estrategia recomendada.
+
+Skills `iteration-strategy` y `delegation-discipline` actualizadas con la misma correcion + clarificacion explicita: "El orquestador en OpenCode NO tiene `read` (permission.read: deny). Por lo tanto la lectura inicial DEBE delegarse a `@business-analyst`, NO a `@general`/`@explore`."
+
+Asimetria reconocida: en Claude Code el orquestador es la sesion del usuario y SI tiene `read`. La recomendacion de delegar a BA sigue siendo buena practica para mantener reporte estructurado y activacion consistente de skills.
+
+### Changed
+
+- `templates/opencode/orchestrator.md.hbs`: bloque "Atajo" reemplazado con plantilla literal de Task al `@business-analyst`. Instruccion critica reordenada (paso 1: Primera Task al BA con `iteration-strategy`; paso 2: A/B/C/D si aplica; pasos 3-7: delegacion segun matriz).
+- `templates/claude/orchestrator.md.hbs`: misma logica, orden ajustado.
+- `data/skills/iteration-strategy.yaml`: seccion "Atajo de deteccion" reescrita.
+- `data/skills/delegation-discipline.yaml`: procedimiento correcto reescrito + heuristica 6 actualizada.
+
+### Tests
+
+Tests existentes de delegation-discipline actualizados para verificar nuevo wording. **2 nuevos tests** agregados: clarifica que orquestador OpenCode no tiene `read` permission, reconoce la asimetria con Claude Code. Suite total: **536 tests pasando** (era 535).
+
+### Por que esto importa
+
+Sin este fix, el orquestador entraba en loop:
+1. Lee instruccion "lee directamente"
+2. Trata de usar `read` → `tool|invalid()` (sin permission)
+3. Falla, intenta de nuevo → `tool|invalid()` x4
+4. Cae al fallback que conoce: `@general`
+5. Bypassa todas las skills criticas
+
+Ahora el flujo es:
+1. Lee instruccion "delega primera Task a @business-analyst"
+2. Hace `task(business-analyst)` con plantilla literal
+3. BA lee + aplica iteration-strategy + reporta
+4. Orquestador procede con info estructurada y skill activada
+
 ## [0.1.29] — 2026-05-03
 
 ### Added — Skill `delegation-discipline` (cuando nativos OpenCode vs roles del proyecto)
