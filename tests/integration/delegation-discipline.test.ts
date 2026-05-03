@@ -69,10 +69,12 @@ describe("delegation-discipline skill: content and structure", () => {
     expect(guideNames).toContain("ejemplos-nativos-prohibidos");
   });
 
-  it("mentions reading project-manifest.yaml as shortcut before delegation", () => {
+  it("mentions delegating first read to @business-analyst (orchestrator has no read perm)", () => {
     const skill = ctx.skills.get("delegation-discipline")!;
-    expect(skill.content.instructions).toMatch(/project-manifest\.yaml/);
-    expect(skill.content.instructions).toMatch(/atajo|directamente/i);
+    const txt = skill.content.instructions;
+    expect(txt).toMatch(/project-manifest\.yaml/);
+    expect(txt).toMatch(/@business-analyst/);
+    expect(txt).toMatch(/NO tiene `read`|read.*deny|coordinador puro/i);
   });
 
   it("is wired to all 6 coordinator roles", () => {
@@ -99,20 +101,24 @@ describe("iteration-strategy: reinforced activation", () => {
     expect(skill.content.when_to_use).toMatch(/implementar propuesta/);
   });
 
-  it("instructions include the project-manifest shortcut", () => {
+  it("instructs to delegate first reading to @business-analyst (NOT @general/@explore)", () => {
     const skill = ctx.skills.get("iteration-strategy")!;
     const txt = skill.content.instructions;
     expect(txt).toMatch(/Atajo de deteccion/);
     expect(txt).toMatch(/project-manifest\.yaml/);
-    expect(txt).toMatch(/sin delegar/);
+    expect(txt).toMatch(/@business-analyst/);
+    expect(txt).toMatch(/NO.*@explore.*ni.*@general/);
     expect(txt).toMatch(/80%/);
   });
 
-  it("instructs NOT to delegate exhaustive @explore before deciding strategy", () => {
+  it("clarifies orchestrator OpenCode does NOT have read permission", () => {
     const skill = ctx.skills.get("iteration-strategy")!;
-    const txt = skill.content.instructions;
-    expect(txt).toMatch(/@explore/);
-    expect(txt).toMatch(/NO delegues exploracion exhaustiva/i);
+    expect(skill.content.instructions).toMatch(/NO tiene `read`|read.*deny|coordinador puro/i);
+  });
+
+  it("acknowledges Claude Code orchestrator can read directly (asymmetry)", () => {
+    const skill = ctx.skills.get("iteration-strategy")!;
+    expect(skill.content.instructions).toMatch(/Claude Code/);
   });
 });
 
@@ -139,21 +145,22 @@ describe("orchestrator template: nativos vs roles section", () => {
     expect(orch.content).toMatch(/Producir entregable formal/);
   });
 
-  it("instructs to read manifest.yaml as shortcut before exploring", () => {
+  it("instructs to delegate first read to @business-analyst (orchestrator has no read perm)", () => {
     const config = baseConfig({ size: "large" });
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const orch = result.files.find((f) => f.path === ".opencode/agents/orchestrator.md")!;
-    expect(orch.content).toMatch(/Atajo.*lee el manifest/i);
+    expect(orch.content).toMatch(/Atajo.*delega.*business-analyst/i);
     expect(orch.content).toMatch(/project-manifest\.yaml/);
-    expect(orch.content).toMatch(/80% del contexto/);
+    expect(orch.content).toMatch(/NO tienes? `read`|coordinador puro/);
   });
 
-  it("instructs to ACTIVATE iteration-strategy on v2 keywords (first message)", () => {
+  it("instructs to make FIRST Task obligatorily go to @business-analyst (not @general)", () => {
     const config = baseConfig({ size: "large" });
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const orch = result.files.find((f) => f.path === ".opencode/agents/orchestrator.md")!;
-    expect(orch.content).toMatch(/ACTIVA `iteration-strategy`/);
-    expect(orch.content).toMatch(/v2\/v3\/iteracion\/evolucion\/implementar propuesta/);
+    expect(orch.content).toMatch(/Primera Task obligatoria.*business-analyst/);
+    expect(orch.content).toMatch(/iteration-strategy/);
+    expect(orch.content).toMatch(/NUNCA `@general` ni `@explore` para esto/);
   });
 });
 
@@ -166,9 +173,10 @@ describe("claude orchestrator: nativos vs roles + iteration trigger", () => {
     const result = runPipeline(config, runSelection(config, ctx), ctx);
     const orch = result.files.find((f) => f.path === "CLAUDE.md")!;
     expect(orch.content).toMatch(/SIEMPRE rol del proyecto/);
-    expect(orch.content).toMatch(/NUNCA delegar a subagents nativos/);
+    expect(orch.content).toMatch(/NUNCA delegar a nativos/);
     expect(orch.content).toMatch(/delegation-discipline/);
     expect(orch.content).toMatch(/iteration-strategy/);
+    expect(orch.content).toMatch(/Primera Task obligatoria.*business-analyst/);
   });
 });
 

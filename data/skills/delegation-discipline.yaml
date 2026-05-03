@@ -53,7 +53,7 @@ content:
     | Research de librerias externas / documentacion oficial | `@docs` permitido | Lookup, no decision |
     | Bosquejo exploratorio (lluvia de ideas, no compromete decision) | `@plan` permitido | Brainstorm previo, NO ADR formal |
     | Resumen multi-tema sin entregable (status, comparativa) | `@general` permitido si NO escribe en docs/src ni hace commit | Coordinacion liviana |
-    | Lectura individual de un archivo conocido | El orquestador lo hace directamente con `read` (no necesita Task) | Innecesario delegar |
+    | Lectura individual de un archivo conocido | En claude-code: `read` directo. En opencode: Task al rol del proyecto que necesite el archivo (NO @general). | El orquestador OpenCode no tiene `read` permission |
 
     ## Los 4 vetos criticos para nativos
 
@@ -119,26 +119,51 @@ content:
 
     Al recibir el primer prompt del usuario:
 
-    ### 1. Lee `project-manifest.yaml` directamente (atajo, sin delegar)
+    ### 1. Primera Task: lectura inicial al @business-analyst
 
-    Te da: nombre, descripcion, tamano, stack, equipo, modo, fases. Es 1 sola
-    lectura, no requiere Task.
+    El orquestador en OpenCode NO tiene `read` (frontmatter del rol:
+    `permission.read: deny`). Por lo tanto la lectura inicial DEBE
+    delegarse — y el rol correcto es **`@business-analyst`** (NO
+    `@general` ni `@explore`), porque el BA tiene cargadas las skills
+    `iteration-strategy`, `existing-docs-update-protocol`,
+    `documentation-quality-bar` y `delegation-discipline`.
 
-    ### 2. Lee `docs/bitacora.md` y `CHANGELOG.md` si existen (atajo, sin delegar)
+    Plantilla de la primera Task:
 
-    Te da: estado del proyecto (cerrado, en curso, fase actual).
+    ```
+    agent: business-analyst
+    description: Lectura de contexto + activar iteration-strategy si aplica
+    prompt: Lee project-manifest.yaml, docs/bitacora.md, CHANGELOG.md,
+            y el archivo de input del usuario (si menciono uno). Aplica
+            iteration-strategy. Reporta resumen + estrategia recomendada
+            (A/B/C/D) si aplica iteracion mayor.
+    ```
 
-    ### 3. Activa skills si corresponde
+    Por que NO `@general`/`@explore`:
+    - No tienen `iteration-strategy` cargada.
+    - No tienen `existing-docs-update-protocol` ni `documentation-quality-bar`.
+    - El reporte queda diluido sin autoria de un rol del proyecto.
 
-    - Si proyecto cerrado + nueva iteracion mayor → activa `iteration-strategy`,
-      pregunta A/B/C/D ANTES de cualquier delegacion.
-    - Si docs/ tiene archivos → recuerda que cada Task que escriba en ellos
-      debe llevar el bloque ATENCION (skill `existing-docs-update-protocol`).
+    El BA te devuelve resumen + recomendacion en una sola respuesta.
 
-    ### 4. Para tareas que SI delegues:
+    ### 2. Si el BA reporta iteracion mayor
+
+    Pregunta A/B/C/D al usuario y documenta decision en `docs/iteration-log.md`
+    (Task al PM o BA, NO a `@general`).
+
+    ### 3. Para tareas que SI delegues despues:
 
     - **Trabajo del proyecto** → rol del proyecto correspondiente.
-    - **Lookup/exploracion read-only adicional** → nativos si justifica.
+    - **Lookup/exploracion read-only adicional** → `@explore`/`@docs` OK
+      con los 4 vetos respetados.
+
+    ### Nota: orquestador en Claude Code
+
+    En claude-code el orquestador es la sesion misma del usuario y tiene
+    acceso a `read`. Puede leer los archivos directamente. Pero la
+    recomendacion sigue siendo delegar la primera lectura al
+    `@business-analyst` para mantener el reporte estructurado y la
+    activacion consistente de skills.
 
     ### 5. Si dudas si una tarea cabe en un rol del proyecto:
 
@@ -273,6 +298,9 @@ content:
           `@plan` para bosquejo, `@general` para sintesis multi-area)
         - NO → rol del proyecto por default (caso ambiguo, default seguro)
 
-        Pregunta 6 (atajo): ¿Necesitas info del proyecto en general?
-        - LEE `project-manifest.yaml`, `docs/bitacora.md`, `CHANGELOG.md`
-          DIRECTAMENTE sin delegar. Es el camino mas corto.
+        Pregunta 6 (atajo): ¿Necesitas info del proyecto en general (primera vez)?
+        - DELEGA a `@business-analyst` UNA Task con la lectura conjunta de
+          `project-manifest.yaml`, `docs/bitacora.md`, `CHANGELOG.md` + el
+          archivo de input del usuario. El BA tiene `iteration-strategy`
+          cargada y reporta condiciones detectadas + estrategia recomendada.
+          NO `@general` ni `@explore` para esto.
