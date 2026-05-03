@@ -6,6 +6,42 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.25] — 2026-05-03
+
+### Fixed — Mix de espanol/ingles en identificadores de codigo (sintoma reportado por usuario)
+
+Sintoma del usuario: *"variables endpoints parametros deben estar siempre en ingles, me ha dado un mix en algunos escenarios que no debe volver a suceder"*. Causa raiz: tres skills que los agentes leen tenian ejemplos en espanol que contradecian la regla declarada en CLAUDE.md, y el agente internalizaba que era aceptable mezclar.
+
+Las fuentes corregidas:
+- `coding-standards`: clases como `OrdenCompra`/`UsuarioServicio`, variables `cantidadItems`/`fechaCreacion`, constantes `MAX_INTENTOS`/`TIMEOUT_SEGUNDOS` → ahora `Order`/`UserRepository`/`PaymentService`, `itemCount`/`createdAt`/`totalAmount`, `MAX_RETRIES`/`TIMEOUT_SECONDS`/`DEFAULT_PAGE_SIZE`. Cita la nueva skill `code-naming-convention`.
+- `backend-implementation`: endpoints `/api/v1/usuarios`, `/api/v1/ordenes` → `/api/v1/users`, `/api/v1/orders` con path params en ingles.
+- `unit-testing`: `calcularDescuento_montoMayorA1000_retorna10Porciento` → `calculateDiscount_amountOver1000_returns10Percent`.
+
+### Added — Skill `code-naming-convention` (5to guard rail)
+
+Nueva skill no-negociable con tabla exhaustiva de identificadores que deben estar en ingles (clases, funciones, variables, constantes, endpoints REST, query/path params, headers HTTP custom, tablas y columnas SQL, env vars, claves JSON/YAML, branches git, archivos de codigo, tests, imagenes Docker, topicos Kafka, metric/log keys). Documenta 4 categorias de excepciones legitimas (terminos de dominio sin traduccion como RUC/CURP, BD legacy con tablas en espanol, APIs publicas con consumidores existentes, error codes vs messages). Incluye guidance por stack (TypeScript/Java/Python/Go/Rust/SQL/YAML), patrones de busqueda regex para auditar codebases existentes, y formato estandar para documentar excepciones en `docs/decisions/`. Wired a 8 roles que escriben/revisan codigo: developer-backend, developer-frontend, dba, tech-lead, solution-architect, integration-architect, security-architect, qa-automation.
+
+### Added — Test guard automatizado
+
+`tests/integration/code-naming-convention.test.ts`: escanea TODOS los YAMLs de `data/` buscando dos patrones de mezcla: identificadores backtick-quoted que combinan verbos/nombres espanoles con camelCase/PascalCase, y URLs reales (con prefijo `/api/v\d/` o despues de un verbo HTTP) cuyo segmento es nombre espanol plural tipico. Falla CI con reporte exacto archivo:linea + sugerencia. EXEMPT_FILES con 2 entradas legitimas (`code-naming-convention.yaml` con ejemplos negativos pedagogicos, `role-boundaries.yaml` con placeholders espanoles). Sentinel test sintetico verifica que el regex no produce falsos positivos sobre ejemplos canonicos en ingles. Sanity test confirmado: inyectando `GET /api/v1/usuarios/{userId}` en `api-design.yaml`, el guard fallaba; al restaurar, volvia a verde.
+
+### Changed — README del repo Abax-Swarm
+
+Reescrito siguiendo mejores practicas: badges al inicio (npm version, downloads, CI, tests, license, Node), TL;DR de 3 frases + 3 comandos quickstart, tabla de contenidos navegable, seccion **"Por que Abax Swarm"** con 5 patrones problematicos y como cada guard rail los evita, **Casos de uso comunes** que enlazan a docs/use-cases.md, **Estado del proyecto**, **Soporte y comunidad** con FAQ, recursos completos. Numeros actualizados: 492 tests (era 446), 80 skills (era 76), 14 stacks (era 13).
+
+### Changed — CLAUDE.md sección Conventions
+
+Regla de naming explicita y exhaustiva en una sola linea con referencia a la skill, el guard rail y el doc nuevo.
+
+### Documentation
+
+- `docs/code-naming.md` (nuevo): sintoma reportado, causa raiz, las 5 piezas de la respuesta (skill nueva + 3 skills corregidos + guard rail), 4 excepciones documentadas con ejemplos de codigo, como detectar mezclas en codebases existentes, coordinacion con guard rails existentes.
+- `README.md` y `docs/README.md` actualizados con la referencia.
+
+### Tests
+
+Suite total: 492 tests pasando (era 476), typecheck + validate OK, 80 skills (era 79), 14 stacks (sin cambios).
+
 ## [0.1.24] — 2026-05-02
 
 ### Added — 3 skills coordinadas para que los agentes generen documentacion consistente en proyectos cliente

@@ -75,6 +75,7 @@ skills:
   - compliance-check
 
   - documentation-quality-bar
+  - code-naming-convention
 tools:
   - create-document
 

@@ -1,22 +1,64 @@
 # Abax Swarm
 
-**Genera un equipo de agentes de IA listo para llevar tu proyecto de software de la idea al despliegue.**
+[![npm version](https://img.shields.io/npm/v/abax-swarm.svg?color=crimson)](https://www.npmjs.com/package/abax-swarm)
+[![npm downloads](https://img.shields.io/npm/dw/abax-swarm.svg)](https://www.npmjs.com/package/abax-swarm)
+[![CI](https://github.com/breisnerlopez/Abax-Swarm/actions/workflows/ci.yml/badge.svg)](https://github.com/breisnerlopez/Abax-Swarm/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-492%20passing-brightgreen)](https://github.com/breisnerlopez/Abax-Swarm/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D20-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
-Abax Swarm te crea un equipo coordinado de agentes especializados — un Project Manager, un Business Analyst, un Solution Architect, desarrolladores, QA y más — que trabajan juntos siguiendo una metodología en cascada. Tú describes tu proyecto en un asistente interactivo, y la herramienta produce los archivos que tu cliente de IA (OpenCode o Claude Code) necesita para poner a ese equipo a trabajar.
+> **Genera un equipo coordinado de agentes de IA para llevar un proyecto de software de la idea al despliegue — o para documentar uno existente.**
 
-**Tres modos de proyecto**: implementar algo nuevo (cascada completa), documentar un sistema existente (equipo curado + 5 fases + sitio MkDocs), o continuar un proyecto previo (detectores de stack, docs y git para no re-pedirte lo que ya hay).
+Abax Swarm es una CLI que produce los archivos que tu cliente de IA (**OpenCode** o **Claude Code**) necesita para activar un equipo de **5 a 18 agentes especializados** trabajando en cascada: Project Manager, Business Analyst, Solution Architect, desarrolladores backend/frontend, DBA, QA, DevOps, y más. El **orquestador** delega cada entregable al rol correcto, exige aprobación de fase antes de avanzar, y bloquea atajos peligrosos con guard rails forjados de incidentes reales.
+
+```bash
+npm install -g abax-swarm
+abax-swarm init
+```
+
+![Pantalla inicial del wizard](docs/screenshots/01-wizard-start.png)
 
 ---
 
-## ¿Esta guía es para mí?
+## Tabla de contenidos
 
-Hay tres caminos en este README según qué quieras hacer. **No tienes que leerlo todo.**
+- [¿Por qué Abax Swarm?](#por-qué-abax-swarm)
+- [Empezar en 2 minutos](#empezar-en-2-minutos)
+- [Casos de uso comunes](#casos-de-uso-comunes)
+- [¿Qué se genera?](#qué-se-genera)
+- [El equipo y las fases](#el-equipo-y-las-fases)
+- [Personalizar tu equipo](#personalizar-tu-equipo)
+- [Guard rails (lo que NO te deja hacer)](#guard-rails-lo-que-no-te-deja-hacer)
+- [Para desarrolladores](#para-desarrolladores)
+- [Comandos](#comandos)
+- [Estado del proyecto](#estado-del-proyecto)
+- [Contribuir](#contribuir)
+- [Soporte y comunidad](#soporte-y-comunidad)
+- [Recursos](#recursos)
 
-| Si lo que quieres es… | Ve a |
+---
+
+## ¿Por qué Abax Swarm?
+
+Trabajar con un único agente de IA en proyectos no triviales termina en uno de estos patrones conocidos:
+
+| Patrón problemático | Cómo lo evita Abax Swarm |
 |---|---|
-| Usarlo rápido sin saber programación | [Empezar en 2 minutos](#empezar-en-2-minutos) |
-| Personalizar el equipo: agregar tu propio rol, otro stack, etc. | [Personalizar tu equipo](#personalizar-tu-equipo) |
-| Contribuir al código del propio Abax Swarm | [Para desarrolladores](#para-desarrolladores) |
+| **El agente "implementa" con regex disfrazada de IA** y nadie lo cacha hasta producción (incidente Abax-Memory) | 3 capas anti-mock: regla en developers + skill `anti-mock-review` en tech-lead + entregable `feature-spec-compliance` con BA externo |
+| **El mismo rol hace deploy y QA en una Task** y pierde el rigor de cada disciplina | Skill `role-boundaries` en 13 roles + matriz maestra por fase + protocolo 2-Tasks post-fix |
+| **El sistema legacy (PHP, VB6, Java Swing) se documenta como si fuera Spring Boot** | Stack `legacy-other` con detectores específicos + prompts cautelosos por rol |
+| **Devops commitea a `main` con `--force` o sin rama de feature** | Skill `git-collaboration` obligatoria en roles con `bash`, flujo distribuido por fase |
+| **Se llega a fase de despliegue sin haber preguntado dónde se publica, qué dominio, cómo se monitorea** | Bloqueante de `deployment-planning` con 12 preguntas + aprobación explícita del sponsor antes de cualquier acción real |
+
+Cada uno de estos guard rails nació de un incidente concreto y está cubierto por tests integrales que fallan en CI si alguien intenta diluirlos.
+
+### Tres modos de proyecto
+
+| Modo | Cuándo usarlo |
+|---|---|
+| **`new`** | Implementar algo desde cero. Cascada completa de 10 fases (descubrimiento → cierre). |
+| **`document`** | Inventariar un sistema en producción sin docs vivas. Equipo curado de 9 roles + flujo de 5 fases + sitio MkDocs Material listo. |
+| **`continue`** | Retomar un proyecto que ya tiene código, git, docs. Detecta automáticamente stack/git/docs y no re-pregunta lo obvio. |
 
 ---
 
@@ -24,7 +66,7 @@ Hay tres caminos en este README según qué quieras hacer. **No tienes que leerl
 
 ### 1. Instalar
 
-Necesitas Node.js 20 o superior. Si no lo tienes, instálalo desde [nodejs.org](https://nodejs.org).
+Necesitas **Node.js 20 o superior**. Si no lo tienes: [nodejs.org](https://nodejs.org).
 
 ```bash
 npm install -g abax-swarm
@@ -36,75 +78,63 @@ npm install -g abax-swarm
 abax-swarm init
 ```
 
-Aparece un wizard en tu terminal con barra de progreso, resumen lateral y la posibilidad de volver atrás con `Ctrl+B`.
+Se abre un wizard interactivo. Avanza con Enter, vuelve atrás con `Ctrl+B`. El paso 1 te pide la carpeta destino (por defecto, donde estés ejecutando el comando).
 
-![Pantalla inicial del wizard](docs/screenshots/01-wizard-start.png)
+### 3. Responder las preguntas
+
+Sin conocimiento técnico previo. Cada paso explica las opciones; el wizard salta los pasos irrelevantes según el modo elegido.
+
+| Paso | Pregunta | Notas |
+|---|---|---|
+| 1a | Directorio destino | Por defecto `pwd`. Se crea si no existe. |
+| 1b | **Modo de proyecto** | `new` / `document` / `continue` — ver tabla arriba. |
+| 2 | Plataforma | OpenCode o Claude Code. |
+| 3a | Asignación de modelos | "Personalizado por rol" o "Heredar el default de tu config" (útil si no tienes Opus/GPT-5). |
+| 3b | Proveedor IA | (si personalizado) Anthropic o OpenAI. Mix automático: estratégico → opus/gpt-5, implementación → sonnet/mini, mecánico → haiku/nano. |
+| 4 | Nombre + descripción | Para que los agentes sepan de qué va el proyecto. |
+| 5 | Tamaño + características | Solo modo `new`. Modo `document` tiene equipo curado fijo. |
+| 6 | Stack | 14 stacks soportados (incluido `legacy-other` para PHP/Swing/VB6). En `continue` se autodetecta. |
+| 7 | Equipo | Revisa, quita o agrega roles. Te avisa si quitas indispensables. |
+| 8 | Confirmación | Vista previa con archivos a generar y mix de modelos. Enter genera. |
 
 ![Selección del modo de proyecto](docs/screenshots/02-project-mode.png)
-
-### 3. Responder las preguntas del wizard
-
-No hace falta conocimiento técnico para responder. Cada paso te explica las opciones. El número exacto de preguntas depende del modo de proyecto que elijas en el paso 1.
-
-| Paso | Qué te pregunta | Cómo responder |
-|---|---|---|
-| 1a. Directorio | ¿Dónde quieres tu proyecto? | Una ruta de carpeta. Si no existe, se crea. Por defecto, la carpeta donde ejecutas el comando. |
-| 1b. **Modo de proyecto** | ¿Implementar algo nuevo, documentar algo existente, o continuar un proyecto previo? | Determina el flujo y el equipo. Detalle abajo. |
-| 2. Plataforma | ¿OpenCode o Claude Code? | Lo que uses tú habitualmente. |
-| 3a. Asignación de modelos | ¿Personalizado por rol o heredar el default de tu config? | "Heredar" útil si no tienes acceso a Opus o GPT-5. |
-| 3b. Proveedor de IA | (Si elegiste personalizado) ¿Anthropic (Claude) u OpenAI (GPT)? | Mix automático: estratégico → opus / gpt-5, implementación → sonnet / mini, mecánico → haiku / nano. |
-| 4. Información | Nombre y descripción breve. | Para que los agentes sepan de qué va el proyecto. |
-| 5. Tamaño + características | (Sólo modo "nuevo") Tamaño y criterios opcionales (datos sensibles, móvil, etc.). | Modo "documentar" salta este paso (equipo curado fijo). |
-| 6. Stack | ¿Qué tecnología usarán? | 13 stacks soportados. En modo "continuar", se detecta automáticamente y sólo te pide confirmar. |
-| 7. Equipo | Revisa el equipo propuesto. | Puedes quitar o agregar roles. El asistente te avisa si quitas uno indispensable. |
-| 8. Confirmación | Última vista previa con mix de modelos sugerido. | Pulsa Enter para generar los archivos. |
-
-#### Los tres modos de proyecto
-
-| Modo | Cuándo usarlo | Qué hace distinto |
-|---|---|---|
-| **Implementar algo nuevo** | Proyecto desde cero. | Flujo cascada completo (10 fases: discovery → inception → análisis → diseño → construcción → QA → UAT → despliegue → estabilización → cierre). Pregunta tamaño + criterios para definir el equipo. |
-| **Documentar algo existente** | Tienes código en producción sin docs vivas. Necesitas inventario técnico, funcional, negocio y operativo. | Equipo curado de 9 roles fijos (tech-writer, BA, PO, Solution Architect, Tech Lead, DBA, Integration Architect, UX, Change Manager) + Security Architect opcional. Flujo de 5 fases (descubrimiento → inventario → documentación → revisión → publicación). Genera scaffold **MkDocs Material** listo para `mkdocs serve`. Salta tamaño y criterios. |
-| **Continuar / partir de previo** | Quieres reutilizar la estructura de Abax Swarm sobre un proyecto que ya tiene código (y posiblemente git, docs, manifest). | Detecta automáticamente: stack tecnológico (13 heurísticas: `package.json` → next/nuxt/expo/etc., `pom.xml`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `*.csproj`), `.git/`, `docs/*.md`. Te ofrece mantener o cambiar lo detectado, no re-pregunta lo obvio. |
-
-Si tu carpeta destino tiene git, el orquestador generado **sugiere un commit al cierre de cada fase** (no lo ejecuta — sólo te muestra el comando listo para copiar, respetando que el orquestador es por diseño un coordinador y no toca disco). Si ya hay `docs/*.md` existentes, los agentes los **actualizan** en lugar de reescribirlos desde cero.
-
-![Asistente preguntando por criterios del proyecto](docs/screenshots/03-criteria-multiselect.png)
-
+![Asistente preguntando por criterios](docs/screenshots/03-criteria-multiselect.png)
 ![Editor del equipo](docs/screenshots/04-team-editor.png)
 
-![Confirmación con vista previa de archivos y mix de modelos](docs/screenshots/05-confirmation.png)
-
-### 4. Abrir tu proyecto en OpenCode o Claude Code
-
-Una vez generados los archivos, ve a la carpeta del proyecto y abre tu cliente de IA. El **orquestador** ya está listo para coordinar al equipo.
+### 4. Abrir tu proyecto en el cliente IA
 
 ```bash
 cd ruta/a/tu-proyecto
-opencode --agent orchestrator    # si elegiste OpenCode
-# o:
-claude                            # si elegiste Claude Code
+opencode --agent orchestrator    # OpenCode
+# o
+claude                            # Claude Code
 ```
 
 ### 5. Hablar con el orquestador
 
-El orquestador te recibirá con una **fase de descubrimiento** — preguntas sobre épicas, funcionalidades y prioridades. A partir de tus respuestas:
+Te recibirá con la fase de descubrimiento — preguntas sobre épicas, features y prioridades. Tú actúas como **Product Owner**: revisas entregables, apruebas pasos, das contexto. El orquestador delega y los agentes ejecutan.
 
-- Delega trabajo a los agentes adecuados (PM, BA, arquitecto, devs, QA…).
-- Lleva un registro de cada entregable en `docs/entregables/`.
-- No deja avanzar a la siguiente fase sin tener cerrada la actual.
-
-Tú actúas como **Product Owner / dueño del proyecto**: revisas entregables, apruebas pasos, das contexto. El orquestador y los agentes se encargan del flujo.
-
-### Modo dry-run (sin escribir archivos)
-
-Si quieres ver lo que se generaría **sin tocar disco**, agrega `--dry-run`:
+### Modo dry-run
 
 ```bash
-abax-swarm init --dry-run
+abax-swarm init --dry-run    # vista previa sin escribir archivos
 ```
 
 ![Resumen modo dry-run](docs/screenshots/06-dryrun-summary.png)
+
+---
+
+## Casos de uso comunes
+
+Cada uno con flujo paso a paso, errores típicos y comandos exactos:
+
+| Caso | Guía |
+|---|---|
+| Arrancar un proyecto Next.js nuevo desde cero | [docs/use-cases.md#caso-1-proyecto-nextjs-nuevo](docs/use-cases.md#caso-1-proyecto-nextjs-nuevo) |
+| Documentar un monolito PHP / Java Swing / VB6 legacy | [docs/use-cases.md#caso-2-documentar-un-sistema-legacy](docs/use-cases.md#caso-2-documentar-un-sistema-legacy) |
+| Retomar un Spring Boot que llevaba meses parado | [docs/use-cases.md#caso-3-retomar-un-proyecto-existente](docs/use-cases.md#caso-3-retomar-un-proyecto-existente) |
+| Cambiar el modelo asignado a un rol | [docs/model-mix.md](docs/model-mix.md) |
+| Añadir un rol propio (`devops-mobile`, `qa-security`, etc.) | [docs/guides/adding-roles.md](docs/guides/adding-roles.md) |
 
 ---
 
@@ -116,34 +146,36 @@ Cuando confirmas, Abax Swarm escribe esta estructura en tu carpeta:
 tu-proyecto/
 ├── .opencode/                    (o .claude/, según la plataforma elegida)
 │   ├── agents/
-│   │   ├── orchestrator.md       ← Coordina a todos los agentes (color: rojo crimson)
-│   │   ├── project-manager.md    ← Color asignado de paleta (deterministic por id)
+│   │   ├── orchestrator.md       ← Coordina a todos (color: rojo crimson)
+│   │   ├── project-manager.md    ← Color asignado de paleta determinista por id
 │   │   ├── business-analyst.md
 │   │   ├── solution-architect.md
 │   │   ├── developer-backend.md
-│   │   └── …                     (entre 5 y 18 agentes según tamaño)
-│   ├── skills/                   ← Conocimientos reutilizables
+│   │   └── …                     (5 a 18 agentes según tamaño)
+│   ├── skills/                   ← Conocimientos reutilizables (80 skills disponibles)
 │   └── tools/                    ← Herramientas que los agentes pueden ejecutar
 ├── docs/
-│   └── design-system/
-│       └── presentacion-template.html   ← Template HTML con 3 presets visuales
-│                                          (Corporate / Tech Editorial / Dark Premium)
-├── opencode.json                 ← Configuración de la plataforma
-└── project-manifest.yaml         ← Metadata del proyecto
+│   ├── design-system/
+│   │   └── presentacion-template.html   ← HTML autónomo, 3 presets visuales
+│   └── entregables/              ← Aquí van los outputs de cada fase
+├── opencode.json                 ← Config de la plataforma
+└── project-manifest.yaml         ← Metadata reproducible
 
 # Solo en modo "documentar":
-├── mkdocs.yml                    ← Config MkDocs Material listo para `mkdocs serve`
+├── mkdocs.yml                    ← Listo para `mkdocs serve`
 ├── requirements.txt              ← `mkdocs-material>=9.5`
 └── docs/<fase>/index.md          ← Seeds por las 5 fases del flujo de docs
-```
 
-Los agentes son archivos Markdown con instrucciones claras de qué hacer, qué entregar, cuándo intervenir y a quién consultar.
+# Solo si tu carpeta tiene git:
+└── .github/workflows/pages.yml   ← Workflow para publicar presentaciones en GitHub Pages
+```
 
 ### Detalles que mejoran la experiencia
 
-- **Colores en el TUI**: el orquestador siempre se pinta en rojo crimson (`#dc143c`); los demás agentes reciben colores vivos y distinguibles de una paleta curada de 24 hex (sin tonos rojos para no confundir). La asignación es determinista por `role.id`: mismo rol → mismo color en cada regeneración. Override por rol disponible vía `agent.color` en YAML. Detalle en [docs/agent-colors.md](docs/agent-colors.md).
-- **Glosario al cierre de cada entregable**: si un agente usa ≥3 acrónimos o términos técnicos (RACI, SLA, BPMN, OWASP, etc.), añade automáticamente una sección `## Glosario` con definiciones cortas (máx 7 términos, 1 línea). Hace los entregables legibles para sponsors / no técnicos.
-- **Presentaciones**: los agentes con el skill `presentation-design` generan HTML autónomo single-file con 3 presets visuales (Corporate Minimal / Tech Editorial / Dark Premium). Sin AI-slop (gradientes púrpura, gris puro, easings tipo bounce).
+- **Colores en TUI**: orquestador siempre rojo crimson `#dc143c`. Los demás agentes reciben colores vivos de una paleta curada de 24 hex (sin tonos rojos para no confundir). Determinista por `role.id`. Detalle: [docs/agent-colors.md](docs/agent-colors.md).
+- **Glosario automático**: si un entregable usa ≥3 acrónimos técnicos (RACI, SLA, BPMN, OWASP), el agente añade una sección `## Glosario` con definiciones cortas.
+- **Presentaciones HTML autónomas**: agentes con skill `presentation-design` generan single-file HTML con 3 presets (Corporate Minimal / Tech Editorial / Dark Premium). Sin AI-slop visual.
+- **Devcontainer auto-generado**: si elegiste isolación por container, recibes `.devcontainer/devcontainer.json` por stack.
 
 ---
 
@@ -151,7 +183,7 @@ Los agentes son archivos Markdown con instrucciones claras de qué hacer, qué e
 
 ### Roles base (siempre presentes)
 
-Project Manager, Product Owner, Business Analyst, Solution Architect, Tech Lead, Backend Developer, Frontend Developer, QA Lead, QA Funcional, DevOps.
+Project Manager · Product Owner · Business Analyst · Solution Architect · Tech Lead · Backend Developer · Frontend Developer · QA Lead · QA Funcional · DevOps.
 
 ### Roles especializados (se añaden según las características marcadas)
 
@@ -164,19 +196,19 @@ DBA · Security Architect · Integration Architect · QA Automation · QA Perfor
 1. Inception          → charter, kickoff, stakeholders
 2. Análisis funcional → especificaciones, reglas de negocio
 3. Diseño técnico     → arquitectura, modelo de datos, tareas
-4. Construcción       → implementación por sprints
+4. Construcción       → implementación + 3 capas anti-mock
 5. QA / Testing       → ejecución, defectos
 6. UAT                → aceptación del usuario
-7. Despliegue         → puesta en producción, rollback
+7. Despliegue         → 12 preguntas + aprobación sponsor + ejecución
 8. Estabilización     → soporte post-producción
 9. Cierre             → lecciones aprendidas
 ```
 
-Cada fase tiene entregables obligatorios y una persona/rol que la aprueba. El orquestador no avanza si la fase actual no está completa.
+Cada fase tiene entregables obligatorios y un rol que la aprueba. El orquestador no avanza si la fase actual no está completa.
 
-### Stacks tecnológicos (13 disponibles)
+### Stacks tecnológicos (14 disponibles)
 
-`react-nextjs` · `react-nestjs` · `vue-nuxt` · `angular-springboot` · `angular-quarkus` · `astro-hono` · `python-fastapi` · `python-django` · `dotnet-blazor` · `go-fiber` · `rust-axum` · `flutter-dart` · `react-native-expo`
+`react-nextjs` · `react-nestjs` · `vue-nuxt` · `angular-springboot` · `angular-quarkus` · `astro-hono` · `python-fastapi` · `python-django` · `dotnet-blazor` · `go-fiber` · `rust-axum` · `flutter-dart` · `react-native-expo` · `legacy-other` (PHP, Java Swing, VB6, Cobol, Delphi, etc.)
 
 Lista completa: `abax-swarm stacks`.
 
@@ -184,97 +216,51 @@ Lista completa: `abax-swarm stacks`.
 
 ## Personalizar tu equipo
 
-Esta sección es para usuarios con algo de manejo de archivos YAML. Si nunca has tocado un YAML, mira [este tutorial corto](https://learnxinyminutes.com/docs/yaml/) (10 minutos) y vuelve.
-
-**Lo importante:** Abax Swarm guarda **toda** su definición de roles, habilidades, herramientas, stacks y reglas en archivos YAML dentro de `data/`. Para personalizar **no necesitas tocar TypeScript** — basta editar YAML.
+Toda la definición de roles, skills, tools, stacks y reglas vive en YAML dentro de `data/`. **No hace falta tocar TypeScript** para añadir un rol propio o cambiar un comportamiento.
 
 ### Agregar un rol propio
 
-1. **Clona el repo** (si vas a contribuir tu rol al proyecto) o trabaja sobre tu copia local.
-
-   ```bash
-   git clone https://github.com/breisnerlopez/Abax-Swarm.git
-   cd Abax-Swarm
-   npm install
-   ```
-
-2. **Crea el archivo del rol** en `data/roles/mi-rol.yaml`:
-
-   ```yaml
-   id: mi-rol
-   name: Mi Rol Personalizado
-   tier: 2                        # 1 = core, 2 = especializado
-   category: technical            # functional, technical, support, governance
-   description: Una línea explicando qué hace.
-   responsibilities:
-     - Una lista de responsabilidades.
-     - Lo que entrega y cuándo.
-   skills:
-     - skill-id-existente         # IDs de data/skills/*.yaml
-   tools:
-     - tool-id-existente          # IDs de data/tools/*.yaml
-   phases:
-     - construction               # En qué fases participa
-     - qa-testing
-   prompt_extra: |
-     Instrucciones adicionales que se añaden al system prompt del agente.
-   ```
-
-3. **Regístralo en las reglas:**
-   - `data/rules/size-matrix.yaml` — para qué tamaños aplica el rol.
-   - `data/rules/dependency-graph.yaml` — si depende de otros roles.
-   - `data/rules/raci-matrix.yaml` — su responsabilidad en cada actividad.
-   - `data/rules/criteria-rules.yaml` (opcional) — si solo aplica cuando se marcan ciertos criterios.
-
-4. **Validar y probar:**
-
-   ```bash
-   npm run validate    # verifica que los YAML son válidos
-   npm test            # corre los tests de consistencia entre entidades
-   ```
-
-   Si validate o test fallan, te dirán exactamente qué referencia rota hay (skill inexistente, fase desconocida, etc.).
-
-5. **Probarlo en un proyecto:**
-
-   ```bash
-   npm run dev -- init
-   ```
-
-Guía detallada: [docs/guides/adding-roles.md](docs/guides/adding-roles.md).
-
-### Agregar una habilidad o herramienta
-
-Mismo patrón:
-- `data/skills/mi-skill.yaml` — guía para [agregar skill](docs/guides/adding-skills.md).
-- `data/tools/mi-tool.yaml` — guía similar.
-
-### Agregar un stack tecnológico
-
-Si tu equipo usa una combinación distinta (p.ej. Svelte + Rails), crea `data/stacks/svelte-rails.yaml` con la información del framework, convenciones y contexto que se inyecta en los prompts. Detalle: [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md).
-
-### Modificar el comportamiento de un rol existente
-
-Edita el YAML del rol en `data/roles/<rol>.yaml`. Cambia `responsibilities`, `skills`, `tools`, `phases` o `prompt_extra`. Corre `npm run validate` y `npm test` para asegurar consistencia.
-
-### Cambiar el modelo o thinking de un rol
-
-Cada rol declara `cognitive_tier` (`strategic` / `implementation` / `mechanical`) y `reasoning` (`none` / `low` / `medium` / `high`) en su YAML. El motor traduce eso a un modelo concreto del proveedor elegido. La tabla completa por rol con justificación, los tradeoffs considerados y las tres formas de override viven en [docs/model-mix.md](docs/model-mix.md).
-
-Si **no tienes acceso a los modelos premium** (Opus, GPT-5), elige "Heredar el default de mi configuración" en el paso 3 del wizard. Ningún agente recibirá `model:` en su frontmatter y OpenCode/Claude usarán tu modelo configurado globalmente.
-
-### Cambiar el color de un agente
-
-Por defecto el resolver determinista asigna un color a cada agente. Si quieres fijar uno explícito (por convención, por colisión con otro o porque prefieres una clave de tema):
-
-```yaml
-# data/roles/security-architect.yaml
-agent:
-  color: "error"          # clave de tema OpenCode (primary | accent | success | warning | error | info)
-  # o: color: "#ff4500"   # hex (siempre con comillas — bug del parser YAML)
+```bash
+git clone https://github.com/breisnerlopez/Abax-Swarm.git
+cd Abax-Swarm && npm install
 ```
 
-Detalle en [docs/agent-colors.md](docs/agent-colors.md).
+1. Crea `data/roles/mi-rol.yaml` (estructura mínima en [docs/guides/adding-roles.md](docs/guides/adding-roles.md)).
+2. Decide su clasificación para los **4 guard rails** (sino CI falla):
+   - `role-boundaries` — añadir a `used_by` o a `EXEMPT_FROM_ROLE_BOUNDARIES`.
+   - `anti-mock` rule — embeber si implementa código de producción.
+   - `git-collaboration` — declarar la skill si tiene `bash != "deny"`.
+   - `stack_overrides` — completos para los 14 stacks si declaras alguno.
+3. Regístralo en `size-matrix.yaml`, `dependency-graph.yaml`, `raci-matrix.yaml`.
+4. `npm run validate && npm test` — verifica todo de un golpe.
+
+Detalle exhaustivo en [docs/guides/adding-roles.md](docs/guides/adding-roles.md).
+
+### Otros casos rápidos
+
+| Quiero… | Mira |
+|---|---|
+| Añadir una skill | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) |
+| Añadir un stack | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) |
+| Cambiar el modelo de un rol | [docs/model-mix.md](docs/model-mix.md) |
+| Cambiar el color de un agente | [docs/agent-colors.md](docs/agent-colors.md) |
+| Modificar el flujo del orquestador | [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) |
+
+---
+
+## Guard rails (lo que NO te deja hacer)
+
+Cinco reglas sistémicas activas, cada una nacida de un incidente concreto y cubierta por tests automatizados que fallan en CI si alguien intenta diluirlas:
+
+| Guard rail | Qué impide | Documentación |
+|---|---|---|
+| `role-boundaries` | Que un agente ejecute trabajo de otro rol "para acelerar" (devops haciendo QA, qa haciendo deploy) | [docs/role-boundaries.md](docs/role-boundaries.md) |
+| Anti-mock 3 capas | Que un developer implemente con regex/InMemory/Mock disfrazado de integración real (incidente Abax-Memory) | [docs/quality-gates.md](docs/quality-gates.md) |
+| `git-collaboration` | Que un rol con `bash` haga commits a `main` o sin convención `abax/<project>` + `--author` | [docs/git-collaboration.md](docs/git-collaboration.md) |
+| `deployment-planning` | Que se llegue a deploy sin contestar las 12 preguntas (URL, dominio, DNS, monitoring, rollback) y sin aprobación del sponsor | [docs/deployment-planning.md](docs/deployment-planning.md) |
+| `code-naming-convention` | Que los agentes mezclen español e inglés en identificadores de código (variables, endpoints, parámetros, env vars, tablas SQL) — todo internal en inglés | [docs/code-naming.md](docs/code-naming.md) |
+
+Más una capa preventiva contra el bug del fallback silencioso a Spring Boot cuando el stack no se reconoce: ver [docs/legacy-stacks.md](docs/legacy-stacks.md).
 
 ---
 
@@ -293,7 +279,7 @@ data/ (YAML)  →  loader/  →  engine/  →  generator/  →  .opencode/ ó .c
 
 - **Loader**: lee YAML, valida con Zod, devuelve mapas tipados.
 - **Engine**: funciones puras (sin I/O). Selecciona roles, resuelve dependencias, deduce skills/tools, adapta al stack, escoge gobernanza.
-- **Generator**: dos targets paralelos (OpenCode, Claude Code) que comparten la misma salida del engine pero producen estructuras de archivo distintas.
+- **Generator**: dos targets paralelos (OpenCode, Claude Code) que comparten salida del engine pero producen estructuras de archivo distintas.
 - **Validator**: chequeos post-generación (referencias del orquestador, completitud RACI).
 
 Documentación detallada: [docs/architecture.md](docs/architecture.md) y [docs/data-model.md](docs/data-model.md).
@@ -302,31 +288,14 @@ Documentación detallada: [docs/architecture.md](docs/architecture.md) y [docs/d
 
 ```bash
 npm install                       # instalar dependencias
-npm test                          # 315+ tests (Vitest)
+npm test                          # 492 tests (Vitest)
 npm run test:watch                # modo watch
 npm run typecheck                 # tsc --noEmit
 npm run lint                      # ESLint sobre src/ y tests/
 npm run validate                  # validar todos los YAML de data/
-npm run dev -- init               # ejecutar el wizard en modo dev
+npm run dev -- init               # ejecutar el wizard en modo dev (sin build)
 npm run build                     # compilar TypeScript a dist/
 ```
-
-### Workflow de Git
-
-GitHub Flow simple:
-
-- Trunk: `main`. Es la rama que se publica.
-- Trabajo en ramas cortas con prefijo: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `chore/`.
-- Squash merge a `main` vía PR. CI corre `validate` + auto-label como required checks.
-- Releases: tag `vX.Y.Z` sobre `main`. Esto dispara `release.yml`, que builda, empaqueta con `npm pack` y publica un GitHub Release con `.tgz` adjunto y notas auto-generadas.
-
-Más detalle en [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
-
-### Convenciones
-
-- **Código en inglés**, **contenido y UI en español** (variables y funciones en inglés; YAML, prompts y textos del wizard en español).
-- IDs en `kebab-case`: `developer-backend`, `react-nextjs`.
-- Esquemas Zod en `src/loader/schemas.ts` son la única fuente de verdad para los tipos.
 
 ### Estructura del repo
 
@@ -340,19 +309,30 @@ src/
 
 data/            ← Datos canónicos (YAML, fuente de verdad)
 ├── roles/       ← 20 roles
-├── skills/      ← 71 habilidades
+├── skills/      ← 76 habilidades
 ├── tools/       ← 7 herramientas
-├── stacks/      ← 13 stacks
+├── stacks/      ← 14 stacks (incluye legacy-other)
 └── rules/       ← Matrices (size, RACI, dependencies, criteria, document-mode)
 
-templates/       ← Plantillas Handlebars (.md.hbs) + design-system/ (presentaciones HTML)
-tests/           ← Vitest, unit + integración (315+ tests)
+templates/       ← Plantillas Handlebars (.md.hbs) + design-system/
+tests/           ← Vitest, unit + integración (492 tests)
 docs/            ← Documentación detallada
 ```
 
+### Workflow de Git
+
+GitHub Flow simple:
+
+- Trunk: `main`. Es la rama que se publica.
+- Trabajo en ramas cortas con prefijo: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `chore/`.
+- Squash merge a `main` vía PR. CI corre `validate` + auto-label como required checks.
+- Releases: tag `vX.Y.Z` sobre `main` dispara `release.yml` → npm publish + GitHub Release con tarball.
+
+Más detalle en [CONTRIBUTING.md](CONTRIBUTING.md) y [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+
 ---
 
-## Comandos disponibles
+## Comandos
 
 ```bash
 abax-swarm init                              # asistente interactivo
@@ -365,23 +345,79 @@ abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest exist
 
 ---
 
+## Estado del proyecto
+
+- **Versión actual**: ver [package.json](package.json) o [CHANGELOG.md](CHANGELOG.md).
+- **Estabilidad**: pre-1.0. La API y el formato de datos pueden cambiar entre patches sin aviso. A partir de `1.0.0` seguiremos SemVer estricto.
+- **Tests**: 492 pasando, cobertura >90% en engine/generator. CI verde como prerrequisito para merge.
+- **Hoja de ruta**: tipos de proyecto futuros (audit, migration, onboarding, infra, data, ml) priorizados por demanda en [docs/roadmap.md](docs/roadmap.md).
+
+---
+
+## Contribuir
+
+¡Bienvenidas todas las contribuciones! La guía completa vive en [CONTRIBUTING.md](CONTRIBUTING.md) e incluye:
+
+- Quickstart para tu primer PR (clona, instala, corre tests, abre PR).
+- Tipos de cambio admitidos y prefijos de rama (`feature/`, `bugfix/`, `docs/`, `chore/`, `hotfix/`).
+- Los 4 guard rails que un cambio debe satisfacer para que CI esté verde.
+- Cómo actualizar la documentación según el tipo de cambio.
+- Cómo regenerar las capturas del wizard de forma headless.
+- Flujo de release y publicación a npm.
+
+Antes de un PR grande, abre un [discussion](https://github.com/breisnerlopez/Abax-Swarm/discussions) para confirmar la dirección.
+
+---
+
+## Soporte y comunidad
+
+- **Bugs y feature requests**: [Issues](https://github.com/breisnerlopez/Abax-Swarm/issues).
+- **Preguntas y propuestas**: [Discussions](https://github.com/breisnerlopez/Abax-Swarm/discussions).
+- **Seguridad**: si encuentras una vulnerabilidad, NO abras un issue público — escribe a `breisner.lopez@gmail.com`.
+
+### FAQ rápido
+
+**¿Necesito Opus o GPT-5 para usarlo?**
+No. El paso 3 del wizard te ofrece "Heredar el default de mi configuración" — los agentes generados no llevan `model:` y tu cliente IA usa el modelo que tengas configurado globalmente.
+
+**¿Funciona offline?**
+La generación de archivos sí (no hace llamadas a LLMs). Lo que requiere LLM es lo que pase _después_, cuando abras tu cliente IA con los archivos generados.
+
+**¿Puedo usarlo en un repo privado de empresa?**
+Sí. Los archivos generados son tuyos. Lo que se publica a npm es la CLI, no nada del proyecto cliente.
+
+**Mi stack no está en los 14 soportados (Cobol, Delphi, ASP clásico…). ¿Qué hago?**
+Usa el stack `legacy-other` — los agentes reciben prompts cautelosos que les ordenan inferir convenciones del código en lugar de asumir patrones modernos. Detalle en [docs/legacy-stacks.md](docs/legacy-stacks.md).
+
+**¿Por qué cascada y no agile/scrum?**
+Por trazabilidad y RACI explícita en proyectos corporativos. Si quieres adaptar a sprints, edita `data/rules/raci-matrix.yaml` y `data/rules/document-mode.yaml`.
+
+---
+
 ## Recursos
 
 | Documento | Para qué |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Capas del sistema, flujo de datos, detectores y modos |
 | [docs/data-model.md](docs/data-model.md) | Esquemas YAML de cada entidad |
-| [docs/model-mix.md](docs/model-mix.md) | Mix de modelos por rol: tabla completa con justificación |
-| [docs/agent-colors.md](docs/agent-colors.md) | Política de colores y paleta para agentes en OpenCode |
-| [docs/quality-gates.md](docs/quality-gates.md) | 3 capas anti-mock que cazan implementaciones falsas antes de QA |
-| [docs/role-boundaries.md](docs/role-boundaries.md) | Matriz maestra de roles por fase + protocolo 2-Tasks post-fix |
-| [docs/legacy-stacks.md](docs/legacy-stacks.md) | Stack `legacy-other` para sistemas no modelados (PHP, Java Swing, VB6) + detectores |
-| [docs/project-documentation.md](docs/project-documentation.md) | Cómo los agentes generan el README.md y la carpeta `docs/` en proyectos cliente con calidad consistente |
+| [docs/use-cases.md](docs/use-cases.md) | 3 casos paso a paso (Next.js, legacy PHP/VB6, Spring Boot retomado) |
+| [docs/model-mix.md](docs/model-mix.md) | Mix de modelos por rol con justificación |
+| [docs/agent-colors.md](docs/agent-colors.md) | Política de colores y paleta para agentes |
+| [docs/quality-gates.md](docs/quality-gates.md) | 3 capas anti-mock |
+| [docs/role-boundaries.md](docs/role-boundaries.md) | Matriz maestra de roles + protocolo 2-Tasks post-fix |
+| [docs/code-naming.md](docs/code-naming.md) | Regla "internals en inglés" + guard rail que escanea YAMLs |
+| [docs/legacy-stacks.md](docs/legacy-stacks.md) | Stack `legacy-other` para PHP/Swing/VB6/Cobol/Delphi |
+| [docs/git-collaboration.md](docs/git-collaboration.md) | Flujo distribuido de version control |
+| [docs/deployment-planning.md](docs/deployment-planning.md) | Bloqueante de fase 7 con 12 preguntas |
+| [docs/permissions.md](docs/permissions.md) | 3 modos de permisos OpenCode (strict/recommended/full) |
 | [docs/guides/adding-roles.md](docs/guides/adding-roles.md) | Cómo agregar un rol |
 | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) | Cómo agregar una habilidad |
 | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) | Cómo agregar un stack |
-| [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) | Cómo opera el orquestador (cascada y modo documentación) |
+| [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) | Cómo opera el orquestador |
+| [docs/guides/dev-environments.md](docs/guides/dev-environments.md) | Devcontainer vs host |
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Resumen del sistema, convenciones, workflow Git |
+| [CHANGELOG.md](CHANGELOG.md) | Historial de cambios por release |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Guía completa para contribuir |
 
 ---
 
@@ -392,4 +428,4 @@ abax-swarm regenerate --dir /ruta/proyecto   # regenerar desde un manifest exist
 
 ## Licencia
 
-MIT.
+MIT — ver [LICENSE](LICENSE).

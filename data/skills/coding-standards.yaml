@@ -17,12 +17,24 @@ content:
     ## Categorias de Estandares
 
     ### 1. Nomenclatura
-    - **Clases**: PascalCase (e.g., `OrdenCompra`, `UsuarioServicio`).
-    - **Metodos y funciones**: camelCase (e.g., `calcularTotal`, `obtenerUsuario`).
-    - **Variables**: camelCase, nombres descriptivos (e.g., `cantidadItems`, `fechaCreacion`).
-    - **Constantes**: UPPER_SNAKE_CASE (e.g., `MAX_INTENTOS`, `TIMEOUT_SEGUNDOS`).
-    - **Interfaces**: prefijo I o sufijo descriptivo segun convencion del lenguaje.
-    - **Archivos**: consistente con el lenguaje (PascalCase para clases, kebab-case para componentes).
+
+    **TODOS los identificadores en INGLES** — variables, funciones, clases,
+    constantes, endpoints, parametros, env vars, tablas, columnas. La regla
+    completa con ejemplos por stack vive en la skill `code-naming-convention`.
+    Esta seccion solo resume la convencion ortografica:
+
+    - **Clases / types**: PascalCase (e.g., `Order`, `UserRepository`, `PaymentService`).
+    - **Metodos y funciones**: camelCase (e.g., `calculateTotal`, `findUserById`, `processPayment`).
+    - **Variables**: camelCase, nombres descriptivos (e.g., `itemCount`, `createdAt`, `totalAmount`).
+    - **Constantes**: UPPER_SNAKE_CASE (e.g., `MAX_RETRIES`, `TIMEOUT_SECONDS`, `DEFAULT_PAGE_SIZE`).
+    - **Interfaces**: convencion del lenguaje (prefijo `I` en C#/Java pre-modern, sin prefijo en TS/Java moderno).
+    - **Archivos de codigo**: consistente con el lenguaje (PascalCase para clases en TS/Java, kebab-case para componentes web, snake_case para Python/Go).
+
+    NUNCA mezclar ingles y espanol en identificadores. Para ejemplos
+    explicitos de patrones incorrectos y excepciones legitimas (legacy DB,
+    APIs publicas con consumidores, terminos de dominio), ver la skill
+    `code-naming-convention`. Espanol queda solo para comments, mensajes
+    al usuario via i18n, y documentacion.
 
     ### 2. Estructura del Codigo
     - Maximo de lineas por metodo: 30-50 lineas recomendado.

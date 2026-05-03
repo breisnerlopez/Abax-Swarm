@@ -1,0 +1,309 @@
+id: code-naming-convention
+name: Convencion de Nombres en Codigo (ingles obligatorio)
+description: >
+  Regla no-negociable: TODO identificador del sistema (variables, funciones,
+  clases, endpoints, parametros, headers HTTP, query params, env vars, claves
+  JSON/YAML, tablas y columnas SQL, IDs en URLs, branches git, nombres de
+  archivos de codigo) debe estar en INGLES. Comments, mensajes de error
+  destinados al usuario final, y contenido de documentacion son los unicos
+  textos que pueden estar en espanol u otro idioma. Nacida del incidente
+  donde agentes producian APIs con `/api/v1/usuarios` y variables
+  `cantidadItems` que rompian la consistencia con el resto del ecosistema.
+used_by:
+  - developer-backend
+  - developer-frontend
+  - dba
+  - tech-lead
+  - solution-architect
+  - integration-architect
+  - security-architect
+  - qa-automation
+content:
+  when_to_use: |
+    - SIEMPRE al escribir, revisar o aprobar cualquier identificador de codigo.
+    - Antes de aceptar una propuesta de API, schema de BD, modelo de datos.
+    - Durante code review (skill anti-mock-review tambien escanea esto).
+    - Al definir env vars, secrets, configuration keys.
+    - Al definir nombres de archivos de codigo, branches git, tags.
+  instructions: |
+    ## Principio fundamental
+
+    El idioma operativo del equipo y la documentacion puede ser cualquiera
+    (espanol, portugues, frances). Pero el **codigo debe estar en ingles**
+    para garantizar:
+
+    - Compatibilidad con librerias, frameworks y herramientas del ecosistema
+      (todas en ingles).
+    - Onboarding posible de developers que no hablen el idioma del equipo.
+    - Busquedas y referencias en Stack Overflow, GitHub Issues, RFCs.
+    - Que el cliente IA (Claude, GPT) razone con el vocabulario que conoce.
+    - Que un futuro contribuidor de otra geografia entienda el codigo sin
+      necesidad de traduccion.
+
+    El usuario reporto el sintoma directamente: *"variables endpoints parametros
+    deben estar siempre en ingles, me ha dado un mix en algunos escenarios que
+    no debe volver a suceder"*. Esta skill es la respuesta.
+
+    ## Que va en ingles (obligatorio)
+
+    | Tipo de identificador | Ejemplo correcto | Ejemplo INCORRECTO |
+    |---|---|---|
+    | Clases / types / interfaces | `class Order`, `interface UserRepository` | `class OrdenCompra`, `interface RepositorioUsuario` |
+    | Funciones / metodos | `calculateTotal()`, `getUser()`, `findByEmail()` | `calcularTotal()`, `obtenerUsuario()`, `buscarPorCorreo()` |
+    | Variables locales | `const itemCount = ...`, `let totalAmount = ...` | `const cantidadItems = ...`, `let montoTotal = ...` |
+    | Constantes | `MAX_RETRIES`, `TIMEOUT_SECONDS`, `DEFAULT_PAGE_SIZE` | `MAX_INTENTOS`, `TIMEOUT_SEGUNDOS`, `TAMANO_PAGINA_DEFAULT` |
+    | Atributos / propiedades de modelo | `firstName`, `createdAt`, `isActive` | `nombreCompleto`, `fechaCreacion`, `estaActivo` |
+    | Endpoints REST (paths) | `/api/v1/users`, `/api/v1/orders/{id}/items` | `/api/v1/usuarios`, `/api/v1/pedidos/{id}/articulos` |
+    | Query parameters | `?page=1&pageSize=20&sortBy=createdAt` | `?pagina=1&tamano=20&ordenarPor=fechaCreacion` |
+    | Path parameters | `/users/{userId}/orders/{orderId}` | `/usuarios/{idUsuario}/pedidos/{idPedido}` |
+    | Headers HTTP custom | `X-Request-Id`, `X-Tenant-Id`, `X-Idempotency-Key` | `X-Id-Solicitud`, `X-Id-Inquilino`, `X-Clave-Idempotencia` |
+    | Tablas SQL | `users`, `orders`, `order_items`, `audit_log` | `usuarios`, `pedidos`, `articulos_pedido`, `bitacora_auditoria` |
+    | Columnas SQL | `id`, `email`, `created_at`, `is_active`, `total_amount` | `correo`, `fecha_creacion`, `esta_activo`, `monto_total` |
+    | Env vars | `DATABASE_URL`, `JWT_SECRET`, `LOG_LEVEL`, `API_BASE_URL` | `URL_BASE_DATOS`, `SECRETO_JWT`, `NIVEL_LOGS` |
+    | Claves JSON/YAML | `{"firstName": "..."}`, `apiKey: ...` | `{"primerNombre": "..."}`, `claveApi: ...` |
+    | Branches git | `feature/user-onboarding`, `bugfix/login-redirect` | `feature/registro-usuario`, `bugfix/redireccion-login` |
+    | Tags git | `v1.0.0`, `release-2026-q2`, `staging-rollback-2026-05-03` | `v1.0.0`, `release-trim-2-2026`, `rollback-fase-2-2026-05-03` |
+    | Archivos de codigo | `OrderService.ts`, `user.repository.ts`, `payment-handler.go` | `ServicioPedido.ts`, `usuario.repositorio.ts`, `manejador-pago.go` |
+    | Tests | `describe("Order", ...)`, `it("should calculate total", ...)` | `describe("Pedido", ...)`, `it("debe calcular total", ...)` |
+    | Imagenes Docker | `acme/order-service:1.2.3` | `acme/servicio-pedidos:1.2.3` |
+    | Topicos Kafka / colas SQS | `orders.created`, `payments.refunded` | `pedidos.creados`, `pagos.devueltos` |
+    | Metric/log keys | `http.request.duration`, `db.query.count` | `http.solicitud.duracion`, `bd.consulta.cantidad` |
+
+    ## Que puede ir en espanol (o el idioma del proyecto)
+
+    | Tipo | Notas |
+    |---|---|
+    | Comments en codigo (`// ...`, `/* ... */`, `# ...`) | Espanol esta bien si el equipo lee espanol. Pero NO traducir terminos tecnicos sin equivalente claro. |
+    | Strings destinados al usuario final | Mensajes de error para UI, copy de emails, labels de formularios. Se traducen via i18n (`es`, `en`). |
+    | Mensajes de log de negocio | "Cliente notificado por email" esta bien. Pero las KEYS del log son en ingles. |
+    | Nombres de pruebas en `describe`/`it` cuando el cliente es de habla hispana y los reportes los lee gente de negocio | Excepcion legitima. **Pero los identificadores DENTRO del test (variables, funciones invocadas) siguen en ingles.** |
+    | Documentacion (`.md`, comentarios extensos, ADRs, README) | Idioma del equipo. Si menciona identificadores, los cita en ingles. |
+    | Nombres de presentaciones, entregables, archivos `docs/` | Espanol o el idioma del cliente. Ej. `acta-de-constitucion.md`, `propuesta-funcional.html`. |
+
+    ## Casos limite frecuentes
+
+    ### 1. Dominio de negocio con terminos sin traduccion
+
+    Si el dominio del cliente tiene un termino propio sin traduccion natural
+    (ej. "RUC" en Peru, "CURP" en Mexico, "BSN" en Holanda), MANTENER el
+    termino original en INGLES (sigue siendo un identificador):
+
+    ```typescript
+    // CORRECTO
+    interface Customer {
+      taxId: string;        // Era "RUC", normalizado a un nombre internacional
+      nationalId: string;   // Era "CURP"
+    }
+
+    // O, si el termino es DEFINITORIO del dominio y no hay equivalente:
+    interface Customer {
+      ruc: string;          // Acepta el termino local porque es el ID legal
+      curp: string;         //
+    }
+    ```
+
+    Regla: si existe un equivalente en ingles ampliamente usado en el
+    ecosistema, usar el equivalente. Si el termino local es mas preciso o
+    el mismo se usa en codigo internacional (ej. "VAT", "IBAN", "SWIFT"),
+    mantenerlo en su forma estandar.
+
+    ### 2. Bases de datos legacy con tablas en espanol
+
+    Si el sistema YA tiene tablas en espanol (`usuarios`, `pedidos`), NO
+    renombrar para "limpiar" — eso rompe consultas, vistas, reportes y
+    procedimientos almacenados. La regla aplica al codigo NUEVO.
+
+    Para codigo nuevo que interactua con tablas legacy:
+
+    ```typescript
+    // El nombre logico es ingles, el mapeo es al nombre legacy
+    @Entity({ name: "usuarios" })  // tabla legacy
+    class User {                   // nombre logico EN INGLES
+      @Column({ name: "correo" })  // columna legacy
+      email: string;               // propiedad EN INGLES
+    }
+    ```
+
+    Documentar en `docs/architecture/legacy-mapping.md` el mapping completo.
+
+    ### 3. APIs publicas con consumidores existentes
+
+    Si una API publica ya esta en espanol y la consumen clientes externos,
+    NO romper compatibilidad. Versionar:
+    - `/api/v1/usuarios` (legacy, deprecada pero soportada)
+    - `/api/v2/users` (nueva, en ingles, recomendada)
+
+    Documentar la deprecation policy.
+
+    ### 4. Errores en espanol que se loggean
+
+    El `message` del error puede ser en espanol si lo va a leer un humano,
+    pero los CODIGOS de error son en ingles:
+
+    ```typescript
+    throw new AppError({
+      code: "USER_NOT_FOUND",        // ingles
+      message: "Usuario no encontrado", // espanol para UI
+    });
+    ```
+
+    ## Coordinacion con guard rails existentes
+
+    - **`role-boundaries`**: el tech-lead es el approver final del code review.
+      Esta skill se aplica como sub-criterio en su revision.
+    - **`anti-mock-review`** (skill del tech-lead): ahora tambien escanea por
+      identificadores en espanol como anti-pattern. Si encuentra clases/funciones
+      con `OrdenCompra`, `calcularTotal`, etc., devuelve la tarea al developer.
+    - **`coding-standards`** (revisada en 0.1.25): ya no incluye ejemplos en
+      espanol. Sus ejemplos canonicos son en ingles. Cita esta skill como fuente.
+    - **Test guard `tests/integration/code-naming-convention.test.ts`**: escanea
+      todos los YAMLs de skills/roles/stacks buscando patrones de identificadores
+      en espanol y falla CI. Lista de exenciones documentada.
+
+    ## Checklist pre-merge
+
+    Antes de aprobar un PR que toca codigo:
+
+    - [ ] Todas las clases nuevas tienen nombres en ingles.
+    - [ ] Todas las funciones/metodos nuevos en ingles.
+    - [ ] Variables y constantes en ingles.
+    - [ ] Endpoints en ingles. Path params en ingles. Query params en ingles.
+    - [ ] Tablas/columnas nuevas en ingles (mapping a legacy si aplica).
+    - [ ] Env vars y secrets en ingles.
+    - [ ] Strings destinadas al usuario via i18n (no hardcoded en mezcla con codigo).
+    - [ ] Si hay excepcion legitima (RUC, CURP, etc.), documentada en glosario.
+  guides:
+    - name: por-stack
+      content: |
+        ## Convenciones por stack tecnologico
+
+        ### TypeScript / JavaScript (React, Next.js, NestJS, Node)
+
+        - Identificadores: `camelCase` (variables, funciones), `PascalCase` (clases, types).
+        - Archivos: `kebab-case.ts` para utilidades, `PascalCase.tsx` para componentes React.
+        - Endpoints REST: `kebab-case` plural (`/users`, `/order-items`).
+        - Env vars: `UPPER_SNAKE_CASE`. Prefijos: `NEXT_PUBLIC_*`, `VITE_*` para client-exposed.
+
+        ### Java (Spring Boot, Quarkus)
+
+        - Identificadores: `camelCase` (vars/methods), `PascalCase` (classes).
+        - Packages: `com.acme.product.module`. Todos en ingles.
+        - Endpoints REST: `@RequestMapping("/users")`. Path params: `{userId}`.
+        - Env vars: `UPPER_SNAKE_CASE`. Prefijo `SPRING_*` para Spring config override.
+
+        ### Python (FastAPI, Django)
+
+        - Identificadores: `snake_case` (vars/methods), `PascalCase` (classes).
+        - Modulos: `snake_case.py`.
+        - Endpoints: FastAPI usa el path tal cual; Django convierte URL patterns. Usar `kebab-case` o `snake_case` segun convencion del proyecto.
+        - Env vars: `UPPER_SNAKE_CASE`. Django settings: `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`.
+
+        ### Go (Fiber)
+
+        - Identificadores: `camelCase` (privados), `PascalCase` (exported).
+        - Archivos: `snake_case.go`.
+        - Packages: `lowercase` corto (`auth`, `user`, `order`).
+        - Endpoints: `kebab-case` plural.
+
+        ### Rust (Axum)
+
+        - Identificadores: `snake_case` (vars/functions), `PascalCase` (structs/enums/traits).
+        - Crates/modulos: `snake_case`.
+        - Endpoints: `kebab-case` plural.
+        - Env vars: `UPPER_SNAKE_CASE`.
+
+        ### Bases de datos (Postgres, MySQL, etc.)
+
+        - Tablas: `snake_case` plural (`users`, `order_items`).
+        - Columnas: `snake_case` (`first_name`, `created_at`).
+        - Indices: `idx_<table>_<columns>` (`idx_orders_user_id_created_at`).
+        - Foreign keys: `fk_<table>_<ref_table>` (`fk_orders_users`).
+        - Enums: valores en `UPPER_SNAKE_CASE` o `snake_case` segun consenso del equipo, **siempre en ingles**.
+
+        ### YAML / JSON
+
+        - Claves: `camelCase` para JSON consumido por JS/TS, `snake_case` para Python/Ruby, `kebab-case` para configs CLI.
+        - **Siempre en ingles**, sin importar el idioma del proyecto.
+
+    - name: como-detectar-mezclas
+      content: |
+        ## Como detectar mezclas en un codebase existente
+
+        Patron de busqueda regex (ajustar al stack):
+
+        ```bash
+        # TypeScript/JavaScript: identificadores camelCase con palabras espanolas comunes
+        grep -rEn 'cantidad|fecha|usuario|cliente|pedido|factura|articulo|producto|orden|nombre|apellido|correo|telefono|direccion|monto|valor|moneda|precio|cantidad|calcular|obtener|listar|crear|borrar|eliminar|guardar|actualizar|verificar|validar|enviar|recibir|consultar|notificar|iniciar|terminar|registrar' src/ \
+          --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+          | grep -vE '//.*|/\*.*|\*/|".*"|`.*`'
+
+        # Endpoints en espanol
+        grep -rEn '/(usuarios|pedidos|clientes|facturas|productos|articulos|ordenes|categorias|catalogos)' src/ data/
+
+        # Tablas SQL en espanol (en migrations/schemas)
+        grep -rEn 'CREATE TABLE (usuarios|pedidos|clientes|facturas|productos|articulos|ordenes)' migrations/ schema/ db/
+
+        # Env vars en espanol
+        grep -rEn '^(URL_|CLAVE_|TOKEN_|SECRETO_|CONFIGURACION_|PARAMETRO_)[A-Z_]+' .env* deployment/ k8s/
+        ```
+
+        Reportar al orquestador en formato:
+
+        ```markdown
+        ## Inventario de identificadores en espanol
+
+        | Archivo | Linea | Identificador | Sugerencia |
+        |---|---|---|---|
+        | src/services/user.ts | 23 | `obtenerCliente` | `getCustomer` |
+        | src/api/orders.ts | 45 | `/api/pedidos` | `/api/orders` |
+        | migrations/001.sql | 3 | `CREATE TABLE pedidos` | `orders` |
+
+        Estimacion de impacto: <X archivos>, <Y lineas>, <Z dias de migracion>.
+        ```
+
+        Recordar: NO modificar tablas/APIs publicas legacy sin plan de migracion
+        explicito y aprobado por sponsor.
+
+    - name: excepciones-documentadas
+      content: |
+        ## Como documentar una excepcion legitima
+
+        Algunas excepciones son legitimas (legacy DB, terminos de dominio sin
+        traduccion, APIs publicas con consumidores). Para cada una:
+
+        1. Crear `docs/decisions/NNNN-naming-exception-<slug>.md` con:
+
+           ```markdown
+           ---
+           tipo: naming-exception
+           ambito: <ej. database tables, public API endpoints, env vars>
+           fecha: YYYY-MM-DD
+           aprobado-por: <tech-lead | solution-architect | sponsor>
+           ---
+
+           # Excepcion a la convencion de nombres en ingles: <ambito>
+
+           ## Contexto
+
+           Por que esta excepcion existe (legacy, dominio, contrato externo).
+
+           ## Alcance exacto de la excepcion
+
+           Que identificadores especificamente quedan en espanol y por que
+           no es viable migrarlos en el corto plazo.
+
+           ## Que SIGUE en ingles a pesar de la excepcion
+
+           Lo que SI se nombra en ingles aunque interactue con la parte
+           legacy (ej. el repository en codigo nuevo, los DTOs).
+
+           ## Plan de migracion (si aplica)
+
+           Cronograma o condicion bajo la cual la excepcion se eliminaria.
+           Si la excepcion es permanente, indicarlo y por que.
+           ```
+
+        2. Anadir el slug al test guard como exencion documentada.
+
+        3. Mencionar la excepcion en el README del proyecto cliente
+           (seccion "Convenciones") para que nuevos developers no se sorprendan.
