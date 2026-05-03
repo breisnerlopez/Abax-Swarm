@@ -1,0 +1,400 @@
+id: project-readme
+name: README de Proyecto (mejores practicas)
+description: >
+  Como generar y mantener el README.md del proyecto cliente siguiendo mejores
+  practicas reconocidas: badges informativos, TL;DR en una frase, quickstart
+  ejecutable en menos de 2 minutos, secciones estandar (instalacion, uso,
+  contribuir, licencia), adaptado por stack tecnologico y por modo del proyecto
+  (new construye desde cero, document inventaria un sistema existente).
+used_by:
+  - tech-writer
+  - developer-backend
+  - developer-frontend
+  - tech-lead
+content:
+  when_to_use: |
+    - Al inicio de fase 4 (Construccion): generar version inicial del README.
+    - Despues de cada release que cambie comandos, dependencias o features visibles.
+    - En modo document: como primer entregable de fase 3 (Documentacion), inventariando que es el sistema.
+    - Cuando el README existente ya no refleja el estado real del proyecto.
+    - Antes del entregable "final-documentation" en fase 9 (Cierre): revision y consolidacion.
+  instructions: |
+    ## Principio fundamental
+
+    Un README.md es la PRIMERA y a menudo UNICA cosa que un humano nuevo
+    (desarrollador, evaluador, sponsor) ve del proyecto. Debe responder
+    en orden, sin scroll innecesario:
+
+    1. Que es esto. (1-2 frases)
+    2. Por que importa / que problema resuelve. (1 parrafo)
+    3. Como pruebo que funciona en menos de 2 minutos. (3-5 comandos)
+    4. Donde aprendo mas si me interesa. (links a docs/)
+
+    Si el lector no obtiene esas 4 respuestas en los primeros 30 segundos,
+    el README ha fallado independientemente de su longitud o belleza.
+
+    ## Estructura estandar (orden importa)
+
+    | # | Seccion | Obligatoria | Notas |
+    |---|---|---|---|
+    | 1 | Titulo + tagline 1-linea | SI | Como blockquote o subtitulo |
+    | 2 | Badges (version, license, CI, tests, deps) | SI si el repo es publico | shields.io |
+    | 3 | TL;DR de 2-3 frases + 3 comandos quickstart | SI | Enable copy-paste |
+    | 4 | Screenshot/GIF demo o link a video | recomendada | Una imagen vale mas |
+    | 5 | Tabla de contenidos | SI si > 200 lineas | Markdown anchors |
+    | 6 | Por que / casos de uso | recomendada | Ayuda a discoverability |
+    | 7 | Instalacion (requisitos + comandos) | SI | Versiones explicitas |
+    | 8 | Uso (ejemplos minimos ejecutables) | SI | Lo mas importante |
+    | 9 | Configuracion (variables, secrets, .env.example) | SI si aplica | Nunca commitear secrets |
+    | 10 | Estructura del proyecto | recomendada | Tree con explicacion breve |
+    | 11 | Desarrollo local (build, test, lint) | SI si es codigo | Comandos exactos |
+    | 12 | Despliegue / CI/CD | recomendada | Link a runbook si es complejo |
+    | 13 | Tests + coverage badge | recomendada | Como correrlos + cobertura actual |
+    | 14 | Contribuir (link a CONTRIBUTING.md) | SI si es publico | Code of Conduct si aplica |
+    | 15 | Roadmap / estado del proyecto | recomendada | Beta, estable, mantenido |
+    | 16 | FAQ / Troubleshooting | recomendada | Preguntas reales del soporte |
+    | 17 | Licencia | SI | Una linea + link a LICENSE |
+    | 18 | Agradecimientos / referencias | opcional | Honesto, no inflar |
+
+    ## Reglas no-negociables
+
+    1. **Cada comando debe ser ejecutable tal cual aparece**. Sin placeholders
+       no marcados (`<your-token>` esta OK; `[fill this in]` sin instrucciones NO).
+    2. **Nada de "TODO" sin asignar** ni `Lorem ipsum` ni "(work in progress)" sin fecha.
+    3. **Versiones explicitas** en requisitos. `Node.js >= 20` no `Node.js (latest)`.
+    4. **Links relativos** a otros docs del repo (`./docs/foo.md`), no absolutos a github.com.
+    5. **Encabezados consistentes**: `##` para secciones top, `###` para subsecciones. Nunca saltar de `##` a `####`.
+    6. **Snippets en bloques de codigo etiquetados** con el lenguaje (` ```bash `, ` ```ts `, ` ```yaml `).
+    7. **Sin "magia oculta"**: si un comando depende de un script, una variable de entorno o un setup previo, decirlo ANTES del comando.
+    8. **Capturas o GIFs si tiene UI**. Una sola captura del estado tipico vale mas que 3 parrafos describiendo la pantalla.
+    9. **No prometer lo que no esta hecho**. Si el feature X esta planeado pero no funciona, va en el roadmap, no en uso.
+    10. **Sin lenguaje promocional vacio**. ❌ "amazing", "blazing fast", "revolutionary". ✅ "procesa N items/seg en hardware Y".
+
+    ## Adaptacion por modo del proyecto
+
+    ### Modo `new` (construccion desde cero)
+
+    El README es un artefacto VIVO que refleja el estado actual de la
+    construccion. Reglas extra:
+
+    - Marcar features incompletos con badge `[WIP]` o seccion "Estado".
+    - Actualizar comandos cuando cambien (cada PR que rompa un comando
+      debe actualizar el README en el mismo PR — politica del CONTRIBUTING).
+    - Quickstart debe funcionar contra una BD limpia / estado inicial.
+    - Si el sistema necesita seed data para correr, incluir comando de seed.
+
+    ### Modo `document` (inventario de sistema existente)
+
+    El README documenta lo que el sistema ES, no lo que el equipo PLANEA. Reglas:
+
+    - Quickstart describe como CORRER el sistema existente (puede ser
+      `mvn spring-boot:run`, `php -S localhost:8000`, abrir un ejecutable).
+    - Si el sistema corre en infra especifica (Windows Server con IIS,
+      AS/400, mainframe), decirlo claramente y cuando aplica.
+    - Seccion "Como esta operado hoy" describe el procedimiento real de
+      deploy/mantenimiento, NO una propuesta de modernizacion.
+    - Las recomendaciones de modernizacion van en `docs/recommendations.md`
+      separado, no en el README.
+
+    ### Modo `continue` (proyecto retomado)
+
+    El README puede existir y estar desactualizado. Reglas:
+
+    - PRESERVAR la estructura existente del README anterior.
+    - ACTUALIZAR comandos rotos validandolos primero (correr el comando,
+      ver que pasa, corregir el README).
+    - AGREGAR seccion "Notas de retoma <fecha>" al final con el estado
+      en que se encontro y cambios mas relevantes hechos para revivir el proyecto.
+
+    ## Adaptacion por stack tecnologico
+
+    Cada stack tiene convenciones propias. Sigue las mas extendidas en su
+    ecosistema; no inventes formato propio:
+
+    | Stack | Comandos quickstart tipicos | Convenciones extra |
+    |---|---|---|
+    | react-nextjs / vue-nuxt / astro-hono | `pnpm install`, `pnpm dev`, `pnpm build`, `pnpm test` | Indicar version Node y package manager preferido. Capturas para UIs. |
+    | react-nestjs | `pnpm install`, `pnpm start:dev`, Swagger UI URL si existe | Listar endpoints en seccion API o link a /api/docs |
+    | python-fastapi / python-django | `python -m venv`, `pip install -r requirements.txt`, `uvicorn` o `manage.py runserver` | Indicar version Python (3.12+). `.env.example`. |
+    | angular-springboot / angular-quarkus | `mvn spring-boot:run` o `mvn quarkus:dev`, build con `mvn package` | Indicar version Java + Maven. Profiles activos. |
+    | dotnet-blazor | `dotnet restore`, `dotnet run`, `dotnet test` | Indicar SDK version. appsettings por ambiente. |
+    | go-fiber | `go mod download`, `go run .`, `go test ./...` | Indicar Go version. Variables ENV separadas. |
+    | rust-axum | `cargo run`, `cargo test`, `cargo build --release` | Indicar Rust toolchain. Features cargo. |
+    | flutter-dart | `flutter pub get`, `flutter run`, `flutter test` | Indicar Flutter channel. Plataformas target. |
+    | react-native-expo | `pnpm install`, `pnpm start`, EAS commands para builds | Indicar Expo SDK. Como abrir en simulador. |
+    | legacy-other (PHP, Java Swing, VB6, Cobol, Delphi) | Comando real del sistema (puede ser ejecutar `.exe`, `php -S`, abrir IDE) | NO inventar comandos modernos. Documentar el procedimiento real existente. |
+
+    ## Anti-patrones (no hacer)
+
+    - **README de 2000 lineas** que nadie lee. Mas de 500 lineas, divide en docs/ con links.
+    - **README de 30 lineas** sin quickstart. Imposible de evaluar sin clonarlo.
+    - **README en ingles cuando el equipo trabaja en espanol** (o viceversa). Idioma consistente.
+    - **README que solo lista comandos sin explicar que hacen**. Cada comando merece 1 linea de contexto.
+    - **README copiado de otro proyecto** con nombres viejos sin reemplazar. Verificar antes de commitear.
+    - **README con AI-slop visual**: emojis decorativos en cada h2, gradientes en SVG, secciones "Why this is amazing".
+    - **README sin licencia**. Aunque sea privado, indicar la politica (ej. "Codigo propietario, uso interno").
+
+    ## Coordinacion con el orquestador
+
+    - El primer README es responsabilidad del **tech-writer** (si esta en el equipo)
+      o del **tech-lead** (si no). Approver: **tech-lead**.
+    - Cada developer (backend/frontend) actualiza la seccion correspondiente a
+      su area cuando hace cambios visibles (comandos, dependencias, configuracion).
+    - El **devops** actualiza la seccion de despliegue cuando cambia el pipeline
+      o los ambientes.
+    - El **tech-writer** consolida y revisa al cierre de cada fase relevante
+      (Construccion, Despliegue, Cierre).
+  guides:
+    - name: plantilla-readme-new-mode
+      content: |
+        ## Plantilla README — modo new (proyecto desde cero)
+
+        Estructura minima ejecutable. Adaptar al stack:
+
+        ```markdown
+        # <NombreProyecto>
+
+        [![CI](https://github.com/<org>/<repo>/actions/workflows/ci.yml/badge.svg)](...)
+        [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+        [![tests](https://img.shields.io/badge/tests-XX%20passing-brightgreen)](...)
+
+        > **<Tagline en una frase: que hace y para quien.>**
+
+        <1 parrafo: que problema resuelve, principal beneficio, contexto minimo.>
+
+        ## Quickstart
+
+        ```bash
+        # Requisitos: Node.js >= 20, Docker
+        git clone <url> && cd <repo>
+        cp .env.example .env       # editar valores
+        pnpm install
+        pnpm dev                   # http://localhost:3000
+        ```
+
+        ## Tabla de contenidos
+
+        - [Caracteristicas](#caracteristicas)
+        - [Instalacion](#instalacion)
+        - [Uso](#uso)
+        - [Configuracion](#configuracion)
+        - [Desarrollo local](#desarrollo-local)
+        - [Tests](#tests)
+        - [Despliegue](#despliegue)
+        - [Contribuir](#contribuir)
+        - [Licencia](#licencia)
+
+        ## Caracteristicas
+
+        - Feature 1 con contexto.
+        - Feature 2 con contexto.
+        - Feature 3 con contexto.
+
+        ## Instalacion
+
+        ### Requisitos
+
+        - Node.js >= 20 ([nodejs.org](https://nodejs.org))
+        - Docker >= 24 (para BD local)
+        - pnpm (recomendado): `npm install -g pnpm`
+
+        ### Pasos
+
+        ```bash
+        git clone <url>
+        cd <repo>
+        pnpm install
+        ```
+
+        ## Uso
+
+        ### Caso comun 1
+
+        ```bash
+        pnpm dev
+        # Abre http://localhost:3000
+        ```
+
+        ### Caso comun 2
+
+        Codigo de ejemplo aqui...
+
+        ## Configuracion
+
+        Variables de entorno en `.env`:
+
+        | Variable | Default | Descripcion |
+        |---|---|---|
+        | `DATABASE_URL` | - | URL de Postgres. Obligatoria. |
+        | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+
+        Secrets NUNCA en `.env` commiteado. Usar `.env.example` con valores
+        ficticios y `.env` ignorado por git.
+
+        ## Desarrollo local
+
+        ```bash
+        pnpm install
+        pnpm dev                   # arranca en watch mode
+        pnpm lint                  # ESLint + Prettier
+        pnpm typecheck             # tsc --noEmit
+        pnpm test                  # vitest
+        pnpm build                 # build de produccion
+        ```
+
+        ## Tests
+
+        ```bash
+        pnpm test                  # XX tests
+        pnpm test:watch            # modo watch
+        pnpm test:coverage         # genera reporte
+        ```
+
+        Cobertura actual: XX%. Target minimo del proyecto: YY%.
+
+        ## Despliegue
+
+        Ver [docs/runbook.md](docs/runbook.md) para procedimiento completo
+        (rollback, monitoring, escalamiento).
+
+        Quick: tag `vX.Y.Z` sobre `main` dispara `release.yml` que builda,
+        publica imagen Docker y despliega a `<ambiente>`.
+
+        ## Contribuir
+
+        Ver [CONTRIBUTING.md](CONTRIBUTING.md). Resumen:
+        - Trabajar en rama `feature/<nombre>` o `bugfix/<nombre>`.
+        - PR contra `main`. CI debe estar verde.
+        - Squash merge.
+
+        ## Licencia
+
+        MIT — ver [LICENSE](LICENSE).
+        ```
+
+    - name: plantilla-readme-document-mode
+      content: |
+        ## Plantilla README — modo document (sistema existente)
+
+        El README documenta lo que el sistema ES y como esta operado hoy.
+        NO promete reescritura ni propone modernizacion (eso va separado).
+
+        ```markdown
+        # <NombreSistema> — Documentacion
+
+        > **Inventario tecnico, funcional y operativo de `<NombreSistema>`,
+        > generado como parte del esfuerzo de documentacion <fecha>.**
+
+        Este README es el indice de la documentacion del sistema. El sistema
+        en si vive en `<ruta-real>` o en `<servidor>`.
+
+        ## Que es `<NombreSistema>`
+
+        - **Tipo**: <ej. aplicacion web monolitica PHP 5.6 / desktop Java Swing / mainframe Cobol>
+        - **Proposito**: <una frase>
+        - **Usuarios**: <quien lo usa, cuantos, donde>
+        - **Estado**: produccion desde <ano>, mantenido por <equipo>.
+        - **Stack**: <ej. PHP 5.6 + MySQL 5.7 + Apache 2.4 en CentOS 7>
+
+        ## Como CORRER el sistema (no como modernizarlo)
+
+        ```bash
+        # Procedimiento real, validado contra el sistema actual:
+        ssh user@servidor.interno
+        cd /var/www/sistema
+        sudo systemctl status apache2
+        # ...
+        ```
+
+        Si requiere acceso a infra restringida, indicarlo:
+
+        > Acceso al servidor requiere VPN corporativa + credencial RDP /
+        > usuario LDAP. Solicitar a `<equipo>`.
+
+        ## Documentacion completa
+
+        | Aspecto | Documento |
+        |---|---|
+        | Arquitectura tecnica actual | [docs/arquitectura.md](docs/arquitectura.md) |
+        | Modelo de datos | [docs/modelo-datos.md](docs/modelo-datos.md) |
+        | Endpoints / interfaces | [docs/api.md](docs/api.md) |
+        | Reglas de negocio | [docs/reglas-negocio.md](docs/reglas-negocio.md) |
+        | Procedimientos operativos (deploy, backup, restore) | [docs/runbook.md](docs/runbook.md) |
+        | Manuales de usuario | [docs/manuales/](docs/manuales/) |
+        | Glosario de terminos del dominio | [docs/glosario.md](docs/glosario.md) |
+        | Recomendaciones de modernizacion (separado) | [docs/recommendations.md](docs/recommendations.md) |
+
+        ## Como se genero esta documentacion
+
+        Producida por el equipo de documentacion <fecha> usando Abax Swarm
+        en modo `document`. Las afirmaciones sobre el sistema fueron validadas
+        contra el codigo y la infraestructura real (referencias `archivo:linea`
+        en cada documento).
+
+        ## Mantenimiento de esta documentacion
+
+        Cada cambio significativo en el sistema debe reflejarse en los docs.
+        Owner: <equipo / persona>. Revision trimestral programada.
+
+        ## Licencia / propiedad
+
+        <Indicar politica: codigo propietario uso interno, MIT, etc.>
+        ```
+
+    - name: plantilla-readme-legacy-stack
+      content: |
+        ## Plantilla README — stack legacy (PHP clasico, VB6, Java Swing, Cobol, Delphi)
+
+        Caracteristicas adicionales sobre la plantilla document:
+
+        - **Documentar las dependencias EOL** (end of life) explicitamente:
+
+          ```markdown
+          ## Dependencias y soporte
+
+          | Componente | Version | Estado |
+          |---|---|---|
+          | PHP | 5.6.40 | EOL desde 2019-01 — sin patches de seguridad |
+          | MySQL | 5.7 | EOL desde 2023-10 |
+          | CentOS 7 | 7.9 | EOL desde 2024-06 |
+          ```
+
+          Esta tabla es informativa, NO una propuesta de upgrade. Las
+          recomendaciones de mitigacion van en `docs/recommendations.md`.
+
+        - **Documentar acceso fisico/remoto al sistema** si aplica:
+
+          ```markdown
+          ## Acceso al sistema
+
+          - **Codigo fuente**: VSS server `\\srv-vss\repos\<proyecto>` (lectura: grupo `dev-readonly`).
+          - **Build**: VS6 IDE en VM Windows XP (`vm-vb6-build`). Compilacion manual: File > Make Project.exe.
+          - **Despliegue**: copiar `.exe` resultante a `\\srv-prod\sistemas\<proyecto>\` (acceso: usuario `deploy`).
+          - **Logs**: `\\srv-prod\sistemas\<proyecto>\logs\` rotados manualmente.
+          ```
+
+        - **NO inventar comandos modernos** (ej. NO escribir `npm install` en un README de VB6).
+
+        - **Indicar que el sistema NO se construye con CI/CD moderno** si es el caso. Documentar el procedimiento manual real.
+
+        - Si el sistema usa formularios, screens, JFrames, .frm, .vbp, listar los principales con su proposito.
+
+    - name: validacion-pre-commit
+      content: |
+        ## Checklist pre-commit del README
+
+        Antes de marcar el entregable `project-readme` como completado,
+        verificar punto por punto:
+
+        - [ ] Cada comando del Quickstart se ejecuto y funciono (no se asumio).
+        - [ ] Las versiones de dependencias son explicitas (no "latest").
+        - [ ] No hay placeholders `<TODO>`, `<INSERT>`, `[fill in]` sin marcar.
+        - [ ] Los links relativos a otros docs apuntan a archivos que EXISTEN.
+        - [ ] Los badges renderean (ver el README en GitHub preview o equivalente).
+        - [ ] No hay secrets, tokens, passwords commiteados (revisar `.env.example` no `.env`).
+        - [ ] La licencia esta declarada y existe el archivo `LICENSE`.
+        - [ ] Si tiene UI, hay al menos una captura.
+        - [ ] El idioma es consistente (no mezclar ingles/espanol).
+        - [ ] La seccion "Contribuir" enlaza a CONTRIBUTING.md (existe o se va a crear).
+        - [ ] No hay lenguaje promocional vacio ("amazing", "revolutionary", etc.).
+        - [ ] El TL;DR responde "que es esto" en menos de 30 segundos de lectura.

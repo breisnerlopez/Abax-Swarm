@@ -79,6 +79,8 @@ skills:
   - environment-management
   - verification-before-completion
 
+  - documentation-quality-bar
+  - project-documentation-structure
 tools:
   - run-tests
   - lint-code

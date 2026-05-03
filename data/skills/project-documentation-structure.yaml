@@ -1,0 +1,294 @@
+id: project-documentation-structure
+name: Estructura de Documentacion del Proyecto
+description: >
+  Estructura estandar de la carpeta `docs/` que los agentes Abax generan
+  dentro del proyecto cliente. Define que carpetas existen, que vive en cada
+  una, convenciones de naming, indices intermedios, y como se relacionan los
+  documentos entre si. Aplica a modos new, document y continue.
+used_by:
+  - tech-writer
+  - tech-lead
+  - solution-architect
+  - business-analyst
+  - devops
+content:
+  when_to_use: |
+    - Al inicio de fase 4 (Construccion) o fase 3 en modo document: crear el esqueleto de docs/.
+    - Al consolidar documentacion al cierre de fase: garantizar que cada doc esta en la carpeta correcta.
+    - Cuando el orquestador pide moverse de docs ad-hoc a estructura normalizada.
+    - Al recibir un proyecto con docs/ existente desordenada (modo continue): proponer migracion incremental.
+  instructions: |
+    ## Estructura estandar de `docs/` en el proyecto cliente
+
+    ```
+    proyecto-cliente/
+    ├── README.md                   ← Indice navegable + quickstart
+    ├── CHANGELOG.md                ← Cambios por release (Keep a Changelog)
+    ├── CONTRIBUTING.md             ← Como contribuir (si proyecto open o multi-team)
+    ├── LICENSE                     ← Texto de licencia
+    ├── docs/
+    │   ├── README.md               ← Indice de docs/ con tabla de contenidos
+    │   ├── architecture/           ← Diseno tecnico
+    │   │   ├── overview.md         ← Vision C4 nivel 1
+    │   │   ├── components.md       ← C4 nivel 2-3
+    │   │   ├── data-model.md       ← ER + descripciones
+    │   │   ├── integrations.md     ← Sistemas externos
+    │   │   └── adrs/               ← Architecture Decision Records
+    │   │       ├── 0001-elegir-postgres-sobre-mongo.md
+    │   │       ├── 0002-rest-vs-graphql.md
+    │   │       └── ...
+    │   ├── api/                    ← Documentacion de APIs
+    │   │   ├── overview.md         ← Lista de endpoints + auth
+    │   │   ├── openapi.yaml        ← Spec OpenAPI 3.1 (si aplica)
+    │   │   └── examples.md         ← Casos de uso con curl/snippets
+    │   ├── runbooks/               ← Procedimientos operativos
+    │   │   ├── deploy.md           ← Deploy + rollback
+    │   │   ├── incident-response.md
+    │   │   ├── backup-restore.md
+    │   │   └── monitoring-alerts.md
+    │   ├── user-guides/            ← Manuales de usuario final
+    │   │   ├── getting-started.md
+    │   │   ├── faq.md
+    │   │   └── screenshots/
+    │   ├── functional/             ← Especificacion funcional (BA)
+    │   │   ├── epicas-features.md
+    │   │   ├── historias-usuario.md
+    │   │   ├── reglas-negocio.md
+    │   │   └── criterios-aceptacion.md
+    │   ├── deliverables/           ← Entregables formales por fase
+    │   │   ├── fase-0-descubrimiento/
+    │   │   ├── fase-1-inicio/
+    │   │   ├── fase-2-analisis/
+    │   │   ├── ...
+    │   │   └── fase-9-cierre/
+    │   ├── decisions/              ← Decisiones non-architecturales (PR review, etc.)
+    │   ├── glossary.md             ← Terminos del dominio del cliente
+    │   ├── presentations/          ← HTML autonomos para sponsors
+    │   └── design-system/          ← Template HTML + assets visuales
+    │       └── presentacion-template.html
+    └── .github/
+        └── workflows/
+            └── pages.yml           ← Si usa GitHub Pages para publicar presentaciones
+    ```
+
+    ## Reglas de organizacion
+
+    ### Nombres de archivos
+
+    - **kebab-case**: `getting-started.md`, NO `GettingStarted.md` ni `getting_started.md`.
+    - **Espanol**: `reglas-negocio.md`, NO `business-rules.md` (a menos que el proyecto sea ingles).
+    - **Sin tildes en nombre de archivo** (compatibilidad cross-OS): `arquitectura.md`, NO `arquitectura-detallada.md`.
+    - **ADRs numerados**: `NNNN-<verbo>-<sustantivo>.md` (`0001-elegir-postgres-sobre-mongo.md`).
+
+    ### Indices
+
+    Cada subcarpeta de `docs/` con >=3 archivos debe tener un `README.md`
+    que liste los archivos con una linea de descripcion:
+
+    ```markdown
+    # Architecture
+
+    Documentacion del diseno tecnico del sistema.
+
+    | Documento | Para que |
+    |---|---|
+    | [overview.md](overview.md) | Vision C4 nivel 1: contexto y sistemas externos |
+    | [components.md](components.md) | C4 nivel 2-3: contenedores y componentes |
+    | [data-model.md](data-model.md) | Diagrama ER + descripcion de cada entidad |
+    | [adrs/](adrs/) | Architecture Decision Records numerados |
+    ```
+
+    ### Frontmatter
+
+    Todos los .md dentro de `docs/` (excepto los README de carpeta) llevan
+    frontmatter de procedencia (ver skill `documentation-quality-bar`).
+
+    ### Links
+
+    - Links DENTRO de `docs/` son relativos: `../api/openapi.yaml`.
+    - Links a codigo fuente son relativos al root del repo: `../../src/api/users.ts`.
+    - Links a otros sistemas (Linear, Slack, Confluence) son absolutos con marca: `[Linear ABC-123 (issue tracker)](https://...)`.
+
+    ## Adaptacion por modo del proyecto
+
+    ### Modo `new`
+
+    Estructura completa generada al inicio de fase 4. Cada subcarpeta empieza
+    con su README.md como placeholder y se va llenando segun el orquestador
+    delega entregables.
+
+    ### Modo `document`
+
+    Solo carpetas relevantes al inventario:
+
+    ```
+    docs/
+    ├── README.md
+    ├── overview.md              ← Que es el sistema, contexto historico
+    ├── architecture/            ← Como esta hecho (descubierto)
+    ├── api/                     ← Interfaces existentes documentadas
+    ├── runbooks/                ← Procedimientos operativos actuales
+    ├── functional/              ← Reglas de negocio inferidas del codigo
+    ├── glossary.md
+    └── recommendations.md       ← SEPARADO: que se podria modernizar
+    ```
+
+    Las carpetas `deliverables/` y `decisions/` no aplican (es inventario,
+    no construccion). Las `presentations/` solo si hay sponsors que las pidan.
+
+    ### Modo `continue`
+
+    Preservar estructura existente. Si esta fragmentada o desordenada:
+
+    1. NO mover archivos automaticamente.
+    2. Crear un `docs/migration-plan.md` proponiendo el mapping de la
+       estructura actual a la estandar.
+    3. Validar con el orquestador antes de mover nada.
+    4. Migrar incrementalmente, un archivo por PR, manteniendo `git mv`
+       (preserva historia).
+
+    ## Antipatrones
+
+    - **Carpeta `docs/` plana con 30 archivos** sin agrupar. Hace imposible navegar.
+    - **Subcarpetas sin README.md indice**. Forces al lector a explorar el filesystem.
+    - **Mezclar entregables formales con notas ad-hoc**. Si una nota no es
+      entregable, va en `docs/notes/` o fuera de `docs/`.
+    - **Documentos largos monoliticos**. Si un .md supera 500 lineas, partir
+      por secciones (`docs/architecture/overview.md` y `docs/architecture/components.md`
+      en lugar de un solo `docs/architecture.md` gigante).
+    - **Versionado paralelo de docs**. Una sola version vive en `main`. Las
+      versiones historicas se acceden via git tags, no carpetas `docs/v1/`, `docs/v2/`.
+    - **README de carpeta auto-generado sin valor** (solo lista archivos sin
+      descripcion). El indice debe ayudar a decidir QUE leer.
+
+    ## Sitio MkDocs (modo document)
+
+    Cuando el modo es `document`, ademas de la carpeta `docs/` se genera
+    un sitio MkDocs Material navegable. La estructura `docs/` debe ser
+    compatible con MkDocs nav:
+
+    ```yaml
+    # mkdocs.yml
+    nav:
+      - Home: README.md
+      - Vision: overview.md
+      - Arquitectura:
+          - Overview: architecture/README.md
+          - Componentes: architecture/components.md
+          - Modelo de datos: architecture/data-model.md
+      - API: api/README.md
+      - Runbooks: runbooks/README.md
+      - Funcional: functional/README.md
+      - Glosario: glossary.md
+      - Recomendaciones: recommendations.md
+    ```
+
+    Los nombres de los items de nav son humanos (no kebab-case).
+
+    ## Coordinacion con el orquestador
+
+    Al inicio de fase 4 (modo new) o fase 3 (modo document), el primer
+    entregable estructural es la creacion del esqueleto `docs/`. Responsable:
+    `tech-writer` si esta en el equipo, `tech-lead` si no. Una vez creado,
+    cada agente que produce documentacion la coloca en la carpeta correcta
+    siguiendo esta estructura.
+  guides:
+    - name: skeleton-script
+      content: |
+        ## Script para generar el esqueleto inicial
+
+        Ejecutar UNA VEZ al inicio de la fase relevante. Crea las carpetas
+        vacias con README.md placeholder en cada una:
+
+        ```bash
+        # Adapta segun el modo del proyecto
+        ROOT="docs"
+        mkdir -p "$ROOT"/{architecture/adrs,api,runbooks,user-guides/screenshots,functional,deliverables,decisions,presentations,design-system}
+
+        for dir in architecture api runbooks user-guides functional deliverables decisions; do
+          if [ ! -f "$ROOT/$dir/README.md" ]; then
+            cat > "$ROOT/$dir/README.md" <<EOF
+        # $(echo "$dir" | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
+
+        Indice de documentos en \`$dir/\`. Llenar a medida que se producen
+        entregables.
+
+        | Documento | Para que |
+        |---|---|
+        | _(pendiente)_ | _(pendiente)_ |
+        EOF
+          fi
+        done
+
+        # Indice raiz de docs/
+        if [ ! -f "$ROOT/README.md" ]; then
+          cat > "$ROOT/README.md" <<EOF
+        # Documentacion del proyecto
+
+        Indice navegable de toda la documentacion del proyecto. Cada
+        subcarpeta tiene su propio README.md como indice secundario.
+
+        | Tema | Carpeta |
+        |---|---|
+        | Arquitectura tecnica | [architecture/](architecture/) |
+        | API y contratos | [api/](api/) |
+        | Procedimientos operativos | [runbooks/](runbooks/) |
+        | Manuales de usuario | [user-guides/](user-guides/) |
+        | Especificacion funcional | [functional/](functional/) |
+        | Entregables por fase | [deliverables/](deliverables/) |
+        | Decisiones no arquitecturales | [decisions/](decisions/) |
+        | Presentaciones HTML | [presentations/](presentations/) |
+        | Glosario de terminos | [glossary.md](glossary.md) |
+        EOF
+        fi
+        ```
+
+    - name: adr-format
+      content: |
+        ## Formato estandar para ADR (Architecture Decision Record)
+
+        Cada ADR vive en `docs/architecture/adrs/NNNN-<verbo>-<sustantivo>.md`.
+        Numero correlativo, padding a 4 digitos.
+
+        ```markdown
+        ---
+        fase: 3-diseno-tecnico
+        entregable: architecture-doc
+        tipo: ADR-NNNN
+        responsable: solution-architect
+        aprobado-por: tech-lead
+        fecha: YYYY-MM-DD
+        estado: propuesto | aceptado | superado | obsoleto
+        ---
+
+        # ADR-NNNN: <Decision en imperativo, ej. "Usar Postgres en lugar de MongoDB">
+
+        ## Contexto
+
+        Que problema enfrentamos. Una vez explicado, por que necesita
+        decision formal (no es trivial, hay tradeoffs reales).
+
+        ## Decision
+
+        Que vamos a hacer. Una frase clara.
+
+        ## Consecuencias
+
+        ### Positivas
+        - Lo que ganamos.
+
+        ### Negativas
+        - Lo que cedemos / costo asumido.
+
+        ### Neutras
+        - Cambios necesarios para implementar.
+
+        ## Alternativas consideradas
+
+        Las que evaluamos y descartamos, con la razon principal.
+
+        ## Referencias
+
+        - Issue / PR / Linear ticket que la motivo.
+        - Documentos externos (RFCs, blog posts, benchmarks) que la sustentan.
+        ```

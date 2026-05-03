@@ -16,6 +16,7 @@
 | [Quality Gates](./quality-gates.md) | 3 capas anti-mock (regla en developers + skill `anti-mock-review` en tech-lead + entregable `feature-spec-compliance` con BA externo) que cazan implementaciones falsas antes de QA |
 | [Role Boundaries](./role-boundaries.md) | Matriz maestra de responsabilidades por fase + skill `role-boundaries` en 13 roles + protocolo 2-Tasks post-fix. Evita que un agente ejecute trabajo de otro rol "para acelerar" (motivado por incidente devops-haciendo-QA, mayo 2026) |
 | [Legacy Stacks](./legacy-stacks.md) | Stack `legacy-other` placeholder con `role_context` cauteloso para PHP, Java desktop, VB6, Cobol, Delphi, etc. + 3 detectores nuevos + eliminacion del fallback silencioso a `angular-springboot` |
+| [Project Documentation](./project-documentation.md) | Como los agentes generan README.md y `docs/` en proyectos cliente. 3 skills coordinadas (project-readme, documentation-quality-bar, project-documentation-structure) + 2 entregables nuevos en fase 4 + 8 minimos no-negociables |
 | [Roadmap](./roadmap.md) | Tipos de proyecto futuros (audit, migration, onboarding, infra, data, ml, etc.) con priorizacion en tiers y criterios para promover |
 
 ## Guides

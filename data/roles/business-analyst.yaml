@@ -80,6 +80,8 @@ skills:
   - stakeholder-management
   - reverse-engineering
 
+  - documentation-quality-bar
+  - project-documentation-structure
 tools:
   - generate-diagram
   - create-document

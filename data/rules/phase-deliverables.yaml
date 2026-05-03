@@ -153,6 +153,24 @@ phases:
         approver: tech-lead
         mandatory: false
         artifact_type: document
+      - id: project-readme
+        name: README del Proyecto
+        responsible: tech-writer
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+        # Generated path: README.md (raiz del proyecto cliente)
+        # Skill: project-readme. Cubierto por barra documentation-quality-bar.
+        # Si no hay tech-writer en el equipo, el approver pasa a ser solution-architect.
+      - id: docs-structure-skeleton
+        name: Esqueleto de docs/
+        responsible: tech-writer
+        approver: tech-lead
+        mandatory: true
+        artifact_type: document
+        # Generated path: docs/{architecture,api,runbooks,user-guides,functional,...}/README.md
+        # Skill: project-documentation-structure. Solo el esqueleto inicial; los contenidos
+        # los llenan los demas entregables a lo largo de la fase.
       - id: sprint-status-presentation
         name: Presentacion de Avance
         responsible: project-manager
