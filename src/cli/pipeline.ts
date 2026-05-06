@@ -110,6 +110,7 @@ function generateFiles(
       ctx.runawayLimits,
       ctx.phaseDeliverables,
       stack,
+      ctx.iterationScopes,
     );
     files.push(...policyFiles);
 
@@ -148,6 +149,7 @@ function generateFiles(
     ctx.runawayLimits,
     ctx.phaseDeliverables,
     stack,
+    ctx.iterationScopes,
   );
   files.push(...pluginFiles);
 

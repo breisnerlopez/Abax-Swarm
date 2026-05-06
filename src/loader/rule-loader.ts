@@ -12,6 +12,7 @@ import {
   TaskContractsSchema,
   SecretPatternsSchema,
   RunawayLimitsSchema,
+  IterationScopesSchema,
   type SizeMatrix,
   type CriteriaRules,
   type DependencyGraph,
@@ -23,6 +24,7 @@ import {
   type TaskContracts,
   type SecretPatterns,
   type RunawayLimits,
+  type IterationScopes,
 } from "./schemas.js";
 import { loadYamlFile } from "./yaml-loader.js";
 
@@ -73,6 +75,10 @@ export function loadRunawayLimits(dirPath: string = DEFAULT_RULES_DIR): RunawayL
   return loadYamlFile(join(dirPath, "runaway-limits.yaml"), RunawayLimitsSchema).data;
 }
 
+export function loadIterationScopes(dirPath: string = DEFAULT_RULES_DIR): IterationScopes {
+  return loadYamlFile(join(dirPath, "iteration-scopes.yaml"), IterationScopesSchema).data;
+}
+
 export interface AllRules {
   sizeMatrix: SizeMatrix;
   criteria: CriteriaRules;
@@ -85,6 +91,7 @@ export interface AllRules {
   taskContracts: TaskContracts;
   secretPatterns: SecretPatterns;
   runawayLimits: RunawayLimits;
+  iterationScopes: IterationScopes;
 }
 
 export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
@@ -100,5 +107,6 @@ export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
     taskContracts: loadTaskContracts(dirPath),
     secretPatterns: loadSecretPatterns(dirPath),
     runawayLimits: loadRunawayLimits(dirPath),
+    iterationScopes: loadIterationScopes(dirPath),
   };
 }

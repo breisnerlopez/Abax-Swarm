@@ -4,6 +4,7 @@ import {
   mergeTaskContracts,
   mergeSecretPatterns,
   mergeRunawayLimits,
+  mergeIterationScopes,
   PLUGIN_OPENCODE_PATH,
 } from "../../../../src/generator/opencode/plugin-generator.js";
 import type {
@@ -13,6 +14,7 @@ import type {
   RunawayLimits,
   PhaseDeliverables,
   Stack,
+  IterationScopes,
 } from "../../../../src/loader/schemas.js";
 import type { ProjectConfig } from "../../../../src/engine/types.js";
 
@@ -322,5 +324,108 @@ describe("generatePluginFiles", () => {
       files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
     );
     expect(policies.stacks).toEqual({}); // empty object, not undefined — generator emitted but found nothing
+  });
+});
+
+// ---- Iteration scopes (M6) ----
+
+describe("mergeIterationScopes", () => {
+  const baseline: IterationScopes = {
+    scopes: [
+      {
+        id: "minor",
+        name: "Minor",
+        description: "incremental changes long enough to satisfy zod min(10)",
+        keywords: ["minor"],
+        skip_phases: ["discovery"],
+        minimal_phases: {},
+        full_phases: ["construction"],
+        default_layout_strategy: "A",
+      },
+    ],
+    require_scope_for_phases: ["discovery"],
+  };
+
+  it("returns baseline when overlay is undefined", () => {
+    expect(mergeIterationScopes(baseline, undefined)).toBe(baseline);
+  });
+
+  it("merges scopes by id (replace + add)", () => {
+    const merged = mergeIterationScopes(baseline, {
+      scopes: [
+        // replace
+        { id: "minor", name: "Minor strict", description: "tighter scope rules text".repeat(2),
+          keywords: ["m"], skip_phases: ["discovery", "inception"],
+          minimal_phases: {}, full_phases: ["construction"], default_layout_strategy: "A" },
+        // add
+        { id: "custom", name: "Custom", description: "project specific scope text".repeat(2),
+          keywords: ["x"], skip_phases: [], minimal_phases: {}, full_phases: [], default_layout_strategy: "C" },
+      ],
+    });
+    expect(merged.scopes).toHaveLength(2);
+    expect(merged.scopes.find((s) => s.id === "minor")?.skip_phases).toEqual(["discovery", "inception"]);
+    expect(merged.scopes.find((s) => s.id === "custom")).toBeDefined();
+  });
+
+  it("require_scope_for_phases — overlay replaces baseline when provided", () => {
+    const merged = mergeIterationScopes(baseline, {
+      require_scope_for_phases: ["discovery", "inception"],
+    });
+    expect(merged.require_scope_for_phases).toEqual(["discovery", "inception"]);
+  });
+});
+
+describe("generatePluginFiles iteration_scopes section", () => {
+  const baselineScopes: IterationScopes = {
+    scopes: [
+      {
+        id: "major",
+        name: "Major",
+        description: "full cascade for greenfield-grade changes",
+        keywords: ["major"],
+        skip_phases: [],
+        minimal_phases: {},
+        full_phases: ["construction"],
+        default_layout_strategy: "C",
+      },
+    ],
+    require_scope_for_phases: ["inception"],
+  };
+
+  it("includes iteration_scopes when baseline provided", () => {
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+      undefined, undefined, baselineScopes,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.iteration_scopes.scopes[0].id).toBe("major");
+    expect(policies.iteration_scopes.require_scope_for_phases).toEqual(["inception"]);
+  });
+
+  it("omits iteration_scopes when baseline absent (back-compat)", () => {
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.iteration_scopes).toBeUndefined();
+  });
+
+  it("includes active_iteration_scope when set in config", () => {
+    const cfg = { ...minimalConfig, activeIterationScope: "minor" };
+    const files = generatePluginFiles(
+      cfg, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+      undefined, undefined, baselineScopes,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.active_iteration_scope).toBe("minor");
   });
 });

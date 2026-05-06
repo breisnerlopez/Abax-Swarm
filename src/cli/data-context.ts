@@ -34,5 +34,6 @@ export function loadDataContext(): DataContext {
     taskContracts: rules.taskContracts,
     secretPatterns: rules.secretPatterns,
     runawayLimits: rules.runawayLimits,
+    iterationScopes: rules.iterationScopes,
   };
 }

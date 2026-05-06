@@ -6,6 +6,7 @@ import type {
   SecretPattern,
   RunawayLimits,
   ModelOverride,
+  IterationScopes,
 } from "../loader/schemas.js";
 
 export type TargetPlatform = "opencode" | "claude";
@@ -130,6 +131,23 @@ export interface ProjectConfig {
    * field-by-field over `default` and `by_category`/`by_role`.
    */
   runawayLimitsOverride?: Partial<RunawayLimits>;
+  /**
+   * Project-level overlay for iteration-scope rules. Adds new scopes
+   * or replaces existing ones (merge by `id`). Use to declare
+   * project-specific scope types beyond the baseline major/minor/
+   * patch/hotfix.
+   */
+  iterationScopesOverride?: Partial<IterationScopes>;
+  /**
+   * Optional ID of the scope ACTIVE in the current session. When set,
+   * the plugin enforces that task delegations only target phases
+   * declared in the scope's full_phases / minimal_phases. When unset,
+   * no enforcement (greenfield default). Set at session time via the
+   * `set-iteration-scope` tool, which writes
+   * .opencode/iteration-state.json — but can also be hard-pinned in
+   * project-manifest.yaml for fully scripted iterations.
+   */
+  activeIterationScope?: string;
 }
 
 export interface RoleSelection {
@@ -189,4 +207,6 @@ export interface DataContext {
   secretPatterns: SecretPatterns;
   /** Baseline runaway-detection limits loaded from data/rules/runaway-limits.yaml. */
   runawayLimits: RunawayLimits;
+  /** Baseline iteration-scope rules loaded from data/rules/iteration-scopes.yaml. */
+  iterationScopes: IterationScopes;
 }

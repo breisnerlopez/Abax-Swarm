@@ -135,6 +135,8 @@ program
         secretPatternsExtra: manifest.secret_patterns_extra,
         runawayLimitsOverride: manifest.runaway_limits_override,
         modelOverridesExplicit: manifest.model_overrides_explicit,
+        iterationScopesOverride: manifest.iteration_scopes_override,
+        activeIterationScope: manifest.active_iteration_scope,
       };
 
       const selection = runSelection(config, ctx);

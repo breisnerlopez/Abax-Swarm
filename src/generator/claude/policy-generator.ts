@@ -8,6 +8,7 @@ import type {
   RunawayLimits,
   PhaseDeliverables,
   Stack,
+  IterationScopes,
 } from "../../loader/schemas.js";
 import type { ProjectConfig } from "../../engine/types.js";
 import type { GeneratedFile } from "../opencode/agent-generator.js";
@@ -15,6 +16,7 @@ import {
   mergeTaskContracts,
   mergeSecretPatterns,
   mergeRunawayLimits,
+  mergeIterationScopes,
 } from "../opencode/plugin-generator.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -39,6 +41,7 @@ export function generateClaudePolicyFiles(
   baselineRunawayLimits: RunawayLimits,
   phaseDeliverables?: PhaseDeliverables,
   stack?: Stack,
+  baselineIterationScopes?: IterationScopes,
 ): GeneratedFile[] {
   const hookSource = readFileSync(TEMPLATE_PATH, "utf8");
 
@@ -65,6 +68,15 @@ export function generateClaudePolicyFiles(
   }
   if (stack) {
     policies.stacks = stackCommandsForRuntime(stack);
+  }
+  if (baselineIterationScopes) {
+    policies.iteration_scopes = mergeIterationScopes(
+      baselineIterationScopes,
+      config.iterationScopesOverride,
+    );
+  }
+  if (config.activeIterationScope) {
+    policies.active_iteration_scope = config.activeIterationScope;
   }
 
   return [

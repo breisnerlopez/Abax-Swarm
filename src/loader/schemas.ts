@@ -564,3 +564,57 @@ export const ModelOverrideSchema = z.union([
   }),
 ]);
 export type ModelOverride = z.infer<typeof ModelOverrideSchema>;
+
+// ============================================================
+// Iteration Scopes Schema (v0.1.41+)
+// ============================================================
+// Companion to iteration-strategy. Iteration-strategy decides
+// document layout (A/B/C/D); iteration-scope decides which PHASES
+// of the cascade actually run for the current iteration type.
+//
+// Resolution at runtime:
+//   1. Orchestrator detects iteration via `iteration-strategy` skill
+//   2. Asks user for type (or LLM matches keywords)
+//   3. Calls `set-iteration-scope` tool to write
+//      .opencode/iteration-state.json
+//   4. Plugin reads that file and enforces phase membership
+//
+// All fields under each scope follow the v0.1.40 merge-by-id
+// semantics when overlaid via project-manifest.yaml's
+// `iteration_scopes_override`.
+
+const IterationScopeSchema = z.object({
+  id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+  name: z.string().min(3),
+  description: z.string().min(10),
+  /** Keywords searched (case-insensitive substring) in the user's
+   * iteration request. Used by the orchestrator to suggest the type;
+   * the user always has final say. */
+  keywords: z.array(z.string().min(2)).default([]),
+  /** Phase ids whose entire deliverable set is skipped for this scope.
+   * Phase ids reference data/rules/phase-deliverables.yaml. */
+  skip_phases: z.array(z.string()).default([]),
+  /** Phases that DO run but only with the listed deliverable ids.
+   * `{ phase_id: [deliverable_id, ...] }`. Empty value means full phase. */
+  minimal_phases: z.record(z.string(), z.array(z.string())).default({}),
+  /** Phases that run in full (every mandatory deliverable). Phases not
+   * mentioned in any of skip_phases / minimal_phases / full_phases are
+   * treated as full_phases by default. */
+  full_phases: z.array(z.string()).default([]),
+  /** Pre-suggested layout strategy from iteration-strategies.md (A/B/C/D).
+   * The orchestrator may still negotiate with the user — this is a
+   * default for that conversation. */
+  default_layout_strategy: z.enum(["A", "B", "C", "D"]).default("A"),
+});
+export type IterationScope = z.infer<typeof IterationScopeSchema>;
+
+export const IterationScopesSchema = z.object({
+  scopes: z.array(IterationScopeSchema).min(1),
+  /** Phase ids that REQUIRE an active scope to be set before any task
+   * delegation can target them — IF the project has iteration signals
+   * (bitácora, CHANGELOG releases, closure phase). Defaults to empty
+   * (= no enforcement). The recommended baseline list is
+   * [discovery, inception]. */
+  require_scope_for_phases: z.array(z.string()).default([]),
+});
+export type IterationScopes = z.infer<typeof IterationScopesSchema>;

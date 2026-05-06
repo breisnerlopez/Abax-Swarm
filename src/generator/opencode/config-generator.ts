@@ -146,6 +146,12 @@ export function generateProjectManifest(
   if (config.modelOverridesExplicit !== undefined) {
     overridesPresent.model_overrides_explicit = config.modelOverridesExplicit;
   }
+  if (config.iterationScopesOverride !== undefined) {
+    overridesPresent.iteration_scopes_override = config.iterationScopesOverride;
+  }
+  if (config.activeIterationScope !== undefined) {
+    overridesPresent.active_iteration_scope = config.activeIterationScope;
+  }
 
   // The commented-out trailer is documentation for projects WITHOUT
   // active overrides. When the user has at least one override, we don't
@@ -223,5 +229,31 @@ const POLICY_OVERRIDES_TRAILER = `
 #     provider: anthropic
 #     model: claude-opus-4-7
 #     reasoning_effort: high
+
+# ---- 5. Iteration scopes (v0.1.41+) ----------------------------------------
+# Companion to iteration-strategy. iteration-strategy controls DOC LAYOUT
+# (A/B/C/D); iteration-scope controls which PHASES actually RUN for an
+# iteration. Active scope is set per-session via the set-iteration-scope
+# tool. When the project has iteration signals (bitácora, CHANGELOG
+# releases, fase-9-cierre) AND no active scope, the plugin REFUSES task
+# delegations to phases in require_scope_for_phases — forces the
+# orchestrator to ask the user before phase 0/1 work in iterations.
+#
+# Add or replace declared scopes:
+# iteration_scopes_override:
+#   scopes:
+#     - id: my-experimental-rollout
+#       name: Rollout experimental
+#       description: |
+#         Para experimentos que requieren UAT pero saltan stabilization.
+#       keywords: [experimental, rollout, beta]
+#       skip_phases: [stabilization]
+#       minimal_phases: {}
+#       full_phases: [construction, qa-testing, uat, deployment]
+#       default_layout_strategy: A
+#   require_scope_for_phases: [discovery, inception]
+
+# Pin the active scope (skip the set-iteration-scope tool dance):
+# active_iteration_scope: minor
 `;
 

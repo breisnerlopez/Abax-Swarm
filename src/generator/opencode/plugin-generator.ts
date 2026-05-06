@@ -9,6 +9,7 @@ import type {
   RunawayLimits,
   PhaseDeliverables,
   Stack,
+  IterationScopes,
 } from "../../loader/schemas.js";
 import type { ProjectConfig } from "../../engine/types.js";
 import type { GeneratedFile } from "./agent-generator.js";
@@ -48,6 +49,10 @@ export function generatePluginFiles(
    * `build_command` fields are used to resolve {stack.X.Y} placeholders
    * in deliverable verification commands. */
   stack?: Stack,
+  /** Iteration scope baseline + project overlay. Plugin reads this to
+   * enforce phase-scope constraints when an active scope is declared
+   * via .opencode/iteration-state.json. */
+  baselineIterationScopes?: IterationScopes,
 ): GeneratedFile[] {
   const pluginSource = readPluginTemplate();
 
@@ -74,6 +79,15 @@ export function generatePluginFiles(
   }
   if (stack) {
     policies.stacks = stackCommandsForRuntime(stack);
+  }
+  if (baselineIterationScopes) {
+    policies.iteration_scopes = mergeIterationScopes(
+      baselineIterationScopes,
+      config.iterationScopesOverride,
+    );
+  }
+  if (config.activeIterationScope) {
+    policies.active_iteration_scope = config.activeIterationScope;
   }
 
   return [
@@ -143,6 +157,23 @@ export function mergeSecretPatterns(
 ): SecretPatterns {
   if (!extras || extras.length === 0) return base;
   return { patterns: mergeById(base.patterns, extras) };
+}
+
+/**
+ * Merge iteration scopes by `id`. Overlay scope replaces baseline
+ * scope of same id; new ids added; baseline ids without overlay are
+ * preserved. Mirrors mergeTaskContracts.forbidden_combinations.
+ */
+export function mergeIterationScopes(
+  base: IterationScopes,
+  overlay?: Partial<IterationScopes>,
+): IterationScopes {
+  if (!overlay) return base;
+  return {
+    scopes: mergeById(base.scopes, overlay.scopes ?? []),
+    require_scope_for_phases:
+      overlay.require_scope_for_phases ?? base.require_scope_for_phases,
+  };
 }
 
 /**

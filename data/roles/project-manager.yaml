@@ -87,6 +87,7 @@ tools:
   - phase-state
   - verify-deliverable
   - attest-deliverable
+  - set-iteration-scope
 
 dependencies:
   receives_from:

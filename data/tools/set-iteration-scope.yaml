@@ -1,0 +1,67 @@
+id: set-iteration-scope
+name: Establecer Alcance de Iteración
+description: Registra el tipo de iteración activo (major/minor/patch/hotfix u otro declarado en data/rules/iteration-scopes.yaml). Escribe .opencode/iteration-state.json. El plugin runtime lo lee para enforzar qué fases pueden ejecutarse — bloquea Tasks que deleguen entregables de fases skip_phases del scope. Genérico — no asume tipos específicos, solo respeta los IDs declarados en el catálogo.
+used_by:
+  - project-manager
+  - business-analyst
+implementation:
+  language: typescript
+  args:
+    scope_id:
+      type: string
+      description: ID del scope a activar — debe coincidir con un id declarado en .opencode/policies/abax-policies.json `iteration_scopes`. Ej. major, minor, patch, hotfix.
+      required: true
+    rationale:
+      type: string
+      description: Justificación breve registrada para auditoría (qué pidió el usuario, por qué se eligió este scope).
+      default: ""
+      required: false
+  returns: string
+  body: |
+    const { readFileSync, existsSync, mkdirSync, writeFileSync } = require("node:fs");
+    const { join } = require("node:path");
+
+    const projectDir = process.cwd();
+    const policiesPath = join(projectDir, ".opencode/policies/abax-policies.json");
+
+    // Validate scope_id exists in the catalog. Fail loudly if not — a
+    // typo here would silently disable enforcement.
+    if (!existsSync(policiesPath)) {
+      return JSON.stringify({
+        ok: false,
+        error: "policies file not found — cannot validate scope_id",
+        path: policiesPath,
+      });
+    }
+    let policies: any;
+    try {
+      policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+    } catch (e: any) {
+      return JSON.stringify({ ok: false, error: "policies parse failed: " + e.message });
+    }
+    const catalog = (policies.iteration_scopes?.scopes ?? []).map((s: any) => s.id);
+    if (!catalog.includes(args.scope_id)) {
+      return JSON.stringify({
+        ok: false,
+        error: `unknown scope_id '${args.scope_id}'. Valid ids: ${catalog.join(", ") || "(none — catalog empty)"}`,
+      });
+    }
+
+    const state = {
+      schema_version: 1,
+      active_scope: args.scope_id,
+      activated_at: new Date().toISOString(),
+      rationale: args.rationale || "",
+    };
+
+    const stateDir = join(projectDir, ".opencode");
+    mkdirSync(stateDir, { recursive: true });
+    const statePath = join(stateDir, "iteration-state.json");
+    writeFileSync(statePath, JSON.stringify(state, null, 2) + "\n", "utf8");
+
+    return JSON.stringify({
+      ok: true,
+      written: ".opencode/iteration-state.json",
+      state,
+      enforcement: "Plugin will now block task delegations to phases not allowed by this scope.",
+    }, null, 2);

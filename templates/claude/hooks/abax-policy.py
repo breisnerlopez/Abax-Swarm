@@ -121,6 +121,96 @@ if event == "PreToolUse":
             else:
                 _warn(msg)
 
+# ---- Concern 1.5: Phase-scope enforcement (PreToolUse on task) -----------
+
+def _load_active_scope(policies: dict, cwd_path: Path) -> str:
+    """Order: manifest pin > runtime state file > none."""
+    if policies.get("active_iteration_scope"):
+        return policies["active_iteration_scope"]
+    state_path = cwd_path / ".claude" / "iteration-state.json"
+    if state_path.is_file():
+        try:
+            st = json.loads(state_path.read_text())
+            return st.get("active_scope") or ""
+        except Exception:
+            return ""
+    return ""
+
+def _detect_phase(args: dict, known: list) -> str:
+    if not isinstance(args, dict):
+        return ""
+    p = args.get("phase")
+    if isinstance(p, str) and p in known:
+        return p
+    haystack = (str(args.get("description") or "") + " " + str(args.get("prompt") or "")).lower()
+    for pid in known:
+        if pid.lower() in haystack:
+            return pid
+    return ""
+
+def _detect_iteration_likely(cwd_path: Path) -> bool:
+    if (cwd_path / "docs" / "bitacora.md").is_file():
+        return True
+    if (cwd_path / "docs" / "entregables" / "fase-9-cierre").is_dir():
+        return True
+    cl = cwd_path / "CHANGELOG.md"
+    if cl.is_file():
+        try:
+            txt = cl.read_text()
+            if any(line.startswith("## [") and line[4:5].isdigit() for line in txt.splitlines()):
+                return True
+        except Exception:
+            return False
+    return False
+
+if event == "PreToolUse" and tool_name == "task" and policies.get("iteration_scopes"):
+    active_id = _load_active_scope(policies, Path(cwd))
+    known_phases_root = [p["id"] for p in policies.get("phases") or []]
+
+    # ---- Skill invocation contract (M2.1) ----
+    if not active_id:
+        required = policies["iteration_scopes"].get("require_scope_for_phases", []) or []
+        if required and _detect_iteration_likely(Path(cwd)):
+            phase = _detect_phase(tool_input, known_phases_root)
+            if phase and phase in required:
+                _block(
+                    f"[abax-policy/iteration-scope] blocked task delegation: project has "
+                    f"iteration signals but no active_iteration_scope is set, and phase "
+                    f"\"{phase}\" requires explicit scope confirmation.\n\n"
+                    f"Action required: ASK THE USER which iteration type applies "
+                    f"(major/minor/patch/hotfix) and then call set-iteration-scope with "
+                    f"their answer. See the iteration-strategy skill for the question to ask."
+                )
+
+    if active_id:
+        scope = next(
+            (s for s in policies["iteration_scopes"].get("scopes", []) if s["id"] == active_id),
+            None,
+        )
+        if scope:
+            known_phases = [p["id"] for p in policies.get("phases") or []]
+            phase = _detect_phase(tool_input, known_phases)
+            if phase:
+                if phase in scope.get("skip_phases", []):
+                    _block(
+                        f"[abax-policy/iteration-scope] blocked task delegation: phase "
+                        f"\"{phase}\" is in skip_phases for active scope "
+                        f"\"{scope['id']}\" ({scope['name']}).\n"
+                        f"Reason: {scope.get('description','').splitlines()[0]}\n"
+                        f"If genuinely needed, widen the scope via set-iteration-scope or "
+                        f"edit iteration_scopes_override in project-manifest.yaml."
+                    )
+                allow = scope.get("minimal_phases", {}).get(phase)
+                if allow and isinstance(allow, list) and allow:
+                    delivery = str(tool_input.get("deliverable") or "")
+                    if delivery and delivery not in allow:
+                        _block(
+                            f"[abax-policy/iteration-scope] blocked task delegation: "
+                            f"deliverable \"{delivery}\" not in minimal_phases allowlist "
+                            f"for phase \"{phase}\" under scope \"{scope['id']}\". "
+                            f"Allowed: {', '.join(allow)}."
+                        )
+
 # ---- Concern 2: Atomicity (PreToolUse on task) ---------------------------
 
 if event == "PreToolUse" and tool_name == "task":

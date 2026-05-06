@@ -1,0 +1,154 @@
+# Iteration scope policies.
+# Generic, project-agnostic. Defines which phases of the cascade actually
+# RUN for a given iteration type. Companion to iteration-strategies.md
+# which only governs document layout (folder vs in-place vs strikethrough).
+#
+# Active scope is set per-session and recorded in
+# .opencode/iteration-state.json (written by the set-iteration-scope tool
+# after the orchestrator confirms the iteration type with the user).
+#
+# Plugin behaviour:
+#   - PreToolUse on `task`: if active_scope.skip_phases contains the
+#     phase a delegation belongs to → BLOCK with clear message.
+#   - PreToolUse on `task`: if active_scope.minimal_phases declares an
+#     allowlist of deliverables → BLOCK delegations of deliverables not
+#     in that list.
+#   - When iteration-state.json is absent: NO enforcement (preserves
+#     greenfield-project behaviour where every phase runs).
+#
+# Per-project overlays go in project-manifest.yaml under
+# `iteration_scopes_override:` (extends/replaces by `id`) and
+# `active_iteration_scope:` (string id of the current scope).
+#
+# ---- Skill invocation contract enforcement ----
+# When the project has history (bitacora.md, CHANGELOG with releases,
+# or fase-9-cierre/) AND the active scope is NOT set, the plugin
+# blocks task delegations to any phase listed in `require_scope_for_phases`.
+# This is the runtime enforcement of the iteration-strategy skill —
+# the orchestrator MUST call set-iteration-scope (after asking the user)
+# before phase 0/1 work can proceed in an iteration on a closed project.
+require_scope_for_phases:
+  - discovery
+  - inception
+
+scopes:
+  # ---- MAJOR — full cascade (default for new or v1→v2 evolutions) -----
+  - id: major
+    name: Iteración mayor
+    description: |
+      Nueva versión que altera arquitectura, alcance o cohorte de stakeholders.
+      Cascada completa porque cualquier fase puede aportar insight crítico.
+    keywords:
+      - "v3"
+      - "v4"
+      - "rewrite"
+      - "redesign"
+      - "evolución mayor"
+      - "rearquitectura"
+      - "nueva versión mayor"
+    skip_phases: []
+    minimal_phases: {}
+    full_phases:
+      - discovery
+      - inception
+      - functional-analysis
+      - technical-design
+      - construction
+      - qa-testing
+      - uat
+      - deployment
+      - stabilization
+      - closure
+    default_layout_strategy: C   # parallel folder
+
+  # ---- MINOR — improvement scope (v2.0 → v2.1) ------------------------
+  - id: minor
+    name: Iteración menor (mejoras)
+    description: |
+      Mejoras incrementales sobre versión cerrada. NO requiere repetir
+      Discovery (ya hubo) ni Inicio (acta+kickoff vigentes). Análisis
+      sólo para los items afectados. Diseño sólo para componentes nuevos.
+      Construcción + QA + UAT + Deploy completos para el delta.
+    keywords:
+      - "mejoras"
+      - "mejora"
+      - "v2.1"
+      - "v2.2"
+      - "v3.1"
+      - "incremental"
+      - "evolución"
+      - "siguiente iteración"
+      - "refinamiento"
+    skip_phases:
+      - discovery
+      - inception
+    minimal_phases:
+      functional-analysis:
+        - functional-spec        # solo para los items afectados
+        - acceptance-criteria    # idem
+      technical-design:
+        - architecture-doc       # solo deltas de arquitectura
+        - technical-decomposition
+    full_phases:
+      - construction
+      - qa-testing
+      - uat
+      - deployment
+    default_layout_strategy: A   # in-place "## Cambios <fecha>" block
+
+  # ---- PATCH — bug fix on closed version (v2.0.0 → v2.0.1) ------------
+  - id: patch
+    name: Patch / corrección
+    description: |
+      Corrección de defecto sobre versión cerrada. Sin cambio de scope.
+      Salta Discovery, Inicio, Análisis funcional y Diseño. Construcción
+      enfocada al fix + QA de regresión + Deploy.
+    keywords:
+      - "patch"
+      - "fix"
+      - "corrección"
+      - "bug fix"
+      - "v2.0.1"
+      - "v2.0.x"
+      - "hotpatch"
+    skip_phases:
+      - discovery
+      - inception
+      - functional-analysis
+      - technical-design
+      - uat
+    minimal_phases: {}
+    full_phases:
+      - construction
+      - qa-testing
+      - deployment
+    default_layout_strategy: A   # in-place
+
+  # ---- HOTFIX — emergency production patch ----------------------------
+  - id: hotfix
+    name: Hotfix urgente
+    description: |
+      Defecto crítico en producción. Salta TODO menos construcción del
+      fix + smoke deploy. QA queda como follow-up post-fix. Use con
+      precaución — la deuda de QA debe registrarse en stabilization.
+    keywords:
+      - "hotfix"
+      - "urgente"
+      - "incidente"
+      - "P0"
+      - "production down"
+      - "crítico"
+    skip_phases:
+      - discovery
+      - inception
+      - functional-analysis
+      - technical-design
+      - qa-testing
+      - uat
+      - stabilization
+      - closure
+    minimal_phases: {}
+    full_phases:
+      - construction
+      - deployment
+    default_layout_strategy: A
