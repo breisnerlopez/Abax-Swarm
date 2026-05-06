@@ -1,6 +1,6 @@
 import type { ProjectConfig, DataContext, ModelMix, RoleSelection, SelectionResult, ResolvedProject } from "../engine/types.js";
 import type { GeneratedFile } from "../generator/opencode/agent-generator.js";
-import { buildModelMix } from "../engine/model-mapping.js";
+import { buildModelMix, applyExplicitOverrides } from "../engine/model-mapping.js";
 import { selectRoles, selectRolesForDocumentMode } from "../engine/role-selector.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
 import { resolveSkills, filterSkills } from "../engine/skill-resolver.js";
@@ -9,6 +9,11 @@ import { adaptAllRolesToStack } from "../engine/stack-adapter.js";
 import { resolveGovernance, resolveDocumentGovernance } from "../engine/governance-resolver.js";
 import { writeGeneratedFiles } from "../generator/opencode/agent-generator.js";
 import { validateOrchestrator } from "../validator/orchestrator-validator.js";
+import { validateRaciRoles } from "../validator/raci-validator.js";
+import {
+  validateGatesAgainstTeam,
+  validateGatesForDocumentMode,
+} from "../validator/gates-validator.js";
 
 import type { Role, Skill, Tool } from "../loader/schemas.js";
 import type { GovernanceDetails } from "../engine/governance-resolver.js";
@@ -154,17 +159,43 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
   const rolesForMix = orchRole ? [...adaptedRoles, orchRole] : adaptedRoles;
   // "inherit" strategy: pass an empty mix so generators leave model fields unset
   // and the user's own OpenCode/Claude default is used at runtime.
-  const mix: ModelMix =
+  const baseMix: ModelMix =
     config.modelStrategy === "inherit"
       ? {}
       : buildModelMix(provider, rolesForMix, config.modelOverrides ?? {});
+
+  // Apply per-role explicit overrides on top. These win over both the
+  // cognitive_tier+reasoning lookup and the inherit default — they are an
+  // escape hatch for projects that need a specific model for one role
+  // (e.g. claude-opus-4-7 only for the orchestrator). When no explicit
+  // overrides are declared, this is a no-op.
+  const mix: ModelMix = applyExplicitOverrides(
+    baseMix,
+    config.modelOverridesExplicit,
+    provider,
+  );
 
   const { files, orchestratorFile } = generateFiles(
     config.target, config, selection, adaptedRoles, skills, tools, governance, mix, ctx,
   );
 
-  // Validate orchestrator
+  // Validate orchestrator (existing)
   const validation = validateOrchestrator(orchestratorFile, adaptedRoles);
+
+  // Cross-reference RACI and phase-deliverables (gates + responsibles) against
+  // the resolved team. These never block — they surface dangling references
+  // so the user understands what is being silently filtered. Generic across
+  // any team composition: more roles = fewer warnings, fewer roles = more.
+  const validRoleIds = new Set(adaptedRoles.map((r) => r.id));
+  const raciCheck = validateRaciRoles(ctx.raci, validRoleIds);
+  const gatesTeamCheck = validateGatesAgainstTeam(ctx.phaseDeliverables, validRoleIds);
+  const gatesDocCheck =
+    config.mode === "document" && ctx.documentMode
+      ? validateGatesForDocumentMode(
+          ctx.phaseDeliverables,
+          ctx.documentMode.phases.map((p) => p.id),
+        )
+      : { valid: true, errors: [] as string[], warnings: [] as string[] };
 
   return {
     project: {
@@ -176,7 +207,14 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
       stack,
     },
     files,
-    orchestratorWarnings: [...validation.errors, ...validation.warnings],
+    orchestratorWarnings: [
+      ...validation.errors,
+      ...validation.warnings,
+      ...raciCheck.errors,
+      ...raciCheck.warnings,
+      ...gatesTeamCheck.warnings,
+      ...gatesDocCheck.warnings,
+    ],
   };
 }
 

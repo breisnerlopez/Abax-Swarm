@@ -9,6 +9,9 @@ import {
   AntiRationalizationSchema,
   PhaseDeliverablesSchema,
   DocumentModeSchema,
+  TaskContractsSchema,
+  SecretPatternsSchema,
+  RunawayLimitsSchema,
   type SizeMatrix,
   type CriteriaRules,
   type DependencyGraph,
@@ -17,6 +20,9 @@ import {
   type AntiRationalization,
   type PhaseDeliverables,
   type DocumentModeData,
+  type TaskContracts,
+  type SecretPatterns,
+  type RunawayLimits,
 } from "./schemas.js";
 import { loadYamlFile } from "./yaml-loader.js";
 
@@ -55,6 +61,18 @@ export function loadDocumentMode(dirPath: string = DEFAULT_RULES_DIR): DocumentM
   return loadYamlFile(join(dirPath, "document-mode.yaml"), DocumentModeSchema).data;
 }
 
+export function loadTaskContracts(dirPath: string = DEFAULT_RULES_DIR): TaskContracts {
+  return loadYamlFile(join(dirPath, "task-contracts.yaml"), TaskContractsSchema).data;
+}
+
+export function loadSecretPatterns(dirPath: string = DEFAULT_RULES_DIR): SecretPatterns {
+  return loadYamlFile(join(dirPath, "secret-patterns.yaml"), SecretPatternsSchema).data;
+}
+
+export function loadRunawayLimits(dirPath: string = DEFAULT_RULES_DIR): RunawayLimits {
+  return loadYamlFile(join(dirPath, "runaway-limits.yaml"), RunawayLimitsSchema).data;
+}
+
 export interface AllRules {
   sizeMatrix: SizeMatrix;
   criteria: CriteriaRules;
@@ -64,6 +82,9 @@ export interface AllRules {
   antiRationalization: AntiRationalization;
   phaseDeliverables: PhaseDeliverables;
   documentMode: DocumentModeData;
+  taskContracts: TaskContracts;
+  secretPatterns: SecretPatterns;
+  runawayLimits: RunawayLimits;
 }
 
 export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
@@ -76,5 +97,8 @@ export function loadAllRules(dirPath: string = DEFAULT_RULES_DIR): AllRules {
     antiRationalization: loadAntiRationalization(dirPath),
     phaseDeliverables: loadPhaseDeliverables(dirPath),
     documentMode: loadDocumentMode(dirPath),
+    taskContracts: loadTaskContracts(dirPath),
+    secretPatterns: loadSecretPatterns(dirPath),
+    runawayLimits: loadRunawayLimits(dirPath),
   };
 }

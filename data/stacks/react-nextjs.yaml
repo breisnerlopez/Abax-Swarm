@@ -9,6 +9,8 @@ frontend:
   package_manager: npm/pnpm
   test_framework: Vitest, React Testing Library, Playwright
   build_tool: Next.js CLI
+  test_command: "npm test --silent -- --run"
+  build_command: "npm run build"
 
 backend:
   framework: Next.js API Routes / Server Actions
@@ -17,6 +19,8 @@ backend:
   build_tool: Next.js CLI
   test_framework: Vitest
   orm: Prisma/Drizzle
+  test_command: "npm test --silent -- --run"
+  build_command: "npm run build"
 
 database:
   default: PostgreSQL

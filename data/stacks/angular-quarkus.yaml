@@ -9,6 +9,8 @@ frontend:
   package_manager: npm
   test_framework: Jasmine/Karma, Cypress
   build_tool: Angular CLI
+  test_command: "npm test -- --watch=false --browsers=ChromeHeadless"
+  build_command: "npm run build"
 
 backend:
   framework: Quarkus
@@ -17,6 +19,8 @@ backend:
   build_tool: Maven/Gradle
   test_framework: JUnit 5, REST Assured, Mockito
   orm: Hibernate ORM with Panache
+  test_command: "./mvnw -q test || mvn -q test"
+  build_command: "./mvnw -q package -DskipTests || mvn -q package -DskipTests"
 
 database:
   default: PostgreSQL

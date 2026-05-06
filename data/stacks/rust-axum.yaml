@@ -9,6 +9,8 @@ backend:
   build_tool: Cargo
   test_framework: cargo test, tokio::test, tower::ServiceExt
   orm: SQLx / SeaORM / Diesel
+  test_command: "cargo test --quiet"
+  build_command: "cargo build --release --quiet"
 
 database:
   default: PostgreSQL

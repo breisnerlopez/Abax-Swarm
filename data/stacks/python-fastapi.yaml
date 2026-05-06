@@ -9,6 +9,8 @@ backend:
   build_tool: pip/poetry/uv
   test_framework: pytest, httpx
   orm: SQLAlchemy 2.0
+  test_command: "pytest -q"
+  build_command: "python -m compileall -q ."
 
 database:
   default: PostgreSQL

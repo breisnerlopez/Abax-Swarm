@@ -125,6 +125,24 @@ phases:
   - id: construction
     name: Construccion
     gate_approver: tech-lead
+    # Verifiable conditions evaluated by the phase-state tool before
+    # tech-lead can sign the gate. Empty by default in v0.1.39 and earlier
+    # phase definitions; populated as a worked example here in 0.1.40+.
+    gates:
+      - id: not-on-main
+        type: git-check
+        check: branch
+        not_in: [main, master, trunk]
+        on_failure: block
+      - id: env-verified
+        type: file-exists
+        target: "docs/entregables/{phase}/00-verificacion-entorno.md"
+        on_failure: block
+      - id: smoke-runtime-passed
+        type: attestation
+        attestor_role: devops
+        deliverable: env-verification
+        on_failure: block
     deliverables:
       - id: env-verification
         name: Verificacion de entorno y dependencias
@@ -132,6 +150,7 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        attestation_required: true
         # BLOCKING: must complete before any other construction deliverable.
         # Verifies runtime, declares dependencies, sets up local execution.
         # Generated path: docs/entregables/fase-4-construccion/00-verificacion-entorno.md
@@ -141,6 +160,26 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: code
+        attestation_required: true
+        # Worked example of behavioural verification — replaces the
+        # "trust the agent's word" model with executable checks.
+        # Placeholders are resolved by the verify-deliverable tool against
+        # the project's stack:
+        #   {stack.backend.test_command}  → e.g. "./mvnw -q test" / "pytest -q" / "go test ./..."
+        #   {stack.frontend.test_command} → e.g. "npm test --silent -- --run"
+        # Stacks without the field (e.g. legacy-other) cause the verification
+        # to be skipped with a notice instead of failing.
+        verification:
+          - id: backend-tests-pass
+            cmd: "{stack.backend.test_command}"
+            on_failure: block
+          - id: no-mock-in-main
+            # Generic — looks for accidentally-shipped mocks in the main
+            # source path. Convention covers Java/Kotlin (src/main/), TS/JS
+            # (src/), Python (project root). Adjust per stack if needed.
+            cmd: "grep -rE 'class (Mock|Fake|Stub|InMemory)[A-Z]' src 2>/dev/null || echo OK"
+            expect_regex: "^OK$"
+            on_failure: warn
       - id: unit-tests
         name: Pruebas Unitarias
         responsible: developer-backend
@@ -271,6 +310,26 @@ phases:
   - id: deployment
     name: Despliegue
     gate_approver: project-manager
+    gates:
+      - id: deployment-plan-attested
+        type: attestation
+        attestor_role: devops
+        deliverable: deployment-plan-doc
+        on_failure: block
+      - id: rollback-plan-attested
+        type: attestation
+        attestor_role: devops
+        deliverable: rollback-plan
+        on_failure: block
+      # Optional but recommended: confirm the public URL is live before
+      # closing the phase. The {project_url} placeholder is resolved from
+      # the project-manifest.yaml at gate-evaluation time.
+      - id: public-url-reachable
+        type: url-reachable
+        url: "{project_url}"
+        expect_status: 200
+        timeout_ms: 5000
+        on_failure: warn
     deliverables:
       - id: deployment-plan-doc
         name: Plan de Despliegue
@@ -282,12 +341,14 @@ phases:
         approver: product-owner
         mandatory: true
         artifact_type: document
+        attestation_required: true
       - id: rollback-plan
         name: Plan de Rollback
         responsible: devops
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        attestation_required: true
       - id: go-live-presentation
         name: Presentacion Go-Live Readiness
         responsible: project-manager

@@ -1,0 +1,72 @@
+# Task atomicity contract.
+# Generic, project-agnostic. The PreToolUse hook on `Task` reads this file,
+# scans the prompt of the delegated Task against `atomic_actions.keywords`,
+# and blocks delegations whose detected actions form any combination listed
+# in `forbidden_combinations` (subject to `exemptions`).
+#
+# Per-project overrides go in project-manifest.yaml under
+# `task_contracts_override:` and merge by `id` against this baseline.
+
+# Universe of atomic actions an agent can perform inside a single Task.
+# Keywords are a mixed list (Spanish + English) because models vary.
+# Match is case-insensitive, whole-word preferred but substring acceptable.
+atomic_actions:
+  - id: read
+    keywords: [read, lee, revisa, analiza, inspect, inspeccion, examinar]
+  - id: plan
+    keywords: [plan, planifica, disena, design, esboza, propone]
+  - id: write-doc
+    keywords: [escribe, redacta, document, documenta, crea archivo, create file, markdown]
+  - id: write-code
+    keywords: [implementa, codifica, refactor, fix bug, arregla, corrige, code, programa]
+  - id: build
+    keywords: [build, compila, mvn package, npm build, docker build, gradle build]
+  - id: test
+    keywords: [test, prueba, mvn test, npm test, pytest, ejecuta tests, run tests]
+  - id: commit
+    keywords: [git commit, commitea, commit changes]
+  - id: push
+    keywords: [git push, publica al repo, sube al remoto, push to remote]
+  - id: deploy
+    keywords: [deploy, despliega, kubectl apply, helm upgrade, docker run prod, rollout]
+  - id: close-issue
+    keywords: [gh issue close, cierra issue, close ticket, resuelve ticket]
+  - id: notify
+    keywords: [notifica al usuario, anuncia, comunica al sponsor, informa al sponsor]
+
+# Combinations that MUST NOT appear together inside one Task delegation.
+# The hook surfaces `reason` to the orchestrator and refuses the delegation.
+forbidden_combinations:
+  - id: fix-and-ship
+    actions: [write-code, test, commit, push]
+    reason: |
+      Fix + verify + commit + push collapses three roles into one Task.
+      The fixer cannot also be the validator. Split into two Tasks:
+      (1) developer-* writes the fix and reports SHA;
+      (2) qa-* re-executes the failing case + regression suite.
+      Origin: 2-Tasks-post-fix rule from the orchestrator.
+
+  - id: deploy-and-validate
+    actions: [deploy, test]
+    reason: |
+      Whoever deploys must not validate. devops deploys; qa or the sponsor
+      validates against acceptance criteria. Split into two consecutive
+      Tasks. Origin: anti-cross-role matrix (Phase 7).
+
+  - id: build-ship-prod
+    actions: [build, push, deploy]
+    reason: |
+      build + push + deploy in one Task removes the human gate between
+      packaging and production. Split into three Tasks; the deploy Task
+      requires explicit approval from the gate approver of Phase 7.
+
+  - id: fix-and-close-issue
+    actions: [write-code, close-issue]
+    reason: |
+      Developers should not close their own issues. The closer is the
+      reporter or the qa role that certified the fix. Split into two
+      Tasks: (1) fix + report SHA; (2) close-issue after qa attestation.
+
+# Per-role exemptions. Use sparingly — these escape the contract.
+# Each entry whitelists one or more `forbidden_combinations.id` for one role.
+exemptions: []

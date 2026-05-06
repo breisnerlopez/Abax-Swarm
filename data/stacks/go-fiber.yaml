@@ -9,6 +9,8 @@ backend:
   build_tool: go build / Makefile
   test_framework: testing (stdlib), testify, httptest
   orm: GORM / sqlx
+  test_command: "go test ./..."
+  build_command: "go build ./..."
 
 database:
   default: PostgreSQL

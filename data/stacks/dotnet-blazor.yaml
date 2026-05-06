@@ -9,6 +9,8 @@ frontend:
   package_manager: NuGet
   test_framework: bUnit, Playwright
   build_tool: dotnet CLI
+  test_command: "dotnet test --nologo --verbosity quiet"
+  build_command: "dotnet build --nologo --verbosity quiet"
 
 backend:
   framework: ASP.NET Core
@@ -17,6 +19,8 @@ backend:
   build_tool: dotnet CLI / MSBuild
   test_framework: xUnit, NSubstitute, FluentAssertions
   orm: Entity Framework Core
+  test_command: "dotnet test --nologo --verbosity quiet"
+  build_command: "dotnet build --nologo --verbosity quiet"
 
 database:
   default: SQL Server
