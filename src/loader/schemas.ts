@@ -406,6 +406,17 @@ const DeliverableSchema = z.object({
    * under docs/.attestations/<phase>/<deliverable>.json signed by the
    * `responsible` role. */
   attestation_required: z.boolean().default(false),
+  /** Ordered fallback chain for `responsible` when the primary role is
+   * not in the team. The resolver walks this list and picks the first
+   * member present. When all candidates are absent, the deliverable is
+   * silently dropped (mirrors the orchestrator filter). Use to declare
+   * role conflation for small/lean teams (e.g. when no devops,
+   * tech-lead picks up env-verification). */
+  responsible_fallback: z.array(z.string()).default([]),
+  /** Same fallback semantics as `responsible_fallback` but for the
+   * approver field. When primary approver is absent and no fallback
+   * matches, the orchestrator template emits "el usuario (sponsor)". */
+  approver_fallback: z.array(z.string()).default([]),
 });
 
 const PhaseGateSchema = z.object({

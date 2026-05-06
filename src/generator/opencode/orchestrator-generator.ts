@@ -3,6 +3,7 @@ import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import { ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
 import { renderTemplate } from "./template-engine.js";
 import type { GeneratedFile } from "./agent-generator.js";
+import { resolveWithFallback } from "../../engine/role-fallback.js";
 
 interface PhaseParticipant {
   roleId: string;
@@ -144,14 +145,18 @@ function buildPhaseGates(
     // here so we don't render a duplicate structured "### Fase N: ..."
     // block. The runtime plugin still sees the phase via policies.phases.
     if (p.narrative_only) continue;
-    // Only include mandatory deliverables whose responsible agent is in the team
+    // For each mandatory deliverable, resolve responsible against the
+    // team using the declared fallback chain (e.g. devops absent →
+    // tech-lead). When NO candidate resolves, the deliverable is silently
+    // filtered out — same behaviour as before, but now consistent with
+    // policies.phases (both views see the same resolved set).
     const deliverables = p.deliverables
-      .filter((d) => d.mandatory && agentIds.has(d.responsible))
-      .map((d) => ({
-        name: d.name,
-        responsible: `@${d.responsible}`,
-        mandatory: d.mandatory,
-      }));
+      .filter((d) => d.mandatory)
+      .map((d) => {
+        const resolved = resolveWithFallback(d.responsible, d.responsible_fallback, agentIds);
+        return resolved ? { name: d.name, responsible: `@${resolved}`, mandatory: d.mandatory } : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
 
     // Skip phases with no actionable deliverables for this team
     if (deliverables.length === 0) continue;

@@ -1,4 +1,5 @@
 import type { PhaseDeliverables } from "../loader/schemas.js";
+import { resolveWithFallback } from "../engine/role-fallback.js";
 
 export interface GatesValidationResult {
   valid: boolean;
@@ -47,17 +48,27 @@ export function validateGatesAgainstTeam(
     //    behaviour — the orchestrator-generator filters them. We only warn
     //    for `mandatory: true` deliverables because losing those silently
     //    is the actual surprise we want to surface.
+    //    When a fallback chain (responsible_fallback / approver_fallback)
+    //    resolves the dangling reference, no warning is emitted — that is
+    //    the system working as designed.
     for (const d of phase.deliverables) {
       if (!d.mandatory) continue;
-      if (!validRoleIds.has(d.responsible)) {
+      const resolvedResp = resolveWithFallback(d.responsible, d.responsible_fallback, validRoleIds);
+      if (!resolvedResp) {
         warnings.push(
-          `Phase "${phase.id}" / deliverable "${d.id}" (mandatory): responsible "${d.responsible}" not in team. ` +
+          `Phase "${phase.id}" / deliverable "${d.id}" (mandatory): responsible "${d.responsible}" not in team and no fallback role resolved (chain: [${(d.responsible_fallback ?? []).join(", ") || "none"}]). ` +
             `Deliverable will be silently filtered out by the orchestrator generator.`,
         );
-      }
-      if (!validRoleIds.has(d.approver)) {
+      } else if (resolvedResp !== d.responsible) {
+        // Informational notice only when fallback was triggered.
         warnings.push(
-          `Phase "${phase.id}" / deliverable "${d.id}" (mandatory): approver "${d.approver}" not in team. ` +
+          `Phase "${phase.id}" / deliverable "${d.id}": primary responsible "${d.responsible}" not in team — fallback resolved to "${resolvedResp}".`,
+        );
+      }
+      const resolvedApp = resolveWithFallback(d.approver, d.approver_fallback, validRoleIds);
+      if (!resolvedApp) {
+        warnings.push(
+          `Phase "${phase.id}" / deliverable "${d.id}" (mandatory): approver "${d.approver}" not in team and no fallback role resolved. ` +
             `Deliverable may render but its approver line will be misleading.`,
         );
       }

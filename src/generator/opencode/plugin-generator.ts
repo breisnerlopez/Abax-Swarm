@@ -13,6 +13,7 @@ import type {
 } from "../../loader/schemas.js";
 import type { ProjectConfig } from "../../engine/types.js";
 import type { GeneratedFile } from "./agent-generator.js";
+import { resolveWithFallback } from "../../engine/role-fallback.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // templates/ is sibling to src/ in the package layout.
@@ -75,7 +76,42 @@ export function generatePluginFiles(
   };
 
   if (phaseDeliverables) {
-    policies.phases = phaseDeliverables.phases;
+    // Resolve responsible/approver fallbacks per deliverable against the
+    // actual team. Deliverables with NO resolvable responsible (and
+    // mandatory) are dropped — they couldn't be delegated by the
+    // orchestrator anyway. This makes the runtime tools (phase-state,
+    // verify-deliverable, attest-deliverable) see only deliverables
+    // the team can produce.
+    const teamIds = new Set(resolvedRoles.map((r) => r.id));
+    policies.phases = phaseDeliverables.phases.map((p) => {
+      const filtered = p.deliverables
+        .map((d) => {
+          const resolvedResp = resolveWithFallback(
+            d.responsible,
+            d.responsible_fallback,
+            teamIds,
+          );
+          if (!resolvedResp) {
+            // No team member can produce this deliverable — drop it from
+            // the runtime view regardless of mandatory. The runtime tools
+            // (phase-state, attest-deliverable, verify-deliverable) only
+            // see deliverables the team can actually deliver.
+            return null;
+          }
+          const resolvedApp = resolveWithFallback(
+            d.approver,
+            d.approver_fallback,
+            teamIds,
+          );
+          return {
+            ...d,
+            responsible: resolvedResp,
+            approver: resolvedApp ?? d.approver,
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+      return { ...p, deliverables: filtered };
+    });
   }
   if (stack) {
     policies.stacks = stackCommandsForRuntime(stack);

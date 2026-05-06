@@ -142,18 +142,22 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
       - id: architecture-presentation
         name: Presentacion de Arquitectura
         responsible: solution-architect
         approver: product-owner
         mandatory: true
         artifact_type: presentation
+        responsible_fallback: [tech-lead]
       - id: data-model
         name: Modelo de Datos
         responsible: dba
         approver: solution-architect
         mandatory: true
         artifact_type: diagram
+        responsible_fallback: [tech-lead, developer-backend]
+        approver_fallback: [tech-lead]
       - id: integration-design-doc
         name: Diseno de Integraciones
         responsible: integration-architect
@@ -172,6 +176,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [qa-functional]
       - id: technical-task-breakdown
         name: Descomposicion Tecnica de Tareas
         responsible: tech-lead
@@ -208,6 +213,7 @@ phases:
         mandatory: true
         artifact_type: document
         attestation_required: true
+        responsible_fallback: [tech-lead]
         # BLOCKING: must complete before any other construction deliverable.
         # Verifies runtime, declares dependencies, sets up local execution.
         # Generated path: docs/entregables/fase-4-construccion/00-verificacion-entorno.md
@@ -255,15 +261,17 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
         # Generated path: README.md (raiz del proyecto cliente)
         # Skill: project-readme. Cubierto por barra documentation-quality-bar.
-        # Si no hay tech-writer en el equipo, el approver pasa a ser solution-architect.
+        # Si no hay tech-writer en el equipo, tech-lead toma el deliverable.
       - id: docs-structure-skeleton
         name: Esqueleto de docs/
         responsible: tech-writer
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
         # Generated path: docs/{architecture,api,runbooks,user-guides,functional,...}/README.md
         # Skill: project-documentation-structure. Solo el esqueleto inicial; los contenidos
         # los llenan los demas entregables a lo largo de la fase.
@@ -322,6 +330,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: presentation
+        responsible_fallback: [qa-functional]
       - id: performance-report
         name: Reporte de Pruebas de Rendimiento
         responsible: qa-performance
@@ -333,6 +342,8 @@ phases:
         responsible: qa-automation
         approver: qa-lead
         mandatory: true
+        responsible_fallback: [qa-functional]
+        approver_fallback: [qa-functional]
         artifact_type: report
 
   - id: uat
@@ -391,6 +402,7 @@ phases:
       - id: deployment-plan-doc
         name: Plan de Despliegue
         responsible: devops
+        responsible_fallback: [tech-lead]
         # Approver es product-owner: representa al sponsor en el flujo. El PO
         # DEBE consultar al usuario sponsor explicitamente antes de aprobar.
         # El orquestador no avanza a otros entregables de fase 7 sin esta
@@ -406,6 +418,7 @@ phases:
         mandatory: true
         artifact_type: document
         attestation_required: true
+        responsible_fallback: [tech-lead]
       - id: go-live-presentation
         name: Presentacion Go-Live Readiness
         responsible: project-manager
@@ -418,6 +431,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [project-manager]
       - id: training-materials
         name: Materiales de Capacitacion
         responsible: change-manager
@@ -430,6 +444,7 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
 
   - id: stabilization
     name: Estabilizacion
@@ -482,3 +497,4 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [project-manager]
