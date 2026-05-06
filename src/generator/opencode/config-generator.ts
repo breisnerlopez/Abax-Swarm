@@ -23,6 +23,10 @@ export function generateOpenCodeConfig(
   orchestratorDescription?: string,
   permissionMode: PermissionMode = "recommended",
   isolationMode: IsolationMode = "devcontainer",
+  /** Module specifiers to add under opencode.json `plugin: [...]`. Each
+   * entry is a relative path or npm package id. Optional — when absent,
+   * the field is omitted from the output. */
+  pluginPaths: string[] = [],
 ): GeneratedFile {
   const agentConfig: Record<string, unknown> = {};
 
@@ -71,6 +75,7 @@ export function generateOpenCodeConfig(
     agent: agentConfig,
   };
   if (rootPermission !== undefined) config.permission = rootPermission;
+  if (pluginPaths.length > 0) config.plugin = pluginPaths;
 
   return {
     path: "opencode.json",
@@ -122,8 +127,133 @@ export function generateProjectManifest(
     generated_by: "abax-swarm v0.1.0",
   };
 
+  // Preserve user-supplied policy overrides through round-trip. Without
+  // this, calling `regenerate` on a customised manifest silently drops
+  // the user's task_contracts_override / secret_patterns_extra /
+  // runaway_limits_override / model_overrides_explicit blocks. Each is
+  // emitted only when present (preserves a clean manifest for projects
+  // that don't customise).
+  const overridesPresent: Record<string, unknown> = {};
+  if (config.taskContractsOverride !== undefined) {
+    overridesPresent.task_contracts_override = config.taskContractsOverride;
+  }
+  if (config.secretPatternsExtra !== undefined) {
+    overridesPresent.secret_patterns_extra = config.secretPatternsExtra;
+  }
+  if (config.runawayLimitsOverride !== undefined) {
+    overridesPresent.runaway_limits_override = config.runawayLimitsOverride;
+  }
+  if (config.modelOverridesExplicit !== undefined) {
+    overridesPresent.model_overrides_explicit = config.modelOverridesExplicit;
+  }
+  if (config.iterationScopesOverride !== undefined) {
+    overridesPresent.iteration_scopes_override = config.iterationScopesOverride;
+  }
+  if (config.activeIterationScope !== undefined) {
+    overridesPresent.active_iteration_scope = config.activeIterationScope;
+  }
+
+  // The commented-out trailer is documentation for projects WITHOUT
+  // active overrides. When the user has at least one override, we don't
+  // duplicate the templates — the live block is self-documenting.
+  const hasActiveOverrides = Object.keys(overridesPresent).length > 0;
+  const trailer = hasActiveOverrides ? "" : POLICY_OVERRIDES_TRAILER;
+  const overrideYaml = hasActiveOverrides
+    ? "\n# ========================================================\n# Active policy overrides (from project-manifest.yaml input)\n# ========================================================\n" + stringify(overridesPresent)
+    : "";
+
   return {
     path: "project-manifest.yaml",
-    content: stringify(manifest),
+    content: stringify(manifest) + overrideYaml + trailer,
   };
 }
+
+/**
+ * Documentation trailer appended to every generated project-manifest.yaml.
+ * Documents the 4 optional override blocks shipped in the v0.1.40 schema
+ * extension, with commented-out examples so users see the syntax they need.
+ *
+ * Trailer is appended AFTER `generated_by` so it doesn't interfere with
+ * the structured fields. YAML parsers ignore trailing comments — proven
+ * by `abax-swarm regenerate` round-tripping the file unchanged.
+ *
+ * Why a trailer instead of a wizard step:
+ * The 4 overrides have very different shapes (regex lists, nested limits,
+ * per-role model maps). A wizard could only meaningfully capture a small
+ * fraction of valid configurations and would mislead users into thinking
+ * the wizard was authoritative. A documented trailer lets users discover
+ * the feature when they open their manifest, copy the relevant block,
+ * uncomment, and edit — which is the actual workflow once they need it.
+ */
+const POLICY_OVERRIDES_TRAILER = `
+# ============================================================================
+# Optional policy overrides (v0.1.40+)
+# ============================================================================
+# Uncomment and edit any of the four blocks below to override the baselines
+# in /srv/repos/Abax-Swarm/data/rules/{task-contracts,secret-patterns,
+# runaway-limits}.yaml or to override the per-role model assignment.
+#
+# Lists merge by \`id\`: an entry with a baseline id REPLACES the baseline
+# entry; a new id is added. Scalar fields merge field-by-field. Empty
+# blocks are equivalent to "use baseline as-is".
+#
+# Re-run \`abax-swarm regenerate --dir .\` after editing.
+
+# ---- 1. Task atomicity overlay ---------------------------------------------
+# task_contracts_override:
+#   forbidden_combinations:
+#     - id: my-project-rule
+#       actions: [build, push, deploy]   # see baseline for the action vocabulary
+#       reason: |
+#         Why this combination is dangerous in this project.
+
+# ---- 2. Project-specific secret patterns -----------------------------------
+# secret_patterns_extra:
+#   - id: internal-microservice-token
+#     regex: 'svc_[A-Z0-9]{32}'
+#     severity: block       # block | warn
+#     description: Internal service auth token
+
+# ---- 3. Runaway limits overlay ---------------------------------------------
+# runaway_limits_override:
+#   by_role:
+#     developer-backend:
+#       parts_max: 700        # this role naturally runs longer
+#       duration_min_max: 90
+
+# ---- 4. Per-role explicit model assignment ---------------------------------
+# Escape hatch over the cognitive_tier+reasoning lookup. Use sparingly —
+# typically only for the orchestrator (high blast radius, low volume).
+# model_overrides_explicit:
+#   orchestrator:
+#     provider: anthropic
+#     model: claude-opus-4-7
+#     reasoning_effort: high
+
+# ---- 5. Iteration scopes (v0.1.41+) ----------------------------------------
+# Companion to iteration-strategy. iteration-strategy controls DOC LAYOUT
+# (A/B/C/D); iteration-scope controls which PHASES actually RUN for an
+# iteration. Active scope is set per-session via the set-iteration-scope
+# tool. When the project has iteration signals (bitácora, CHANGELOG
+# releases, fase-9-cierre) AND no active scope, the plugin REFUSES task
+# delegations to phases in require_scope_for_phases — forces the
+# orchestrator to ask the user before phase 0/1 work in iterations.
+#
+# Add or replace declared scopes:
+# iteration_scopes_override:
+#   scopes:
+#     - id: my-experimental-rollout
+#       name: Rollout experimental
+#       description: |
+#         Para experimentos que requieren UAT pero saltan stabilization.
+#       keywords: [experimental, rollout, beta]
+#       skip_phases: [stabilization]
+#       minimal_phases: {}
+#       full_phases: [construction, qa-testing, uat, deployment]
+#       default_layout_strategy: A
+#   require_scope_for_phases: [discovery, inception]
+
+# Pin the active scope (skip the set-iteration-scope tool dance):
+# active_iteration_scope: minor
+`;
+

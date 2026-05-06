@@ -2,6 +2,7 @@ import type { Role, DependencyGraph, RaciMatrix, PhaseDeliverables } from "../..
 import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import type { GeneratedFile } from "../opencode/agent-generator.js";
 import { renderTemplate } from "./template-engine.js";
+import { resolveWithFallback } from "../../engine/role-fallback.js";
 
 interface PhaseParticipant {
   roleId: string;
@@ -127,13 +128,16 @@ function buildPhaseGates(
   let order = 0;
 
   for (const p of phaseDeliverables.phases) {
+    // Skip phases owned by orchestrator template narrative — see
+    // opencode/orchestrator-generator.ts for the full reasoning.
+    if (p.narrative_only) continue;
     const deliverables = p.deliverables
-      .filter((d) => d.mandatory && agentIds.has(d.responsible))
-      .map((d) => ({
-        name: d.name,
-        responsible: `@${d.responsible}`,
-        mandatory: d.mandatory,
-      }));
+      .filter((d) => d.mandatory)
+      .map((d) => {
+        const resolved = resolveWithFallback(d.responsible, d.responsible_fallback, agentIds);
+        return resolved ? { name: d.name, responsible: `@${resolved}`, mandatory: d.mandatory } : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
 
     if (deliverables.length === 0) continue;
 

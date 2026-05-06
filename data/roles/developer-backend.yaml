@@ -119,6 +119,8 @@ tools:
   - run-tests
   - lint-code
   - db-migrate
+  - verify-deliverable
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

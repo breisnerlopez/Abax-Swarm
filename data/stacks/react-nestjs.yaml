@@ -9,6 +9,8 @@ frontend:
   package_manager: npm/pnpm
   test_framework: Vitest, React Testing Library, Playwright
   build_tool: Vite
+  test_command: "npm test --silent -- --run"
+  build_command: "npm run build"
 
 backend:
   framework: NestJS
@@ -17,6 +19,8 @@ backend:
   build_tool: nest-cli
   test_framework: Jest, Supertest
   orm: Prisma/TypeORM
+  test_command: "npm test --silent -- --passWithNoTests"
+  build_command: "npm run build"
 
 database:
   default: PostgreSQL

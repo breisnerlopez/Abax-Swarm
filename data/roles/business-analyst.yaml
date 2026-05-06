@@ -91,6 +91,10 @@ tools:
   - generate-diagram
   - create-document
   - create-presentation
+  - phase-state
+  - attest-deliverable
+  - set-iteration-scope
+  - suggest-iteration-scope
 
 stack_overrides:
   angular-springboot:

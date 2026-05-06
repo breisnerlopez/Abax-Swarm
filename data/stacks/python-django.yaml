@@ -9,6 +9,8 @@ backend:
   build_tool: pip/uv
   test_framework: pytest, pytest-django
   orm: Django ORM
+  test_command: "pytest -q || python manage.py test --verbosity 1"
+  build_command: "python -m compileall -q ."
 
 database:
   default: PostgreSQL

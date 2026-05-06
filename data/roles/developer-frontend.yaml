@@ -113,6 +113,8 @@ skills:
 tools:
   - run-tests
   - lint-code
+  - verify-deliverable
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

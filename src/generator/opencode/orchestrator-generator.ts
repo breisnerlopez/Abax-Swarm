@@ -3,6 +3,7 @@ import type { GovernanceDetails } from "../../engine/governance-resolver.js";
 import { ORCHESTRATOR_COLOR } from "../../engine/color-resolver.js";
 import { renderTemplate } from "./template-engine.js";
 import type { GeneratedFile } from "./agent-generator.js";
+import { resolveWithFallback } from "../../engine/role-fallback.js";
 
 interface PhaseParticipant {
   roleId: string;
@@ -87,6 +88,14 @@ export function generateOrchestratorFile(
       ? "project-manager"
       : null;
 
+  // Resolve narrative_only phases (e.g. Discovery) into rendered markdown
+  // blocks. The narrative_markdown field in phase-deliverables.yaml uses
+  // single-brace placeholders ({visionAgent}) which we substitute against
+  // the discovery context here. The template renders narrativeBlocks
+  // BEFORE the structured phaseGates loop, preserving phase numbering
+  // (Fase 0 narrative, Fase 1+ structured).
+  const narrativeBlocks = buildNarrativeBlocks(phaseDeliverables, discovery);
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description,
@@ -96,6 +105,7 @@ export function generateOrchestratorFile(
     dependencyChain,
     governance,
     phaseGates,
+    narrativeBlocks,
     envVerificationLead,
     envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,
     deploymentPlanLead: deploymentPlanLead && deploymentPlanApprover ? deploymentPlanLead : null,
@@ -139,14 +149,23 @@ function buildPhaseGates(
   let order = 0;
 
   for (const p of phaseDeliverables.phases) {
-    // Only include mandatory deliverables whose responsible agent is in the team
+    // Phases marked narrative_only are owned by the orchestrator template
+    // text (e.g. Fase 0 Discovery has rich 8-step narrative). Skip them
+    // here so we don't render a duplicate structured "### Fase N: ..."
+    // block. The runtime plugin still sees the phase via policies.phases.
+    if (p.narrative_only) continue;
+    // For each mandatory deliverable, resolve responsible against the
+    // team using the declared fallback chain (e.g. devops absent →
+    // tech-lead). When NO candidate resolves, the deliverable is silently
+    // filtered out — same behaviour as before, but now consistent with
+    // policies.phases (both views see the same resolved set).
     const deliverables = p.deliverables
-      .filter((d) => d.mandatory && agentIds.has(d.responsible))
-      .map((d) => ({
-        name: d.name,
-        responsible: `@${d.responsible}`,
-        mandatory: d.mandatory,
-      }));
+      .filter((d) => d.mandatory)
+      .map((d) => {
+        const resolved = resolveWithFallback(d.responsible, d.responsible_fallback, agentIds);
+        return resolved ? { name: d.name, responsible: `@${resolved}`, mandatory: d.mandatory } : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
 
     // Skip phases with no actionable deliverables for this team
     if (deliverables.length === 0) continue;
@@ -184,6 +203,38 @@ function buildPhases(agents: Role[], raciMatrix: RaciMatrix): PhaseInfo[] {
   }
 
   return phases;
+}
+
+/**
+ * Build the rendered markdown blocks for narrative_only phases.
+ *
+ * Why this exists: Discovery (and any future narrative_only phase) carries
+ * its prose in phase-deliverables.yaml as `narrative_markdown` — single
+ * source of truth. The prose contains placeholders in single-brace form
+ * ({visionAgent}, {backlogAgent}, {designSystemAgent}) so it doesn't
+ * conflict with Handlebars syntax in the .hbs template. We substitute
+ * them here against the resolved discovery context.
+ *
+ * To add a new placeholder: extend the substitution map below and update
+ * the placeholder docstring on PhaseGateSchema.narrative_markdown in
+ * src/loader/schemas.ts so authors know what's available.
+ */
+function buildNarrativeBlocks(
+  phaseDeliverables: PhaseDeliverables | undefined,
+  discovery: { visionAgent: string; backlogAgent: string; designSystemAgent: string },
+): Array<{ id: string; markdown: string }> {
+  if (!phaseDeliverables) return [];
+  const blocks: Array<{ id: string; markdown: string }> = [];
+  for (const phase of phaseDeliverables.phases) {
+    if (!phase.narrative_only) continue;
+    if (!phase.narrative_markdown) continue;
+    const resolved = phase.narrative_markdown
+      .replace(/\{visionAgent\}/g, discovery.visionAgent)
+      .replace(/\{backlogAgent\}/g, discovery.backlogAgent)
+      .replace(/\{designSystemAgent\}/g, discovery.designSystemAgent);
+    blocks.push({ id: phase.id, markdown: resolved });
+  }
+  return blocks;
 }
 
 function buildDependencyChain(agents: Role[], _depGraph: DependencyGraph): DependencyLink[] {

@@ -89,6 +89,7 @@ skills:
 tools:
   - generate-diagram
   - create-presentation
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

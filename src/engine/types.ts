@@ -1,5 +1,13 @@
 import type { ProjectSize, Role, Skill, Tool, Stack, SizeMatrix, CriteriaRules, DependencyGraph, RaciMatrix, PhaseDeliverables } from "../loader/schemas.js";
 import type { CognitiveTier, ReasoningLevel } from "../loader/schemas.js";
+import type {
+  TaskContracts,
+  SecretPatterns,
+  SecretPattern,
+  RunawayLimits,
+  ModelOverride,
+  IterationScopes,
+} from "../loader/schemas.js";
 
 export type TargetPlatform = "opencode" | "claude";
 
@@ -101,6 +109,45 @@ export interface ProjectConfig {
   permissionMode?: PermissionMode;
   /** Defaults to "devcontainer". Drives whether we emit .devcontainer/devcontainer.json. */
   isolationMode?: IsolationMode;
+  /**
+   * Explicit model assignment per role — escape hatch that bypasses the
+   * cognitive_tier+reasoning lookup in model-mapping.ts. Wins over
+   * `modelOverrides` when both are set for the same role.
+   */
+  modelOverridesExplicit?: Record<string, ModelOverride>;
+  /**
+   * Project-level overlay for the Task atomicity contract. Merged by `id`
+   * over the baseline in data/rules/task-contracts.yaml.
+   */
+  taskContractsOverride?: Partial<TaskContracts>;
+  /**
+   * Additional secret patterns specific to this project (e.g. internal
+   * tokens). Concatenated to data/rules/secret-patterns.yaml; if an
+   * `id` collides, the project-level entry wins.
+   */
+  secretPatternsExtra?: SecretPattern[];
+  /**
+   * Project-level overlay for runaway detection limits. Merged
+   * field-by-field over `default` and `by_category`/`by_role`.
+   */
+  runawayLimitsOverride?: Partial<RunawayLimits>;
+  /**
+   * Project-level overlay for iteration-scope rules. Adds new scopes
+   * or replaces existing ones (merge by `id`). Use to declare
+   * project-specific scope types beyond the baseline major/minor/
+   * patch/hotfix.
+   */
+  iterationScopesOverride?: Partial<IterationScopes>;
+  /**
+   * Optional ID of the scope ACTIVE in the current session. When set,
+   * the plugin enforces that task delegations only target phases
+   * declared in the scope's full_phases / minimal_phases. When unset,
+   * no enforcement (greenfield default). Set at session time via the
+   * `set-iteration-scope` tool, which writes
+   * .opencode/iteration-state.json — but can also be hard-pinned in
+   * project-manifest.yaml for fully scripted iterations.
+   */
+  activeIterationScope?: string;
 }
 
 export interface RoleSelection {
@@ -154,4 +201,12 @@ export interface DataContext {
   raci: RaciMatrix;
   phaseDeliverables: PhaseDeliverables;
   documentMode?: DocumentMode;
+  /** Baseline atomicity contract loaded from data/rules/task-contracts.yaml. */
+  taskContracts: TaskContracts;
+  /** Baseline secret-detection patterns loaded from data/rules/secret-patterns.yaml. */
+  secretPatterns: SecretPatterns;
+  /** Baseline runaway-detection limits loaded from data/rules/runaway-limits.yaml. */
+  runawayLimits: RunawayLimits;
+  /** Baseline iteration-scope rules loaded from data/rules/iteration-scopes.yaml. */
+  iterationScopes: IterationScopes;
 }

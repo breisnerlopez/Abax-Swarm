@@ -31,5 +31,9 @@ export function loadDataContext(): DataContext {
     raci: rules.raci,
     phaseDeliverables: rules.phaseDeliverables,
     documentMode: rules.documentMode,
+    taskContracts: rules.taskContracts,
+    secretPatterns: rules.secretPatterns,
+    runawayLimits: rules.runawayLimits,
+    iterationScopes: rules.iterationScopes,
   };
 }

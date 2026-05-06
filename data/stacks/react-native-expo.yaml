@@ -9,6 +9,8 @@ frontend:
   package_manager: npm / pnpm
   test_framework: Jest, React Native Testing Library, Detox
   build_tool: Expo CLI / EAS Build
+  test_command: "npm test --silent -- --watchAll=false"
+  build_command: "npx expo prebuild --no-install"
 
 backend:
   framework: Express / Fastify
@@ -17,6 +19,8 @@ backend:
   build_tool: tsx / tsup / esbuild
   test_framework: Vitest, Supertest
   orm: Prisma / Drizzle ORM
+  test_command: "npm test --silent"
+  build_command: "npm run build"
 
 database:
   default: PostgreSQL

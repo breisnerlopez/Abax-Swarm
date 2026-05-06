@@ -9,12 +9,16 @@ frontend:
   package_manager: pnpm
   test_framework: Vitest, Vue Test Utils, Playwright
   build_tool: Nuxi CLI / Vite
+  test_command: "pnpm test --silent || npm test --silent"
+  build_command: "pnpm build || npm run build"
 
 backend:
   framework: Nitro (integrado en Nuxt)
   language: TypeScript
   version: "2+"
   build_tool: Nuxi CLI
+  test_command: "pnpm test --silent || npm test --silent"
+  build_command: "pnpm build || npm run build"
   test_framework: Vitest
   orm: Drizzle ORM/Prisma
 

@@ -1,6 +1,6 @@
 import type { ProjectConfig, DataContext, ModelMix, RoleSelection, SelectionResult, ResolvedProject } from "../engine/types.js";
 import type { GeneratedFile } from "../generator/opencode/agent-generator.js";
-import { buildModelMix } from "../engine/model-mapping.js";
+import { buildModelMix, applyExplicitOverrides } from "../engine/model-mapping.js";
 import { selectRoles, selectRolesForDocumentMode } from "../engine/role-selector.js";
 import { resolveDependencies } from "../engine/dependency-resolver.js";
 import { resolveSkills, filterSkills } from "../engine/skill-resolver.js";
@@ -9,6 +9,11 @@ import { adaptAllRolesToStack } from "../engine/stack-adapter.js";
 import { resolveGovernance, resolveDocumentGovernance } from "../engine/governance-resolver.js";
 import { writeGeneratedFiles } from "../generator/opencode/agent-generator.js";
 import { validateOrchestrator } from "../validator/orchestrator-validator.js";
+import { validateRaciRoles } from "../validator/raci-validator.js";
+import {
+  validateGatesAgainstTeam,
+  validateGatesForDocumentMode,
+} from "../validator/gates-validator.js";
 
 import type { Role, Skill, Tool } from "../loader/schemas.js";
 import type { GovernanceDetails } from "../engine/governance-resolver.js";
@@ -93,7 +98,23 @@ function generateFiles(
       config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
     );
     files.push(orchestratorFile);
-    files.push(cc.generateClaudeConfig(adaptedRoles));
+
+    // Emit policy hook + merged policies JSON. Same merged content as the
+    // opencode plugin, different runtime (Python script + .claude/settings.json
+    // hooks block instead of TS plugin).
+    const policyFiles = cc.generateClaudePolicyFiles(
+      config,
+      adaptedRoles,
+      ctx.taskContracts,
+      ctx.secretPatterns,
+      ctx.runawayLimits,
+      ctx.phaseDeliverables,
+      stack,
+      ctx.iterationScopes,
+    );
+    files.push(...policyFiles);
+
+    files.push(cc.generateClaudeConfig(adaptedRoles, cc.CLAUDE_HOOK_INVOCATION));
     files.push(cc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
     if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
@@ -113,10 +134,30 @@ function generateFiles(
     config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
   );
   files.push(orchestratorFile);
+
+  // Emit policy plugin + merged policies JSON. Generic across team
+  // composition: project-level overlays (taskContractsOverride,
+  // secretPatternsExtra, runawayLimitsOverride) are merged here so the
+  // runtime plugin reads a single ready-to-use file. Phases + stack
+  // commands are also embedded so the phase-state / verify-deliverable
+  // tools can read them at runtime without needing access to abax-swarm.
+  const pluginFiles = oc.generatePluginFiles(
+    config,
+    adaptedRoles,
+    ctx.taskContracts,
+    ctx.secretPatterns,
+    ctx.runawayLimits,
+    ctx.phaseDeliverables,
+    stack,
+    ctx.iterationScopes,
+  );
+  files.push(...pluginFiles);
+
   files.push(oc.generateOpenCodeConfig(
     adaptedRoles, mix, undefined,
     permissionMode,
     config.isolationMode ?? "devcontainer",
+    [oc.PLUGIN_OPENCODE_PATH],
   ));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
@@ -154,17 +195,43 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
   const rolesForMix = orchRole ? [...adaptedRoles, orchRole] : adaptedRoles;
   // "inherit" strategy: pass an empty mix so generators leave model fields unset
   // and the user's own OpenCode/Claude default is used at runtime.
-  const mix: ModelMix =
+  const baseMix: ModelMix =
     config.modelStrategy === "inherit"
       ? {}
       : buildModelMix(provider, rolesForMix, config.modelOverrides ?? {});
+
+  // Apply per-role explicit overrides on top. These win over both the
+  // cognitive_tier+reasoning lookup and the inherit default — they are an
+  // escape hatch for projects that need a specific model for one role
+  // (e.g. claude-opus-4-7 only for the orchestrator). When no explicit
+  // overrides are declared, this is a no-op.
+  const mix: ModelMix = applyExplicitOverrides(
+    baseMix,
+    config.modelOverridesExplicit,
+    provider,
+  );
 
   const { files, orchestratorFile } = generateFiles(
     config.target, config, selection, adaptedRoles, skills, tools, governance, mix, ctx,
   );
 
-  // Validate orchestrator
+  // Validate orchestrator (existing)
   const validation = validateOrchestrator(orchestratorFile, adaptedRoles);
+
+  // Cross-reference RACI and phase-deliverables (gates + responsibles) against
+  // the resolved team. These never block — they surface dangling references
+  // so the user understands what is being silently filtered. Generic across
+  // any team composition: more roles = fewer warnings, fewer roles = more.
+  const validRoleIds = new Set(adaptedRoles.map((r) => r.id));
+  const raciCheck = validateRaciRoles(ctx.raci, validRoleIds);
+  const gatesTeamCheck = validateGatesAgainstTeam(ctx.phaseDeliverables, validRoleIds);
+  const gatesDocCheck =
+    config.mode === "document" && ctx.documentMode
+      ? validateGatesForDocumentMode(
+          ctx.phaseDeliverables,
+          ctx.documentMode.phases.map((p) => p.id),
+        )
+      : { valid: true, errors: [] as string[], warnings: [] as string[] };
 
   return {
     project: {
@@ -176,7 +243,14 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
       stack,
     },
     files,
-    orchestratorWarnings: [...validation.errors, ...validation.warnings],
+    orchestratorWarnings: [
+      ...validation.errors,
+      ...validation.warnings,
+      ...raciCheck.errors,
+      ...raciCheck.warnings,
+      ...gatesTeamCheck.warnings,
+      ...gatesDocCheck.warnings,
+    ],
   };
 }
 

@@ -1,4 +1,192 @@
 phases:
+  # ---- Phase 0: Discovery (narrative_only) -----------------------------
+  # Discovery is rendered via narrative_markdown (rich 8-step prose)
+  # rather than the structured "### Fase N:" loop. The plugin still
+  # sees the phase via policies.phases for iteration-scope enforcement
+  # (skip_phases, minimal_phases, require_scope_for_phases).
+  #
+  # narrative_markdown placeholder convention: single-brace
+  # {visionAgent}, {backlogAgent}, {designSystemAgent} — resolved by
+  # orchestrator-generator.ts against the team. To add new placeholders
+  # update buildNarrativeBlocks() there.
+  - id: discovery
+    name: Descubrimiento y Definicion de Alcance
+    gate_approver: product-owner
+    narrative_only: true
+    narrative_markdown: |
+      ### Fase 0: Descubrimiento y Definicion de Alcance
+
+      **Gate**: Aprueba el usuario
+
+      Esta fase es OBLIGATORIA y debe iterar hasta tener claridad suficiente para iniciar
+      el proyecto. NO es una fase rapida — es el fundamento de todo lo que sigue.
+      Si durante fases posteriores surgen dudas de alcance, se vuelve a esta fase.
+
+      #### Paso 1: Entendimiento Inicial (tu, orquestador, con el usuario)
+
+      Pregunta directamente al usuario (sin Task) para entender el contexto completo:
+      - **Problema**: Que problema de negocio resuelve? Por que ahora?
+      - **Usuarios**: Quienes son los usuarios finales? Que roles tienen?
+      - **Alcance**: Que funcionalidades espera? Que NO debe incluir?
+      - **Integraciones**: Con que sistemas existentes debe conectarse?
+      - **Restricciones**: Tiempo, presupuesto, tecnologia, regulaciones?
+      - **Exito**: Como se mide que el proyecto fue exitoso?
+
+      ITERA: Si las respuestas son vagas, sigue preguntando. No avances con ambiguedades.
+      Cada respuesta puede generar nuevas preguntas. Continua hasta tener un panorama claro.
+
+      #### Paso 2: Vision del Producto (delegar a {visionAgent})
+
+      Delega via Task al {visionAgent} para elaborar el **Documento de Vision** en
+      `docs/entregables/fase-0-descubrimiento/vision-producto.md`:
+      - Proposito y justificacion del proyecto
+      - Usuarios objetivo y sus necesidades
+      - Alcance de alto nivel (dentro/fuera)
+      - Supuestos y restricciones
+      - Criterios de exito medibles
+
+      #### Paso 3: Epicas y Features (delegar a business-analyst)
+
+      Delega via Task al business-analyst para elaborar el **Mapa de Epicas y Features** en
+      `docs/entregables/fase-0-descubrimiento/epicas-features.md`:
+      - Identificar epicas (bloques grandes de funcionalidad)
+      - Descomponer cada epica en features concretas
+      - Formato:
+        ```
+        ## EP-001: [Nombre Epica]
+        Descripcion: [Que logra esta epica]
+        ### Features:
+        - FT-001.1: [Feature] — [Descripcion breve]
+        - FT-001.2: [Feature] — [Descripcion breve]
+        ```
+
+      #### Paso 4: Historias de Usuario (delegar a business-analyst)
+
+      Delega via Task al business-analyst para elaborar las **Historias de Usuario** en
+      `docs/entregables/fase-0-descubrimiento/historias-usuario.md`:
+      - Para cada feature, escribir historias de usuario en formato:
+        ```
+        ### HU-001.1.1: [Titulo]
+        **Como** [rol de usuario]
+        **Quiero** [accion/funcionalidad]
+        **Para** [beneficio/valor de negocio]
+
+        **Criterios de aceptacion**:
+        - Dado [contexto], cuando [accion], entonces [resultado]
+        - Dado [contexto], cuando [accion], entonces [resultado]
+        ```
+      - Incluir criterios de aceptacion verificables para cada historia
+      - Marcar prioridad: Must / Should / Could / Won't (MoSCoW)
+
+      #### Paso 5: Design System de Presentaciones (delegar a {designSystemAgent})
+
+      Delega via Task al {designSystemAgent} para crear el **Template HTML de Presentaciones** en
+      `docs/design-system/presentacion-template.html`:
+      - Archivo HTML autonomo (single-file, sin dependencias externas)
+      - CSS custom properties con paleta de colores, tipografia, espaciado del proyecto
+      - Layouts de slides: portada, agenda, contenido, dos columnas, tabla, cierre
+      - Header/footer consistente con nombre del proyecto, fase, fecha
+      - Estilos para tablas, listas, badges de estado, graficos
+      - Responsive: visualizable en navegador e imprimible
+      - Este template sera OBLIGATORIO para todas las presentaciones del proyecto
+
+      #### Paso 6: Priorizacion del Backlog (delegar a {backlogAgent})
+
+      Delega via Task al {backlogAgent} para elaborar el **Product Backlog Priorizado** en
+      `docs/entregables/fase-0-descubrimiento/backlog-priorizado.md`:
+      - Ordenar todas las historias por valor de negocio y esfuerzo
+      - Aplicar priorizacion MoSCoW
+      - Identificar el MVP (Minimum Viable Product): que es lo minimo para lanzar?
+      - Agrupar en releases o iteraciones sugeridas
+      - Formato dashboard:
+        ```
+        | ID | Historia | Epica | Prioridad | Esfuerzo | Release |
+        |---|---|---|---|---|---|
+        | HU-001.1.1 | [Titulo] | EP-001 | Must | M | R1-MVP |
+        ```
+
+      #### Paso 7: Presentacion y Validacion con el Usuario
+
+      Delega al agente responsable (project-manager o business-analyst) para crear la
+      **Presentacion de Descubrimiento** en formato HTML usando el template del Paso 5:
+      `docs/entregables/fase-0-descubrimiento/presentacion-descubrimiento.html`
+
+      La presentacion debe incluir:
+      1. Vision del producto (de paso 2)
+      2. Lista de epicas con sus features (de paso 3)
+      3. Cantidad total de historias de usuario
+      4. Backlog priorizado con MVP identificado (de paso 6)
+      5. Alcance propuesto: que entra en MVP, que queda para despues
+
+      Presenta al usuario y pregunta:
+      > "Este es el alcance propuesto del proyecto. ¿Refleja correctamente tu necesidad?
+      > ¿Hay epicas, features o historias que falten o sobren?
+      > ¿Estas de acuerdo con la priorizacion y el MVP propuesto?"
+
+      #### Paso 8: Iteracion (si es necesario)
+
+      Si el usuario pide cambios:
+      1. Ajusta delegando nuevamente al agente correspondiente
+      2. Vuelve al Paso 7 para revalidar
+      3. Repite hasta que el usuario confirme
+
+      **Solo avanza a Fase 1 cuando el usuario apruebe explicitamente el alcance y backlog.**
+
+      #### Entregables obligatorios de Fase 0:
+      - [ ] Vision del Producto → delegar via Task a {visionAgent}
+      - [ ] Mapa de Epicas y Features → delegar via Task a business-analyst
+      - [ ] Historias de Usuario con Criterios de Aceptacion → delegar via Task a business-analyst
+      - [ ] Design System de Presentaciones (HTML template) → delegar via Task a {designSystemAgent}
+      - [ ] Product Backlog Priorizado (MVP identificado) → delegar via Task a {backlogAgent}
+      - [ ] Presentacion de Descubrimiento (HTML) → delegar via Task a project-manager o business-analyst
+      - [ ] Confirmacion explicita del usuario sobre alcance y backlog
+
+      IMPORTANTE:
+      - Esta fase puede durar varios ciclos de conversacion — es normal
+      - Si en fases posteriores surgen dudas de alcance, VOLVER a Fase 0 para refinar
+      - NUNCA inicies Fase 1 sin confirmacion explicita del usuario sobre el backlog
+    deliverables:
+      - id: vision-producto
+        name: Vision del Producto
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: epicas-features
+        name: Mapa de Epicas y Features
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: historias-usuario
+        name: Historias de Usuario con Criterios de Aceptacion
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: design-system-template
+        name: Design System de Presentaciones (HTML template)
+        # First-iteration deliverable. In subsequent iterations the
+        # template already exists and this deliverable is skipped via
+        # iteration-scopes. Falls back to ux-designer when present in
+        # the team; otherwise BA produces the initial template.
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: backlog-priorizado
+        name: Product Backlog Priorizado (MVP identificado)
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: discovery-presentation
+        name: Presentacion de Descubrimiento (HTML)
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+
   - id: inception
     name: Inicio
     gate_approver: product-owner
@@ -85,18 +273,22 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
       - id: architecture-presentation
         name: Presentacion de Arquitectura
         responsible: solution-architect
         approver: product-owner
         mandatory: true
         artifact_type: presentation
+        responsible_fallback: [tech-lead]
       - id: data-model
         name: Modelo de Datos
         responsible: dba
         approver: solution-architect
         mandatory: true
         artifact_type: diagram
+        responsible_fallback: [tech-lead, developer-backend]
+        approver_fallback: [tech-lead]
       - id: integration-design-doc
         name: Diseno de Integraciones
         responsible: integration-architect
@@ -115,6 +307,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [qa-functional]
       - id: technical-task-breakdown
         name: Descomposicion Tecnica de Tareas
         responsible: tech-lead
@@ -125,6 +318,24 @@ phases:
   - id: construction
     name: Construccion
     gate_approver: tech-lead
+    # Verifiable conditions evaluated by the phase-state tool before
+    # tech-lead can sign the gate. Empty by default in v0.1.39 and earlier
+    # phase definitions; populated as a worked example here in 0.1.40+.
+    gates:
+      - id: not-on-main
+        type: git-check
+        check: branch
+        not_in: [main, master, trunk]
+        on_failure: block
+      - id: env-verified
+        type: file-exists
+        target: "docs/entregables/{phase}/00-verificacion-entorno.md"
+        on_failure: block
+      - id: smoke-runtime-passed
+        type: attestation
+        attestor_role: devops
+        deliverable: env-verification
+        on_failure: block
     deliverables:
       - id: env-verification
         name: Verificacion de entorno y dependencias
@@ -132,6 +343,8 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        attestation_required: true
+        responsible_fallback: [tech-lead]
         # BLOCKING: must complete before any other construction deliverable.
         # Verifies runtime, declares dependencies, sets up local execution.
         # Generated path: docs/entregables/fase-4-construccion/00-verificacion-entorno.md
@@ -141,6 +354,26 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: code
+        attestation_required: true
+        # Worked example of behavioural verification — replaces the
+        # "trust the agent's word" model with executable checks.
+        # Placeholders are resolved by the verify-deliverable tool against
+        # the project's stack:
+        #   {stack.backend.test_command}  → e.g. "./mvnw -q test" / "pytest -q" / "go test ./..."
+        #   {stack.frontend.test_command} → e.g. "npm test --silent -- --run"
+        # Stacks without the field (e.g. legacy-other) cause the verification
+        # to be skipped with a notice instead of failing.
+        verification:
+          - id: backend-tests-pass
+            cmd: "{stack.backend.test_command}"
+            on_failure: block
+          - id: no-mock-in-main
+            # Generic — looks for accidentally-shipped mocks in the main
+            # source path. Convention covers Java/Kotlin (src/main/), TS/JS
+            # (src/), Python (project root). Adjust per stack if needed.
+            cmd: "grep -rE 'class (Mock|Fake|Stub|InMemory)[A-Z]' src 2>/dev/null || echo OK"
+            expect_regex: "^OK$"
+            on_failure: warn
       - id: unit-tests
         name: Pruebas Unitarias
         responsible: developer-backend
@@ -159,15 +392,17 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
         # Generated path: README.md (raiz del proyecto cliente)
         # Skill: project-readme. Cubierto por barra documentation-quality-bar.
-        # Si no hay tech-writer en el equipo, el approver pasa a ser solution-architect.
+        # Si no hay tech-writer en el equipo, tech-lead toma el deliverable.
       - id: docs-structure-skeleton
         name: Esqueleto de docs/
         responsible: tech-writer
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
         # Generated path: docs/{architecture,api,runbooks,user-guides,functional,...}/README.md
         # Skill: project-documentation-structure. Solo el esqueleto inicial; los contenidos
         # los llenan los demas entregables a lo largo de la fase.
@@ -226,6 +461,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: presentation
+        responsible_fallback: [qa-functional]
       - id: performance-report
         name: Reporte de Pruebas de Rendimiento
         responsible: qa-performance
@@ -237,6 +473,8 @@ phases:
         responsible: qa-automation
         approver: qa-lead
         mandatory: true
+        responsible_fallback: [qa-functional]
+        approver_fallback: [qa-functional]
         artifact_type: report
 
   - id: uat
@@ -271,10 +509,31 @@ phases:
   - id: deployment
     name: Despliegue
     gate_approver: project-manager
+    gates:
+      - id: deployment-plan-attested
+        type: attestation
+        attestor_role: devops
+        deliverable: deployment-plan-doc
+        on_failure: block
+      - id: rollback-plan-attested
+        type: attestation
+        attestor_role: devops
+        deliverable: rollback-plan
+        on_failure: block
+      # Optional but recommended: confirm the public URL is live before
+      # closing the phase. The {project_url} placeholder is resolved from
+      # the project-manifest.yaml at gate-evaluation time.
+      - id: public-url-reachable
+        type: url-reachable
+        url: "{project_url}"
+        expect_status: 200
+        timeout_ms: 5000
+        on_failure: warn
     deliverables:
       - id: deployment-plan-doc
         name: Plan de Despliegue
         responsible: devops
+        responsible_fallback: [tech-lead]
         # Approver es product-owner: representa al sponsor en el flujo. El PO
         # DEBE consultar al usuario sponsor explicitamente antes de aprobar.
         # El orquestador no avanza a otros entregables de fase 7 sin esta
@@ -282,12 +541,15 @@ phases:
         approver: product-owner
         mandatory: true
         artifact_type: document
+        attestation_required: true
       - id: rollback-plan
         name: Plan de Rollback
         responsible: devops
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        attestation_required: true
+        responsible_fallback: [tech-lead]
       - id: go-live-presentation
         name: Presentacion Go-Live Readiness
         responsible: project-manager
@@ -300,6 +562,7 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [project-manager]
       - id: training-materials
         name: Materiales de Capacitacion
         responsible: change-manager
@@ -312,6 +575,7 @@ phases:
         approver: tech-lead
         mandatory: true
         artifact_type: document
+        responsible_fallback: [tech-lead]
 
   - id: stabilization
     name: Estabilizacion
@@ -364,3 +628,4 @@ phases:
         approver: project-manager
         mandatory: true
         artifact_type: document
+        responsible_fallback: [project-manager]

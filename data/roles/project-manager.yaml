@@ -84,6 +84,11 @@ tools:
   - generate-diagram
   - create-presentation
   - create-dashboard
+  - phase-state
+  - verify-deliverable
+  - attest-deliverable
+  - set-iteration-scope
+  - suggest-iteration-scope
 
 dependencies:
   receives_from:

@@ -1,0 +1,43 @@
+# Runaway detection limits.
+# Generic baseline. The PostToolUse hook on `Task` records:
+#   - parts:        text + tool + reasoning parts in the sub-session
+#   - duration_min: minutes between first and last message
+#   - tokens:       cumulative tokens consumed
+#
+# When any limit is exceeded, the hook EMITS A NOTICE to the orchestrator
+# (it does NOT block). Rationale: long sub-sessions can be legitimate
+# (e.g. a developer implementing a feature). The orchestrator decides
+# whether to escalate to the user.
+#
+# Per-project tweaks go in project-manifest.yaml under
+# `runaway_limits_override:` and merge field-by-field over `default` and
+# `by_category` / `by_role`.
+#
+# Resolution order (most specific wins): by_role -> by_category -> default
+
+default:
+  parts_max: 300
+  duration_min_max: 30
+  tokens_max: 200000
+
+# Overrides by RoleCategory enum (see schemas.ts). Only categories that
+# legitimately need higher headroom are listed; anything not here uses
+# `default`.
+by_category:
+  construction:        # developers — naturally longer (multi-file changes)
+    parts_max: 500
+    duration_min_max: 60
+    tokens_max: 400000
+  quality:             # qa — many verification steps
+    parts_max: 400
+    duration_min_max: 45
+  deployment:          # devops — long operations (build, push, rollout)
+    parts_max: 350
+    duration_min_max: 45
+  data:                # dba — migrations and validation
+    parts_max: 350
+    duration_min_max: 45
+
+# Per-role overrides (highest precedence). Empty by default; projects
+# fill this in when one role consistently triggers false positives.
+by_role: {}

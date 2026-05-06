@@ -1,4 +1,4 @@
-import type { CognitiveTier, ReasoningLevel } from "../loader/schemas.js";
+import type { CognitiveTier, ReasoningLevel, ModelOverride } from "../loader/schemas.js";
 import type { Role } from "../loader/schemas.js";
 import type { ModelMix, ModelSpec, Provider, RoleModelOverride } from "./types.js";
 
@@ -95,4 +95,66 @@ export function groupMixBySpec(mix: ModelMix): MixGroup[] {
     bucket.roleIds.push(roleId);
   }
   return Array.from(buckets.values());
+}
+
+/**
+ * Infer provider from a bare model id when the override doesn't declare one.
+ * Falls back to the project's configured provider.
+ */
+function inferProvider(modelId: string, fallback: Provider): Provider {
+  if (/^(anthropic\/|claude-|opus-|sonnet-|haiku-)/i.test(modelId)) return "anthropic";
+  if (/^(openai\/|gpt-|o1-|o3-|o4-)/i.test(modelId)) return "openai";
+  return fallback;
+}
+
+/** Add provider prefix if the model id is bare. */
+function ensurePrefix(modelId: string, provider: Provider): string {
+  if (modelId.includes("/")) return modelId;
+  return `${provider}/${modelId}`;
+}
+
+/**
+ * Convert a single ModelOverride (string or object form) into a ModelSpec
+ * compatible with what `modelSpecFor()` produces. Used by
+ * `applyExplicitOverrides()` to honour project-level escape hatches over
+ * the default cognitive_tier+reasoning lookup.
+ */
+export function specFromOverride(
+  override: ModelOverride,
+  defaultProvider: Provider,
+): ModelSpec {
+  if (typeof override === "string") {
+    const provider = inferProvider(override, defaultProvider);
+    const model = ensurePrefix(override, provider);
+    return { model };
+  }
+  const provider = override.provider ?? inferProvider(override.model, defaultProvider);
+  const model = ensurePrefix(override.model, provider);
+  if (override.reasoning_effort === undefined) return { model };
+  if (provider === "anthropic") {
+    const budget = ANTHROPIC_BUDGET[override.reasoning_effort];
+    if (budget === null) return { model };
+    return { model, thinking: { type: "enabled", budgetTokens: budget } };
+  }
+  return { model, reasoningEffort: OPENAI_EFFORT[override.reasoning_effort] };
+}
+
+/**
+ * Apply per-role explicit overrides on top of an existing mix. Each entry
+ * REPLACES whatever the cognitive_tier+reasoning lookup produced (or fills
+ * in roles that were skipped under modelStrategy="inherit").
+ *
+ * Returns a NEW mix; does not mutate the input.
+ */
+export function applyExplicitOverrides(
+  mix: ModelMix,
+  overrides: Record<string, ModelOverride> | undefined,
+  defaultProvider: Provider,
+): ModelMix {
+  if (!overrides || Object.keys(overrides).length === 0) return mix;
+  const merged: ModelMix = { ...mix };
+  for (const [roleId, override] of Object.entries(overrides)) {
+    merged[roleId] = specFromOverride(override, defaultProvider);
+  }
+  return merged;
 }

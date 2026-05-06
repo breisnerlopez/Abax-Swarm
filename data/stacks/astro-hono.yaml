@@ -9,6 +9,8 @@ frontend:
   package_manager: pnpm
   test_framework: Vitest, Playwright
   build_tool: Astro CLI / Vite
+  test_command: "pnpm test --silent || npm test --silent"
+  build_command: "pnpm build || npm run build"
 
 backend:
   framework: Hono
@@ -17,6 +19,8 @@ backend:
   build_tool: Vite/esbuild
   test_framework: Vitest
   orm: Drizzle ORM
+  test_command: "pnpm test --silent || npm test --silent"
+  build_command: "pnpm build || npm run build"
 
 database:
   default: Turso (libSQL)

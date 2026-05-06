@@ -1,0 +1,101 @@
+id: suggest-iteration-scope
+name: Sugerir Alcance de Iteración
+description: |
+  Lee el texto de la solicitud del usuario y sugiere un iteration scope
+  (major/minor/patch/hotfix u otro declarado) basándose en match contra
+  las keywords declaradas en cada scope. Devuelve scope_id sugerido +
+  rationale + confianza. NO escribe state — el orchestrator/BA debe
+  confirmar con el usuario y luego llamar set-iteration-scope con la
+  respuesta. Cierra el ciclo de iteration-strategy — sugerir antes de
+  preguntar.
+used_by:
+  - business-analyst
+  - project-manager
+implementation:
+  language: typescript
+  args:
+    user_text:
+      type: string
+      description: Texto del usuario (mensaje original o propuesta) contra el cual matchear las keywords. Si está vacío, devuelve la lista de scopes disponibles sin sugerencia.
+      required: true
+  returns: string
+  body: |
+    const { readFileSync, existsSync } = require("node:fs");
+    const { join } = require("node:path");
+
+    const projectDir = process.cwd();
+    // Auto-detect target subtree (mirror set-iteration-scope behaviour).
+    const candidates = [".opencode", ".claude"];
+    let policiesPath = "";
+    for (const root of candidates) {
+      const p = join(projectDir, root, "policies", "abax-policies.json");
+      if (existsSync(p)) { policiesPath = p; break; }
+    }
+    if (!policiesPath) {
+      return JSON.stringify({
+        ok: false,
+        error: "policies file not found at .opencode/policies/ or .claude/policies/",
+      });
+    }
+    let policies: any;
+    try {
+      policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+    } catch (e: any) {
+      return JSON.stringify({ ok: false, error: "policies parse failed: " + e.message });
+    }
+    const scopes: any[] = policies.iteration_scopes?.scopes ?? [];
+    if (scopes.length === 0) {
+      return JSON.stringify({
+        ok: false,
+        error: "no iteration scopes declared in this project",
+      });
+    }
+
+    const text = String(args.user_text || "").toLowerCase();
+    if (!text) {
+      return JSON.stringify({
+        ok: true,
+        suggested: null,
+        reason: "no user_text provided",
+        catalog: scopes.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          description: s.description.split("\n")[0],
+          keywords: s.keywords,
+        })),
+      });
+    }
+
+    // Score: count of keyword matches per scope. Prefer specific over
+    // general — if a unique keyword matches (e.g. "hotfix"), it wins
+    // over a vaguer one (e.g. "mejoras" matched by minor).
+    const scored = scopes.map((s: any) => {
+      const kws: string[] = s.keywords ?? [];
+      const matches = kws.filter((k: string) => text.includes(k.toLowerCase()));
+      return { scope: s, matches, score: matches.length };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    const best = scored[0];
+    if (best.score === 0) {
+      return JSON.stringify({
+        ok: true,
+        suggested: null,
+        reason: "no keyword matched the user_text. Ask the user explicitly.",
+        catalog: scopes.map((s: any) => ({ id: s.id, keywords: s.keywords })),
+      });
+    }
+
+    return JSON.stringify({
+      ok: true,
+      suggested: best.scope.id,
+      name: best.scope.name,
+      rationale: `matched keywords: ${best.matches.join(", ")}`,
+      confidence: best.score >= 2 ? "high" : "low",
+      next_steps: [
+        `Confirm with user: "Detecté que es una iteración tipo '${best.scope.id}' (${best.scope.name}). ¿Es correcto?"`,
+        `If confirmed: call set-iteration-scope with scope_id="${best.scope.id}" and a brief rationale.`,
+        `If not: ask explicitly "Es major / minor / patch / hotfix?" and proceed accordingly.`,
+      ],
+      all_scores: scored.map((x: any) => ({ id: x.scope.id, score: x.score, matches: x.matches })),
+    }, null, 2);
