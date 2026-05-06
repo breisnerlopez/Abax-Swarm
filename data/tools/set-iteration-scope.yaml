@@ -22,20 +22,30 @@ implementation:
     const { join } = require("node:path");
 
     const projectDir = process.cwd();
-    const policiesPath = join(projectDir, ".opencode/policies/abax-policies.json");
 
-    // Validate scope_id exists in the catalog. Fail loudly if not — a
-    // typo here would silently disable enforcement.
-    if (!existsSync(policiesPath)) {
+    // Target-aware: locate the policies file under .opencode/ or .claude/.
+    // The tool runs identically in both target environments — auto-detect
+    // which subtree exists. When BOTH exist (mixed-target project), write
+    // state to BOTH so each runtime sees it consistently.
+    const candidates = [".opencode", ".claude"];
+    const targets: Array<{ root: string; policies: string }> = [];
+    for (const root of candidates) {
+      const polPath = join(projectDir, root, "policies", "abax-policies.json");
+      if (existsSync(polPath)) targets.push({ root, policies: polPath });
+    }
+    if (targets.length === 0) {
       return JSON.stringify({
         ok: false,
-        error: "policies file not found — cannot validate scope_id",
-        path: policiesPath,
+        error: "no policies file found at .opencode/policies/ or .claude/policies/",
       });
     }
+
+    // Validate scope_id against the catalog from the FIRST policies file.
+    // (Claude and opencode emit identical merged content; reading either
+    // is sufficient.)
     let policies: any;
     try {
-      policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+      policies = JSON.parse(readFileSync(targets[0].policies, "utf8"));
     } catch (e: any) {
       return JSON.stringify({ ok: false, error: "policies parse failed: " + e.message });
     }
@@ -54,14 +64,18 @@ implementation:
       rationale: args.rationale || "",
     };
 
-    const stateDir = join(projectDir, ".opencode");
-    mkdirSync(stateDir, { recursive: true });
-    const statePath = join(stateDir, "iteration-state.json");
-    writeFileSync(statePath, JSON.stringify(state, null, 2) + "\n", "utf8");
+    const written: string[] = [];
+    for (const t of targets) {
+      const stateDir = join(projectDir, t.root);
+      mkdirSync(stateDir, { recursive: true });
+      const statePath = join(stateDir, "iteration-state.json");
+      writeFileSync(statePath, JSON.stringify(state, null, 2) + "\n", "utf8");
+      written.push(`${t.root}/iteration-state.json`);
+    }
 
     return JSON.stringify({
       ok: true,
-      written: ".opencode/iteration-state.json",
+      written,
       state,
-      enforcement: "Plugin will now block task delegations to phases not allowed by this scope.",
+      enforcement: "Plugin/hook will now block task delegations to phases not allowed by this scope.",
     }, null, 2);

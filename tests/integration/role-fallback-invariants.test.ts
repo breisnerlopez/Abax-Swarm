@@ -146,6 +146,43 @@ describe("Role-fallback invariant — orchestrator @mentions match policies.phas
   }
 });
 
+describe("Cross-target invariant — opencode and claude emit identical policies.phases", () => {
+  // Drift catcher: the opencode plugin-generator and claude policy-generator
+  // both emit policies.json. They must produce IDENTICAL policies.phases
+  // for the same project — different runtime, same merged data. This
+  // failed before the resolveDeliverablesForTeam helper was extracted
+  // (claude side did NOT apply fallback resolution).
+  for (const c of [
+    { size: "small" as const, scope: "lean" as const },
+    { size: "medium" as const, scope: "full" as const },
+    { size: "large" as const, scope: "full" as const },
+  ]) {
+    it(`${c.size}/${c.scope}: phases identical across targets`, () => {
+      const ocConfig = { ...buildConfig(c), target: "opencode" as const };
+      const ccConfig = { ...buildConfig(c), target: "claude" as const };
+
+      const ocResult = runPipeline(ocConfig, runSelection(ocConfig, ctx), ctx);
+      const ccResult = runPipeline(ccConfig, runSelection(ccConfig, ctx), ctx);
+
+      const ocPolicies = ocResult.files.find(
+        (f) => f.path === ".opencode/policies/abax-policies.json",
+      );
+      const ccPolicies = ccResult.files.find(
+        (f) => f.path === ".claude/policies/abax-policies.json",
+      );
+      expect(ocPolicies).toBeDefined();
+      expect(ccPolicies).toBeDefined();
+
+      const ocPhases = JSON.parse(ocPolicies!.content).phases;
+      const ccPhases = JSON.parse(ccPolicies!.content).phases;
+      // Compare the resolved deliverable lists. role_categories etc. are
+      // identical by construction; we focus on the phase set which was
+      // the actual drift point.
+      expect(ccPhases).toEqual(ocPhases);
+    });
+  }
+});
+
 describe("Role-fallback resolver — unit", () => {
   it("primary role in team → returns primary", () => {
     expect(resolveWithFallback("a", ["b"], new Set(["a", "b"]))).toBe("a");

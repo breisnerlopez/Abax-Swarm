@@ -46,3 +46,61 @@ export function resolveWithFallbackOrPrimary(
 ): string {
   return resolveWithFallback(primary, fallbackChain, teamIds) ?? primary;
 }
+
+/**
+ * Phase deliverable shape — minimal subset needed for resolution.
+ * Both opencode plugin-generator and claude policy-generator import
+ * this helper to keep `policies.phases` consistent across targets.
+ */
+interface ResolvableDeliverable {
+  id: string;
+  responsible: string;
+  approver: string;
+  mandatory: boolean;
+  responsible_fallback: string[];
+  approver_fallback: string[];
+  [k: string]: unknown;
+}
+interface ResolvablePhase {
+  id: string;
+  deliverables: ResolvableDeliverable[];
+  [k: string]: unknown;
+}
+
+/**
+ * Resolve all `responsible` AND `approver` references in a phase set
+ * against the given team. Drops deliverables whose responsible cannot
+ * be resolved (they couldn't be delegated). Used by BOTH
+ * `opencode/plugin-generator.ts` and `claude/policy-generator.ts` so
+ * the runtime view is identical regardless of target.
+ *
+ * Returns a NEW phase array; inputs are not mutated.
+ */
+export function resolveDeliverablesForTeam<P extends ResolvablePhase>(
+  phases: readonly P[],
+  teamIds: ReadonlySet<string>,
+): P[] {
+  return phases.map((p) => {
+    const filtered = p.deliverables
+      .map((d) => {
+        const resolvedResp = resolveWithFallback(
+          d.responsible,
+          d.responsible_fallback,
+          teamIds,
+        );
+        if (!resolvedResp) return null;
+        const resolvedApp = resolveWithFallback(
+          d.approver,
+          d.approver_fallback,
+          teamIds,
+        );
+        return {
+          ...d,
+          responsible: resolvedResp,
+          approver: resolvedApp ?? d.approver,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+    return { ...p, deliverables: filtered };
+  });
+}

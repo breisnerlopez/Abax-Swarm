@@ -18,6 +18,7 @@ import {
   mergeRunawayLimits,
   mergeIterationScopes,
 } from "../opencode/plugin-generator.js";
+import { resolveDeliverablesForTeam } from "../../engine/role-fallback.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = join(__dirname, "../../../templates/claude/hooks/abax-policy.py");
@@ -64,7 +65,13 @@ export function generateClaudePolicyFiles(
   };
 
   if (phaseDeliverables) {
-    policies.phases = phaseDeliverables.phases;
+    // Resolve responsible/approver fallbacks against the actual team via
+    // the shared helper — identical behaviour to opencode/plugin-generator.
+    // Without this, Claude target users would see policies.phases with
+    // orphan responsibles (the bug Tier E surfaced in opencode side, that
+    // also lived here unnoticed).
+    const teamIds = new Set(resolvedRoles.map((r) => r.id));
+    policies.phases = resolveDeliverablesForTeam(phaseDeliverables.phases, teamIds);
   }
   if (stack) {
     policies.stacks = stackCommandsForRuntime(stack);
