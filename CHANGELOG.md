@@ -6,6 +6,214 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.40] — 2026-05-06
+
+Largest single release since 0.1.0: introduces a **manifest contract**
+for project-level policy overrides + a **runtime enforcement plugin**
+that consumes that contract in every generated project. Closes the
+architectural gap surfaced by the Abax-Memory v2 session post-mortem
+(orchestrator running 9 phases for a 16-item improvement proposal,
+ignoring the iteration-strategy skill mandate, autonomously deciding
+"cascada completa" without asking the user).
+
+### Added — five generic policy mechanisms
+
+Each declared as YAML data + Zod schema + runtime consumer. Generic
+across team composition (5 to 25 roles), stack (14 supported), mode
+(new/document/continue) and provider (anthropic/openai).
+
+1. **Task atomicity contract** (`data/rules/task-contracts.yaml`)
+   Atomic actions + forbidden combinations (e.g. `fix-and-ship`).
+   Project-level overlay via manifest `task_contracts_override:`.
+
+2. **Secret patterns** (`data/rules/secret-patterns.yaml`)
+   9 baseline patterns (OpenAI/Anthropic/AWS/GitHub/GCP/JWT/bearer/
+   base64/SSH key). `severity: block | warn`. Projects extend via
+   `secret_patterns_extra:`.
+
+3. **Runaway limits** (`data/rules/runaway-limits.yaml`)
+   parts/duration/tokens caps by category and role. Resolution:
+   by_role > by_category > default. Hook emits notice, never blocks.
+
+4. **Iteration scopes** (`data/rules/iteration-scopes.yaml`)
+   Four baseline scopes: major / minor / patch / hotfix. Each declares
+   `keywords`, `skip_phases`, `minimal_phases` (deliverable allowlist),
+   `full_phases`, `default_layout_strategy` (A/B/C/D).
+   `require_scope_for_phases:` triggers the runtime block when project
+   has iteration signals (bitácora / CHANGELOG / fase-9-cierre/) and
+   no active scope is set.
+
+5. **Per-role explicit model assignment**
+   `model_overrides_explicit:` in manifest. Wizard exposes the
+   highest-leverage case (orchestrator) as a four-option step:
+   default / claude-opus-4-7+high / gpt-5.2+high / skip-and-edit-later.
+
+### Added — runtime enforcement plugins
+
+- **opencode**: `templates/opencode/plugins/abax-policy.ts` (TS plugin
+  via `@opencode-ai/plugin` SDK). Hooks `tool.execute.before/after`
+  for `task` (atomicity, scope-enforcement, secret-redaction) and
+  `bash`/`write`/`edit` (secret-redaction, runaway).
+
+- **claude**: `templates/claude/hooks/abax-policy.py` (Python script
+  invoked by `.claude/settings.json` PreToolUse/PostToolUse hooks).
+  Same logic, different runtime. Both targets emit identical
+  `policies.json` for the same input — locked by cross-target
+  invariant test.
+
+### Added — five custom tools
+
+Generated into every project's `.opencode/tools/`:
+
+- `phase-state` — evaluates phase gates (file-exists / git-check /
+  url-reachable / attestation / runtime-check / command).
+- `verify-deliverable` — runs the `verification[]` cmds declared on a
+  deliverable, with `{stack.<layer>.test_command}` placeholder
+  resolution.
+- `attest-deliverable` — writes JSON attestation to
+  `docs/.attestations/<phase>/<deliverable>.json` with git_sha and
+  files_touched.
+- `set-iteration-scope` — writes `.opencode/iteration-state.json` (or
+  `.claude/...`, target-aware auto-detect). Validates scope_id against
+  the catalog before writing.
+- `suggest-iteration-scope` — scores user input against
+  `iteration_scopes.keywords`, returns suggested scope_id with
+  rationale and confidence. Closes the iteration-strategy loop: BA
+  suggests before asking the user.
+
+### Added — phase-deliverables.yaml schema extensions
+
+- `gates[]` per phase (discriminated union: file-exists, git-check,
+  url-reachable, attestation, runtime-check, command).
+- `verification[]` per deliverable (cmd + expect_regex + on_failure).
+- `attestation_required: bool` per deliverable.
+- `responsible_fallback[]` and `approver_fallback[]` — ordered chain
+  resolved by `src/engine/role-fallback.ts:resolveDeliverablesForTeam`.
+  Used by both opencode and claude generators (single source of truth).
+- `narrative_only: bool` + `narrative_markdown: string` per phase.
+  `discovery` is the first first-class user. Migrated 132 lines of
+  hardcoded prose from `orchestrator.md.hbs` into the YAML field.
+
+### Added — `discovery` as a real phase
+
+Phase 0 was narrative-only in the orchestrator template; it was not
+in `phase-deliverables.yaml` so the runtime plugin couldn't recognise
+it. Adding it as a real phase with 6 deliverables (vision-producto,
+epicas-features, historias-usuario, design-system-template,
+backlog-priorizado, discovery-presentation) plus `narrative_only: true`
+unblocks deliverable-level scope enforcement for Discovery work.
+
+### Added — generic stack commands
+
+`StackLayerSchema` gains optional `test_command` and `build_command`.
+Populated for the 13 supported stacks (mvn / npm / pytest / dotnet /
+flutter / cargo / etc.); legacy-other intentionally omits them so
+verify-deliverable can fall back gracefully.
+
+### Added — invariant test suites
+
+- `tests/integration/role-fallback-invariants.test.ts` — every
+  `responsible` in `policies.phases` resolves to team; orchestrator
+  @mentions ⊆ team; opencode and claude emit identical
+  `policies.phases` for the same input.
+- `tests/integration/path-consistency.test.ts` — templates' hardcoded
+  paths match `src/engine/paths.ts` constants. Future rename fails CI
+  until both sides updated.
+- `tests/integration/data-consistency.test.ts` extended — every role
+  in RACI / dependency-graph / phase-deliverables exists; every phase
+  id and deliverable id in iteration-scopes resolves. Caught a real
+  drift on first run (`acceptance-criteria` vs `acceptance-criteria-doc`).
+- `tests/unit/generator/orchestrator.test.ts` extended — every
+  `narrative_only: true` phase has matching prose in template.
+
+Total: 660 tests across 52 files (was 584/47 in 0.1.39).
+
+### Added — `tests/e2e/` reproducible artefacts
+
+`sweep-generation.sh` (36 compositions × 6 invariants),
+`role-fallback-consistency.sh`, `adversarial-llm.sh`, plus three
+direct synthetic-stdin probes. `tests/e2e/README.md` documents the
+campaign + an honest finding: synonym attacks against atomicity bypass
+keyword-based detection (LLM-cooperated test A failed). Three
+remediation paths documented; recommended PostToolUse on bash deferred.
+
+### Added — manifest trailer documenting overrides
+
+Every generated `project-manifest.yaml` now ends with five
+commented-out blocks (one per override mechanism). When at least one
+override is active, the trailer is replaced by an "Active policy
+overrides" header with the user's actual content — round-trip
+preserves user input.
+
+### Added — wizard step for orchestrator-model
+
+`src/cli/WizardApp.tsx` gains an `orchestrator-model` step between
+`provider` and `permissions`. Four options including the high-leverage
+"claude-opus-4-7 + reasoning_effort=high" preset. Other manifest
+overrides keep the trailer-discovery path; the wizard exposes only
+the single-field, single-role decision.
+
+### Fixed — round-trip preservation of policy overrides
+
+`generateProjectManifest` was emitting a fresh manifest without the
+user's override blocks. A single `regenerate` would silently drop
+their work. Now preserves any active override blocks under an
+"Active policy overrides" YAML header.
+
+Also wired `manifest.{task_contracts_override, secret_patterns_extra,
+runaway_limits_override, model_overrides_explicit,
+iteration_scopes_override, active_iteration_scope}` into the
+`regenerate` CLI. Without this fix the trailer was inert.
+
+### Fixed — silent role-fallback drift across generators
+
+Discovered via Tier E sweep (36 compositions, 25/36 had orphan
+deliverables). The orchestrator-generator silently filtered phases
+whose `responsible` was missing from the team; the plugin-generator's
+`policies.json` kept them. Runtime tools (phase-state,
+attest-deliverable) saw deliverables no team member could produce.
+
+`src/engine/role-fallback.ts` is the single source of truth.
+`opencode/plugin-generator.ts` and `claude/policy-generator.ts` (which
+previously was missing the resolution entirely) both call
+`resolveDeliverablesForTeam`. After fix: 0/36 orphans.
+
+### Fixed — drift in `set-iteration-scope` across targets
+
+Tool body hardcoded `.opencode/iteration-state.json`. The Python hook
+for Claude reads `.claude/iteration-state.json`. In a Claude project
+the tool's writes never reached the hook. Now auto-detects which
+subtree exists and writes to the correct location (or BOTH if both
+subtrees exist).
+
+### Schema correctness fixes
+
+- `ModelOverrideSchema.provider` restricted to `["anthropic","openai"]`
+  to match `PROVIDER_MODELS` in `src/engine/model-mapping.ts`.
+- `RunawayLimitsSchema.by_category` uses `z.record(z.string(), ...)`
+  because enum-keyed record requires every key present.
+- `UrlReachableGateSchema.url` accepts `{placeholder}` or http(s) URL
+  via refine; full URL validation at gate-evaluation time.
+
+### Migración
+
+Projects regenerated with 0.1.34–0.1.39: run `abax-swarm regenerate
+--dir <path>` with 0.1.40 installed. New files emitted:
+
+  .opencode/plugins/abax-policy.ts
+  .opencode/policies/abax-policies.json
+  .opencode/tools/{phase-state, verify-deliverable,
+                   attest-deliverable, set-iteration-scope,
+                   suggest-iteration-scope}.ts
+
+Plus modifications to:
+  .opencode/agents/orchestrator.md   (Discovery prose now from YAML)
+  opencode.json                      (plugin field)
+  project-manifest.yaml              (override trailer)
+
+Existing project manifests without override blocks remain
+backward-compatible — every new field is optional with a default.
+
 ## [0.1.39] — 2026-05-04
 
 ### Fixed — `permission_mode: full` ahora se aplica tambien al frontmatter de los `.md` de agente (regresion silenciosa)
