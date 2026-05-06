@@ -98,6 +98,9 @@ tools:
   - run-tests
   - generate-diagram
   - create-dashboard
+  - phase-state
+  - verify-deliverable
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

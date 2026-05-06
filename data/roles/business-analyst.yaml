@@ -91,6 +91,8 @@ tools:
   - generate-diagram
   - create-document
   - create-presentation
+  - phase-state
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

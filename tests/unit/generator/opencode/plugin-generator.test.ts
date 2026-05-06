@@ -11,6 +11,8 @@ import type {
   TaskContracts,
   SecretPatterns,
   RunawayLimits,
+  PhaseDeliverables,
+  Stack,
 } from "../../../../src/loader/schemas.js";
 import type { ProjectConfig } from "../../../../src/engine/types.js";
 
@@ -220,5 +222,105 @@ describe("generatePluginFiles", () => {
     );
     expect(policies.task_contracts.forbidden_combinations[0].actions).toEqual(["test", "commit", "push"]);
     expect(policies.runaway_limits.by_role["developer-backend"]).toEqual({ parts_max: 700 });
+  });
+
+  it("policies JSON omits phases and stacks sections when not provided (back-compat)", () => {
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.phases).toBeUndefined();
+    expect(policies.stacks).toBeUndefined();
+  });
+
+  it("policies JSON includes phases when phaseDeliverables is provided", () => {
+    const phaseDeliverables: PhaseDeliverables = {
+      phases: [
+        {
+          id: "construction",
+          name: "Construccion",
+          gate_approver: "tech-lead",
+          gates: [
+            { type: "git-check", id: "branch", check: "branch", not_in: ["main"], on_failure: "block" },
+          ],
+          deliverables: [
+            {
+              id: "src",
+              name: "Src",
+              responsible: "developer-backend",
+              approver: "tech-lead",
+              mandatory: true,
+              artifact_type: "code",
+              verification: [],
+              attestation_required: true,
+            },
+          ],
+        },
+      ],
+    };
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+      phaseDeliverables,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.phases).toHaveLength(1);
+    expect(policies.phases[0].id).toBe("construction");
+    expect(policies.phases[0].deliverables[0].attestation_required).toBe(true);
+  });
+
+  it("policies JSON includes stacks ONLY with test_command/build_command (strips other layer fields)", () => {
+    const stack: Stack = {
+      id: "java-springboot",
+      name: "Java Spring Boot",
+      description: "test stack",
+      backend: {
+        framework: "Spring Boot",
+        language: "Java",
+        test_framework: "JUnit",
+        build_tool: "Maven",
+        test_command: "mvn -q test",
+        build_command: "mvn package",
+      },
+      role_context: {},
+    };
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+      undefined, stack,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.stacks.backend).toEqual({
+      test_command: "mvn -q test",
+      build_command: "mvn package",
+    });
+    // No leakage of framework/language/etc into runtime
+    expect(policies.stacks.backend.framework).toBeUndefined();
+  });
+
+  it("policies JSON omits stack layers without test_command/build_command (e.g. legacy-other)", () => {
+    const legacyStack: Stack = {
+      id: "legacy-other",
+      name: "Legacy",
+      description: "no commands declared",
+      backend: { framework: "?", language: "?" },
+      role_context: {},
+    };
+    const files = generatePluginFiles(
+      minimalConfig, [makeRole("developer-backend", "construction")],
+      baselineTaskContracts, baselineSecretPatterns, baselineRunaway,
+      undefined, legacyStack,
+    );
+    const policies = JSON.parse(
+      files.find((f) => f.path.endsWith("abax-policies.json"))!.content,
+    );
+    expect(policies.stacks).toEqual({}); // empty object, not undefined — generator emitted but found nothing
   });
 });

@@ -84,6 +84,9 @@ tools:
   - generate-diagram
   - create-presentation
   - create-dashboard
+  - phase-state
+  - verify-deliverable
+  - attest-deliverable
 
 dependencies:
   receives_from:

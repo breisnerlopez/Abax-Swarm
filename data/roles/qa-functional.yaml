@@ -79,6 +79,8 @@ skills:
 tools:
   - run-tests
   - create-document
+  - verify-deliverable
+  - attest-deliverable
 
 stack_overrides:
   angular-springboot:

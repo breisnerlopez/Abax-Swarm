@@ -122,13 +122,17 @@ function generateFiles(
   // Emit policy plugin + merged policies JSON. Generic across team
   // composition: project-level overlays (taskContractsOverride,
   // secretPatternsExtra, runawayLimitsOverride) are merged here so the
-  // runtime plugin reads a single ready-to-use file.
+  // runtime plugin reads a single ready-to-use file. Phases + stack
+  // commands are also embedded so the phase-state / verify-deliverable
+  // tools can read them at runtime without needing access to abax-swarm.
   const pluginFiles = oc.generatePluginFiles(
     config,
     adaptedRoles,
     ctx.taskContracts,
     ctx.secretPatterns,
     ctx.runawayLimits,
+    ctx.phaseDeliverables,
+    stack,
   );
   files.push(...pluginFiles);
 

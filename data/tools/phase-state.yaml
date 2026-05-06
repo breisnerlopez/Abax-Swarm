@@ -1,0 +1,169 @@
+id: phase-state
+name: Estado de Fases del Proyecto
+description: Consulta el estado de las fases del proyecto. Para cada fase devuelve sus gates evaluados (file-exists, git-check, url-reachable, attestation, runtime-check, command) y sus deliverables con su estado de atestación. Genérico — funciona con cualquier composición de fases declarada en .opencode/policies/abax-policies.json.
+used_by:
+  - project-manager
+  - tech-lead
+  - devops
+  - business-analyst
+implementation:
+  language: typescript
+  args:
+    phase:
+      type: string
+      description: ID de fase a consultar. Vacío para devolver el resumen de todas las fases.
+      default: ""
+      required: false
+  returns: string
+  body: |
+    const { readFileSync, existsSync, statSync } = require("node:fs");
+    const { join } = require("node:path");
+    const { execSync } = require("node:child_process");
+
+    const projectDir = process.cwd();
+    const policiesPath = join(projectDir, ".opencode/policies/abax-policies.json");
+    if (!existsSync(policiesPath)) {
+      return JSON.stringify({ error: "policies file not found", path: policiesPath });
+    }
+    const policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+    const phases = policies.phases || [];
+    const target = (args.phase || "").trim();
+    const selected = target ? phases.filter((p: any) => p.id === target) : phases;
+
+    function resolvePlaceholders(s: string, phaseId: string): string {
+      return s
+        .replace(/\{phase\}/g, phaseId)
+        .replace(/\{project\}/g, projectDir.split("/").pop() || "")
+        .replace(/\{project_url\}/g, policies.project_url || "")
+        .replace(/\{stack\.(\w+)\.(\w+)\}/g, (_m, layer, field) => {
+          const layers = policies.stacks || {};
+          return layers[layer]?.[field] ?? "";
+        });
+    }
+
+    function evaluateGate(g: any, phaseId: string) {
+      const result: any = { id: g.id, type: g.type, on_failure: g.on_failure };
+      try {
+        if (g.type === "file-exists") {
+          const path = resolvePlaceholders(g.target, phaseId);
+          result.target = path;
+          result.ok = existsSync(join(projectDir, path));
+        } else if (g.type === "git-check") {
+          if (g.check === "branch") {
+            const out = execSync("git rev-parse --abbrev-ref HEAD", { cwd: projectDir, encoding: "utf8" }).trim();
+            result.branch = out;
+            result.ok = !(g.not_in || []).includes(out) && (!g.must_be || g.must_be === out);
+          } else if (g.check === "no-uncommitted") {
+            const out = execSync("git status --porcelain", { cwd: projectDir, encoding: "utf8" });
+            result.ok = out.trim().length === 0;
+          } else if (g.check === "tag") {
+            const out = execSync(`git tag --list ${g.must_be}`, { cwd: projectDir, encoding: "utf8" }).trim();
+            result.ok = out.length > 0;
+          } else if (g.check === "sha-on-remote") {
+            try {
+              execSync("git fetch", { cwd: projectDir });
+              const local = execSync("git rev-parse HEAD", { cwd: projectDir, encoding: "utf8" }).trim();
+              const remote = execSync("git rev-parse @{u}", { cwd: projectDir, encoding: "utf8" }).trim();
+              result.ok = local === remote;
+            } catch {
+              result.ok = false;
+            }
+          } else {
+            result.ok = false;
+            result.error = "unknown git-check";
+          }
+        } else if (g.type === "url-reachable") {
+          const url = resolvePlaceholders(g.url, phaseId);
+          result.url = url;
+          if (url.startsWith("{")) {
+            result.ok = false;
+            result.error = "unresolved placeholder";
+          } else {
+            // Synchronous-ish: we can't await in execute body without async. Use a sync HTTP via curl.
+            try {
+              const out = execSync(`curl -s -o /dev/null -w "%{http_code}" --max-time ${(g.timeout_ms || 5000) / 1000} "${url}"`, { encoding: "utf8" }).trim();
+              result.status = parseInt(out);
+              result.ok = result.status === (g.expect_status || 200);
+            } catch {
+              result.ok = false;
+            }
+          }
+        } else if (g.type === "attestation") {
+          const path = `docs/.attestations/${phaseId}/${g.deliverable}.json`;
+          result.target = path;
+          if (existsSync(join(projectDir, path))) {
+            try {
+              const att = JSON.parse(readFileSync(join(projectDir, path), "utf8"));
+              result.ok = att.attestor_role === g.attestor_role;
+              result.attested_by = att.attestor_role;
+            } catch {
+              result.ok = false;
+            }
+          } else {
+            result.ok = false;
+          }
+        } else if (g.type === "runtime-check") {
+          if (g.port) {
+            try {
+              execSync(`ss -tln | awk '{print $4}' | grep -q ":${g.port}\\b"`, { cwd: projectDir });
+              result.ok = true;
+            } catch {
+              result.ok = false;
+            }
+          } else if (g.process) {
+            try {
+              execSync(`pgrep -f "${g.process}"`, { cwd: projectDir });
+              result.ok = true;
+            } catch {
+              result.ok = false;
+            }
+          } else {
+            result.ok = false;
+          }
+        } else if (g.type === "command") {
+          try {
+            const out = execSync(g.cmd, { cwd: projectDir, encoding: "utf8", timeout: (g.timeout_sec || 60) * 1000 });
+            const exitOk = true;
+            const regexOk = !g.expect_regex || new RegExp(g.expect_regex).test(out);
+            result.ok = exitOk && regexOk;
+            result.evidence = out.slice(0, 200);
+          } catch (e: any) {
+            const exitCode = e.status ?? -1;
+            result.exit_code = exitCode;
+            result.ok = exitCode === (g.expect_exit_code || 0);
+          }
+        } else {
+          result.ok = false;
+          result.error = "unknown gate type";
+        }
+      } catch (e: any) {
+        result.ok = false;
+        result.error = e.message;
+      }
+      return result;
+    }
+
+    const out = selected.map((p: any) => {
+      const gates = (p.gates || []).map((g: any) => evaluateGate(g, p.id));
+      const deliverables = (p.deliverables || []).map((d: any) => {
+        const attPath = `docs/.attestations/${p.id}/${d.id}.json`;
+        return {
+          id: d.id,
+          mandatory: d.mandatory,
+          attestation_required: d.attestation_required,
+          attested: existsSync(join(projectDir, attPath)),
+        };
+      });
+      return {
+        phase: p.id,
+        name: p.name,
+        gate_approver: p.gate_approver,
+        gates_passing: gates.filter((g: any) => g.ok).length,
+        gates_total: gates.length,
+        gates,
+        deliverables_attested: deliverables.filter((d: any) => d.attested).length,
+        deliverables_total: deliverables.length,
+        deliverables,
+      };
+    });
+    return JSON.stringify(out, null, 2);

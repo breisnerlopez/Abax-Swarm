@@ -1,0 +1,95 @@
+id: attest-deliverable
+name: Atestar Deliverable
+description: Escribe una atestación firmada en docs/.attestations/<phase>/<deliverable>.json. Requerida para deliverables con attestation_required:true. Captura git_sha actual, archivos modificados, rol del firmante y opcionalmente resultados de verify-deliverable. Genérico — independiente de qué fase o deliverable específico.
+used_by:
+  - project-manager
+  - tech-lead
+  - devops
+  - business-analyst
+  - developer-backend
+  - developer-frontend
+  - qa-functional
+  - solution-architect
+implementation:
+  language: typescript
+  args:
+    phase:
+      type: string
+      description: ID de la fase
+      required: true
+    deliverable:
+      type: string
+      description: ID del deliverable
+      required: true
+    attestor_role:
+      type: string
+      description: Rol que firma la atestación. Debe coincidir con el `responsible` del deliverable o un rol explícitamente autorizado.
+      required: true
+    notes:
+      type: string
+      description: Observaciones libres del firmante
+      default: ""
+      required: false
+  returns: string
+  body: |
+    const { readFileSync, existsSync, mkdirSync, writeFileSync } = require("node:fs");
+    const { join, dirname } = require("node:path");
+    const { execSync } = require("node:child_process");
+
+    const projectDir = process.cwd();
+    const policiesPath = join(projectDir, ".opencode/policies/abax-policies.json");
+
+    // Validate against policies if they exist (soft — works without policies too)
+    let attestorOk = true;
+    let attestorReason = "";
+    if (existsSync(policiesPath)) {
+      try {
+        const policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+        const phase = (policies.phases || []).find((p: any) => p.id === args.phase);
+        if (phase) {
+          const d = (phase.deliverables || []).find((x: any) => x.id === args.deliverable);
+          if (d && d.responsible !== args.attestor_role) {
+            attestorOk = false;
+            attestorReason = `expected attestor_role=${d.responsible} (deliverable.responsible), got ${args.attestor_role}`;
+          }
+        }
+      } catch {
+        // ignore — fail-open on policies parse
+      }
+    }
+    if (!attestorOk) {
+      return JSON.stringify({ ok: false, error: attestorReason });
+    }
+
+    // Capture git context (best-effort; works even without git)
+    let gitSha = "";
+    let filesTouched: string[] = [];
+    try {
+      gitSha = execSync("git rev-parse HEAD", { cwd: projectDir, encoding: "utf8" }).trim();
+    } catch { /* not a git repo */ }
+    try {
+      const diff = execSync("git diff --name-only HEAD", { cwd: projectDir, encoding: "utf8" });
+      filesTouched = diff.split("\n").filter((l: string) => l.trim().length > 0);
+    } catch { /* no diff */ }
+
+    const attestation = {
+      schema_version: 1,
+      phase: args.phase,
+      deliverable: args.deliverable,
+      attestor_role: args.attestor_role,
+      timestamp: new Date().toISOString(),
+      git_sha: gitSha,
+      files_touched: filesTouched,
+      notes: args.notes || "",
+    };
+
+    const attDir = join(projectDir, "docs/.attestations", args.phase);
+    mkdirSync(attDir, { recursive: true });
+    const attPath = join(attDir, `${args.deliverable}.json`);
+    writeFileSync(attPath, JSON.stringify(attestation, null, 2) + "\n", "utf8");
+
+    return JSON.stringify({
+      ok: true,
+      written: `docs/.attestations/${args.phase}/${args.deliverable}.json`,
+      attestation,
+    }, null, 2);

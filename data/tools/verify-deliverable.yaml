@@ -1,0 +1,93 @@
+id: verify-deliverable
+name: Verificar Deliverable
+description: Ejecuta el bloque verification[] de un deliverable (declarado en phase-deliverables) — corre cada comando y reporta exit code, output regex match, y resultado consolidado. Genérico — los comandos pueden contener placeholders {stack.backend.test_command} que se resuelven contra la definición del stack del proyecto.
+used_by:
+  - tech-lead
+  - project-manager
+  - qa-functional
+  - devops
+  - developer-backend
+  - developer-frontend
+implementation:
+  language: typescript
+  args:
+    phase:
+      type: string
+      description: ID de la fase del deliverable
+      required: true
+    deliverable:
+      type: string
+      description: ID del deliverable a verificar
+      required: true
+  returns: string
+  body: |
+    const { readFileSync, existsSync } = require("node:fs");
+    const { join } = require("node:path");
+    const { execSync } = require("node:child_process");
+
+    const projectDir = process.cwd();
+    const policiesPath = join(projectDir, ".opencode/policies/abax-policies.json");
+    if (!existsSync(policiesPath)) {
+      return JSON.stringify({ error: "policies file not found", path: policiesPath });
+    }
+    const policies = JSON.parse(readFileSync(policiesPath, "utf8"));
+    const phase = (policies.phases || []).find((p: any) => p.id === args.phase);
+    if (!phase) {
+      return JSON.stringify({ error: "phase not found", phase: args.phase });
+    }
+    const deliverable = (phase.deliverables || []).find((d: any) => d.id === args.deliverable);
+    if (!deliverable) {
+      return JSON.stringify({ error: "deliverable not found", phase: args.phase, deliverable: args.deliverable });
+    }
+    const verifications = deliverable.verification || [];
+    if (verifications.length === 0) {
+      return JSON.stringify({ phase: args.phase, deliverable: args.deliverable, verifications: [], note: "no verification block declared" });
+    }
+
+    function resolvePlaceholders(s: string): string {
+      return s.replace(/\{stack\.(\w+)\.(\w+)\}/g, (_m, layer, field) => {
+        return policies.stacks?.[layer]?.[field] ?? "";
+      });
+    }
+
+    const results = verifications.map((v: any) => {
+      const cmd = resolvePlaceholders(v.cmd);
+      const result: any = { id: v.id, on_failure: v.on_failure, cmd };
+      if (cmd.includes("{")) {
+        result.ok = false;
+        result.skipped = true;
+        result.reason = "unresolved placeholder — stack does not declare this command";
+        return result;
+      }
+      try {
+        const out = execSync(cmd, {
+          cwd: projectDir,
+          encoding: "utf8",
+          timeout: (v.timeout_sec || 60) * 1000,
+        });
+        const exitOk = true;
+        const regexOk = !v.expect_regex || new RegExp(v.expect_regex).test(out);
+        result.exit_code = 0;
+        result.regex_ok = regexOk;
+        result.ok = exitOk && regexOk;
+        result.evidence = out.slice(0, 300);
+      } catch (e: any) {
+        const exitCode = e.status ?? -1;
+        const stdout = (e.stdout?.toString() || "") + (e.stderr?.toString() || "");
+        const expectExit = v.expect_exit_code ?? 0;
+        const regexOk = !v.expect_regex || new RegExp(v.expect_regex).test(stdout);
+        result.exit_code = exitCode;
+        result.regex_ok = regexOk;
+        result.ok = exitCode === expectExit && regexOk;
+        result.evidence = stdout.slice(0, 300);
+      }
+      return result;
+    });
+
+    return JSON.stringify({
+      phase: args.phase,
+      deliverable: args.deliverable,
+      passing: results.filter((r: any) => r.ok).length,
+      total: results.length,
+      results,
+    }, null, 2);

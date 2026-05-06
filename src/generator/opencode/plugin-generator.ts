@@ -7,6 +7,8 @@ import type {
   SecretPatterns,
   SecretPattern,
   RunawayLimits,
+  PhaseDeliverables,
+  Stack,
 } from "../../loader/schemas.js";
 import type { ProjectConfig } from "../../engine/types.js";
 import type { GeneratedFile } from "./agent-generator.js";
@@ -38,10 +40,18 @@ export function generatePluginFiles(
   baselineTaskContracts: TaskContracts,
   baselineSecretPatterns: SecretPatterns,
   baselineRunawayLimits: RunawayLimits,
+  /** Phase definitions from data/rules/phase-deliverables.yaml. Required by
+   * the phase-state and verify-deliverable tools to evaluate gates and run
+   * verification commands. The plugin itself ignores this section. */
+  phaseDeliverables?: PhaseDeliverables,
+  /** Resolved stack object — its frontend/backend `test_command` and
+   * `build_command` fields are used to resolve {stack.X.Y} placeholders
+   * in deliverable verification commands. */
+  stack?: Stack,
 ): GeneratedFile[] {
   const pluginSource = readPluginTemplate();
 
-  const policies = {
+  const policies: Record<string, unknown> = {
     task_contracts: mergeTaskContracts(
       baselineTaskContracts,
       config.taskContractsOverride,
@@ -59,6 +69,13 @@ export function generatePluginFiles(
     ),
   };
 
+  if (phaseDeliverables) {
+    policies.phases = phaseDeliverables.phases;
+  }
+  if (stack) {
+    policies.stacks = stackCommandsForRuntime(stack);
+  }
+
   return [
     { path: ".opencode/plugins/abax-policy.ts", content: pluginSource },
     {
@@ -66,6 +83,24 @@ export function generatePluginFiles(
       content: JSON.stringify(policies, null, 2) + "\n",
     },
   ];
+}
+
+/**
+ * Project a Stack into the minimal shape that the runtime tools need:
+ * just the executable commands per layer. Avoids leaking the full stack
+ * object (description, role_context, etc.) into the runtime JSON.
+ */
+function stackCommandsForRuntime(stack: Stack): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  for (const layer of ["frontend", "backend"] as const) {
+    const data = stack[layer];
+    if (!data) continue;
+    const cmds: Record<string, string> = {};
+    if (data.test_command) cmds.test_command = data.test_command;
+    if (data.build_command) cmds.build_command = data.build_command;
+    if (Object.keys(cmds).length > 0) out[layer] = cmds;
+  }
+  return out;
 }
 
 /** Path to the generated plugin file, used by config-generator. */
