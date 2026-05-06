@@ -88,6 +88,14 @@ export function generateOrchestratorFile(
       ? "project-manager"
       : null;
 
+  // Resolve narrative_only phases (e.g. Discovery) into rendered markdown
+  // blocks. The narrative_markdown field in phase-deliverables.yaml uses
+  // single-brace placeholders ({visionAgent}) which we substitute against
+  // the discovery context here. The template renders narrativeBlocks
+  // BEFORE the structured phaseGates loop, preserving phase numbering
+  // (Fase 0 narrative, Fase 1+ structured).
+  const narrativeBlocks = buildNarrativeBlocks(phaseDeliverables, discovery);
+
   const content = renderTemplate("orchestrator.md.hbs", {
     projectName,
     description,
@@ -97,6 +105,7 @@ export function generateOrchestratorFile(
     dependencyChain,
     governance,
     phaseGates,
+    narrativeBlocks,
     envVerificationLead,
     envVerificationApprover: agentIds.has("tech-lead") ? "tech-lead" : envVerificationLead,
     deploymentPlanLead: deploymentPlanLead && deploymentPlanApprover ? deploymentPlanLead : null,
@@ -194,6 +203,38 @@ function buildPhases(agents: Role[], raciMatrix: RaciMatrix): PhaseInfo[] {
   }
 
   return phases;
+}
+
+/**
+ * Build the rendered markdown blocks for narrative_only phases.
+ *
+ * Why this exists: Discovery (and any future narrative_only phase) carries
+ * its prose in phase-deliverables.yaml as `narrative_markdown` — single
+ * source of truth. The prose contains placeholders in single-brace form
+ * ({visionAgent}, {backlogAgent}, {designSystemAgent}) so it doesn't
+ * conflict with Handlebars syntax in the .hbs template. We substitute
+ * them here against the resolved discovery context.
+ *
+ * To add a new placeholder: extend the substitution map below and update
+ * the placeholder docstring on PhaseGateSchema.narrative_markdown in
+ * src/loader/schemas.ts so authors know what's available.
+ */
+function buildNarrativeBlocks(
+  phaseDeliverables: PhaseDeliverables | undefined,
+  discovery: { visionAgent: string; backlogAgent: string; designSystemAgent: string },
+): Array<{ id: string; markdown: string }> {
+  if (!phaseDeliverables) return [];
+  const blocks: Array<{ id: string; markdown: string }> = [];
+  for (const phase of phaseDeliverables.phases) {
+    if (!phase.narrative_only) continue;
+    if (!phase.narrative_markdown) continue;
+    const resolved = phase.narrative_markdown
+      .replace(/\{visionAgent\}/g, discovery.visionAgent)
+      .replace(/\{backlogAgent\}/g, discovery.backlogAgent)
+      .replace(/\{designSystemAgent\}/g, discovery.designSystemAgent);
+    blocks.push({ id: phase.id, markdown: resolved });
+  }
+  return blocks;
 }
 
 function buildDependencyChain(agents: Role[], _depGraph: DependencyGraph): DependencyLink[] {

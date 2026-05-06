@@ -58,6 +58,7 @@ type StepName =
   | "platform"
   | "model-strategy"
   | "provider"
+  | "orchestrator-model"
   | "permissions"
   | "isolation"
   | "description"
@@ -90,6 +91,10 @@ interface WizardData {
   permissionMode?: PermissionMode;
   isolationMode?: IsolationMode;
   modelOverrides?: Record<string, { cognitive_tier?: "strategic" | "implementation" | "mechanical"; reasoning?: "none" | "low" | "medium" | "high" }>;
+  /** Per-role explicit model assignment — high-leverage escape hatch.
+   * Wizard exposes this for the orchestrator only (highest blast radius).
+   * Other role overrides go via project-manifest.yaml manually. */
+  modelOverridesExplicit?: Record<string, { provider?: "anthropic" | "openai"; model: string; reasoning_effort?: "none" | "low" | "medium" | "high" }>;
   selection?: SelectionResult;
   generated?: PipelineResult;
   generationError?: string;
@@ -123,6 +128,7 @@ function stepNumber(step: StepName): number | null {
       return 2;
     case "model-strategy":
     case "provider":
+    case "orchestrator-model":
     case "permissions":
     case "isolation":
       return 3;
@@ -344,6 +350,7 @@ function buildConfig(data: WizardData): ProjectConfig {
     provider: data.provider ?? "anthropic",
     modelStrategy: data.modelStrategy ?? "custom",
     modelOverrides: data.modelOverrides,
+    modelOverridesExplicit: data.modelOverridesExplicit,
     permissionMode: data.permissionMode ?? "recommended",
     isolationMode: data.isolationMode ?? "devcontainer",
     mode,
@@ -628,11 +635,69 @@ function renderStep(
             ]}
             onSubmit={(provider) => {
               setData((d) => ({ ...d, provider }));
-              go("permissions");
+              go("orchestrator-model");
             }}
           />
         </Box>
       );
+
+    case "orchestrator-model": {
+      type OrchModel = "default" | "claude-opus-4-7" | "gpt-5.2" | "skip";
+      const isAnthropic = data.provider === "anthropic";
+      return (
+        <Box flexDirection="column">
+          <StepHeader step={3} total={TOTAL_STEPS} title="Modelo del orquestador" />
+          <Box marginBottom={1} flexDirection="column">
+            <Text dimColor>
+              El orchestrator coordina al equipo y decide cuándo bloquear/aprobar
+              gates — su adherencia a las skills cargadas es crítica.
+            </Text>
+            <Text dimColor>
+              Puedes asignarle un modelo explícito de alta capacidad por encima
+              del lookup tier+reasoning. Recomendado para iteraciones largas o
+              proyectos con muchos roles.
+            </Text>
+          </Box>
+          <SelectInput<OrchModel>
+            label="¿Modelo para el orchestrator?"
+            initialValue="default"
+            options={[
+              { label: "Default — calculado por tier+reasoning del rol", value: "default" },
+              { label: "Anthropic Claude Opus 4.7 + reasoning_effort=high (recomendado para proyectos complejos)", value: "claude-opus-4-7" },
+              { label: "OpenAI GPT-5.2 + reasoning_effort=high", value: "gpt-5.2" },
+              { label: "Saltar — editaré model_overrides_explicit en project-manifest.yaml después", value: "skip" },
+            ]}
+            onSubmit={(choice) => {
+              setData((d) => {
+                const next = { ...d };
+                if (choice === "claude-opus-4-7") {
+                  next.modelOverridesExplicit = {
+                    ...(next.modelOverridesExplicit ?? {}),
+                    orchestrator: { provider: "anthropic", model: "claude-opus-4-7", reasoning_effort: "high" },
+                  };
+                } else if (choice === "gpt-5.2") {
+                  next.modelOverridesExplicit = {
+                    ...(next.modelOverridesExplicit ?? {}),
+                    orchestrator: { provider: "openai", model: "gpt-5.2", reasoning_effort: "high" },
+                  };
+                }
+                // "default" / "skip" leave modelOverridesExplicit untouched
+                return next;
+              });
+              go("permissions");
+            }}
+          />
+          {!isAnthropic && (
+            <Box marginTop={1}>
+              <Text color="yellow" dimColor>
+                Nota: elegiste OpenAI como provider; las demás roles seguirán en
+                OpenAI aún si pones Claude Opus en el orchestrator.
+              </Text>
+            </Box>
+          )}
+        </Box>
+      );
+    }
 
     case "permissions":
       return (

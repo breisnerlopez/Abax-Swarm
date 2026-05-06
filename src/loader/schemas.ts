@@ -429,10 +429,18 @@ const PhaseGateSchema = z.object({
   gates: z.array(GateSchema).default([]),
   /** When true, this phase exists for plugin/scope enforcement BUT is NOT
    * rendered as a structured ### Fase N: section in the orchestrator
-   * template. Used when the orchestrator template carries rich narrative
-   * for that phase (currently only Fase 0 Discovery) and the structured
-   * representation would duplicate it. The plugin still sees the phase. */
+   * template. The narrative_markdown field below carries the prose that
+   * IS rendered in its place. Setting narrative_only without
+   * narrative_markdown means the phase is invisible to humans (legal but
+   * usually a config mistake — caught by tests/unit/generator/orchestrator.test.ts). */
   narrative_only: z.boolean().default(false),
+  /** Markdown prose rendered in the orchestrator output for narrative_only
+   * phases. Should include its own "### Fase N: <title>" heading. May
+   * contain placeholders in single-brace form: {visionAgent}, {backlogAgent},
+   * {designSystemAgent} — the generator resolves these against the team
+   * before emission. To extend with new placeholders, see
+   * src/generator/opencode/orchestrator-generator.ts narrativeBlocks. */
+  narrative_markdown: z.string().default(""),
 });
 
 export const PhaseDeliverablesSchema = z.object({
