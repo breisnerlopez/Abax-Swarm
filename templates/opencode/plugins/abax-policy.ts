@@ -96,16 +96,24 @@ interface AbaxPolicies {
   role_categories?: Record<string, string>;
 }
 
-// ---- Pure functions: extracted so they can be unit-tested ----
+// ---- Pure functions (module-private) ----
+// NOTE: these are intentionally NOT exported. opencode's plugin loader
+// (Bun-based) appears to introspect exported functions at load time — when
+// they were exported, Bun emitted a misleading "X.toLowerCase is not a
+// function" error during plugin init (the hooks still wired up correctly
+// afterwards, but the noise made debugging harder). Keeping them private
+// avoids the introspection path entirely.
 
 /**
- * Detect which atomic actions appear in a free-text prompt. Case-insensitive
- * substring match — keyword vocabularies are usually short verbs/phrases so
- * substring is good enough and tolerates morphology ("compila", "compilando").
+ * Detect which atomic actions appear in a free-text task prompt.
+ * Case-insensitive substring match — keyword vocabularies are usually
+ * short verbs/phrases so substring tolerates morphology ("compila",
+ * "compilando"). Parameter named `text` (not `prompt`) to avoid the
+ * Bun/Web `globalThis.prompt` global.
  */
-export function detectActions(prompt: string, actions: AtomicAction[]): Set<string> {
+function detectActions(text: string, actions: AtomicAction[]): Set<string> {
   const found = new Set<string>();
-  const lower = prompt.toLowerCase();
+  const lower = text.toLowerCase();
   for (const a of actions) {
     for (const kw of a.keywords) {
       if (lower.includes(kw.toLowerCase())) {
@@ -121,7 +129,7 @@ export function detectActions(prompt: string, actions: AtomicAction[]): Set<stri
  * Find every forbidden_combination whose required actions are all detected.
  * Returns the matched combos so the caller can format the error.
  */
-export function findViolations(
+function findViolations(
   detected: Set<string>,
   combos: ForbiddenCombo[],
   role: string,
@@ -144,7 +152,7 @@ export function findViolations(
  * Scan text for any secret pattern. Returns matches with their pattern
  * metadata. Caller decides whether to block (severity:block) or just warn.
  */
-export function scanSecrets(text: string, patterns: SecretPattern[]): Array<{
+function scanSecrets(text: string, patterns: SecretPattern[]): Array<{
   pattern: SecretPattern;
   preview: string;
 }> {
@@ -171,7 +179,7 @@ export function scanSecrets(text: string, patterns: SecretPattern[]): Array<{
  * Resolve effective limits for a role: by_role > by_category > default.
  * Returns the merged limits object (every field defined or undefined).
  */
-export function resolveLimits(
+function resolveLimits(
   role: string,
   limits: RunawayLimits | undefined,
   roleCategory: Record<string, string> | undefined,
@@ -238,10 +246,11 @@ const PLUGIN: Plugin = async (input) => {
 
       // ---- Atomicity check (only for task delegations) ----
       if (tool === "task" && policies.task_contracts) {
-        const prompt = String(o.args?.prompt ?? o.args?.description ?? "");
+        // Local var named `taskPrompt` (not `prompt`) — see detectActions docstring.
+        const taskPrompt = String(o.args?.prompt ?? o.args?.description ?? "");
         const role = String(o.args?.subagent_type ?? o.args?.agent ?? "");
-        if (prompt) {
-          const actions = detectActions(prompt, policies.task_contracts.atomic_actions);
+        if (taskPrompt) {
+          const actions = detectActions(taskPrompt, policies.task_contracts.atomic_actions);
           const violations = findViolations(
             actions,
             policies.task_contracts.forbidden_combinations,
