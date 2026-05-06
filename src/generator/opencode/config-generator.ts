@@ -127,9 +127,38 @@ export function generateProjectManifest(
     generated_by: "abax-swarm v0.1.0",
   };
 
+  // Preserve user-supplied policy overrides through round-trip. Without
+  // this, calling `regenerate` on a customised manifest silently drops
+  // the user's task_contracts_override / secret_patterns_extra /
+  // runaway_limits_override / model_overrides_explicit blocks. Each is
+  // emitted only when present (preserves a clean manifest for projects
+  // that don't customise).
+  const overridesPresent: Record<string, unknown> = {};
+  if (config.taskContractsOverride !== undefined) {
+    overridesPresent.task_contracts_override = config.taskContractsOverride;
+  }
+  if (config.secretPatternsExtra !== undefined) {
+    overridesPresent.secret_patterns_extra = config.secretPatternsExtra;
+  }
+  if (config.runawayLimitsOverride !== undefined) {
+    overridesPresent.runaway_limits_override = config.runawayLimitsOverride;
+  }
+  if (config.modelOverridesExplicit !== undefined) {
+    overridesPresent.model_overrides_explicit = config.modelOverridesExplicit;
+  }
+
+  // The commented-out trailer is documentation for projects WITHOUT
+  // active overrides. When the user has at least one override, we don't
+  // duplicate the templates — the live block is self-documenting.
+  const hasActiveOverrides = Object.keys(overridesPresent).length > 0;
+  const trailer = hasActiveOverrides ? "" : POLICY_OVERRIDES_TRAILER;
+  const overrideYaml = hasActiveOverrides
+    ? "\n# ========================================================\n# Active policy overrides (from project-manifest.yaml input)\n# ========================================================\n" + stringify(overridesPresent)
+    : "";
+
   return {
     path: "project-manifest.yaml",
-    content: stringify(manifest) + POLICY_OVERRIDES_TRAILER,
+    content: stringify(manifest) + overrideYaml + trailer,
   };
 }
 

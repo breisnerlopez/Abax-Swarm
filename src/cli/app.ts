@@ -126,6 +126,15 @@ program
         permissionMode: manifest.project.permission_mode ?? "recommended",
         isolationMode: manifest.project.isolation_mode ?? "devcontainer",
         detection,
+        // Optional policy overrides documented in the v0.1.40 manifest
+        // trailer. Top-level YAML keys; Zod has already validated the
+        // schema shapes when present. Undefined when the user has not
+        // uncommented any block — the merge helpers treat undefined as
+        // a no-op so no behaviour change for projects without overrides.
+        taskContractsOverride: manifest.task_contracts_override,
+        secretPatternsExtra: manifest.secret_patterns_extra,
+        runawayLimitsOverride: manifest.runaway_limits_override,
+        modelOverridesExplicit: manifest.model_overrides_explicit,
       };
 
       const selection = runSelection(config, ctx);
