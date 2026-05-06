@@ -98,7 +98,22 @@ function generateFiles(
       config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
     );
     files.push(orchestratorFile);
-    files.push(cc.generateClaudeConfig(adaptedRoles));
+
+    // Emit policy hook + merged policies JSON. Same merged content as the
+    // opencode plugin, different runtime (Python script + .claude/settings.json
+    // hooks block instead of TS plugin).
+    const policyFiles = cc.generateClaudePolicyFiles(
+      config,
+      adaptedRoles,
+      ctx.taskContracts,
+      ctx.secretPatterns,
+      ctx.runawayLimits,
+      ctx.phaseDeliverables,
+      stack,
+    );
+    files.push(...policyFiles);
+
+    files.push(cc.generateClaudeConfig(adaptedRoles, cc.CLAUDE_HOOK_INVOCATION));
     files.push(cc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 
     if (teamUsesPresentations(skills)) files.push(generatePresentationTemplate());
