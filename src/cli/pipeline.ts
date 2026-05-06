@@ -82,8 +82,10 @@ function generateFiles(
     documentPhases: ctx.documentMode?.phases,
   };
 
+  const permissionMode = config.permissionMode ?? "recommended";
+
   if (target === "claude") {
-    files.push(...cc.generateAllAgentFiles(adaptedRoles, skills, mix));
+    files.push(...cc.generateAllAgentFiles(adaptedRoles, skills, mix, permissionMode));
     files.push(...cc.generateAllSkillFiles(skills));
     files.push(...cc.generateAllToolFiles(tools));
 
@@ -103,7 +105,7 @@ function generateFiles(
   }
 
   // Default: opencode
-  files.push(...oc.generateAllAgentFiles(adaptedRoles, skills, mix));
+  files.push(...oc.generateAllAgentFiles(adaptedRoles, skills, mix, permissionMode));
   files.push(...oc.generateAllSkillFiles(skills));
   files.push(...oc.generateAllToolFiles(tools));
 
@@ -113,7 +115,7 @@ function generateFiles(
   files.push(orchestratorFile);
   files.push(oc.generateOpenCodeConfig(
     adaptedRoles, mix, undefined,
-    config.permissionMode ?? "recommended",
+    permissionMode,
     config.isolationMode ?? "devcontainer",
   ));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));

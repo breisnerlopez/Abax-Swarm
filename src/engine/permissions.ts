@@ -9,7 +9,11 @@ import type { PermissionMode, IsolationMode } from "./types.js";
  *                  is "devcontainer", apt/dpkg/sudo drop to "allow" because they
  *                  only affect the container. When "host", they remain in "ask"
  *                  to force user approval.
- * - "full":        "allow" string root — total bypass. The wizard banners this.
+ * - "full":        explicit object `{ "*": "allow", "bash": { "*": "allow" },
+ *                  "external_directory": "allow" }` — bypass total sin patterns
+ *                  en `ask`. La estructura objeto (no string "allow") es
+ *                  necesaria para overridear los prompts hardcoded de OpenCode
+ *                  v1.14.x sobre operaciones git. La wizard banners this.
  *
  * The per-agent permissions (agent.<id>.permission) override this root, so the
  * orchestrator's bash:deny stays intact.

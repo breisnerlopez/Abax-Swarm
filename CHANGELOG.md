@@ -6,6 +6,44 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.39] — 2026-05-04
+
+### Fixed — `permission_mode: full` ahora se aplica tambien al frontmatter de los `.md` de agente (regresion silenciosa)
+
+Sintoma reportado: el usuario eligio `permission_mode: full` en la wizard, el `opencode.json` quedo correctamente con `* allow` y los per-agent sin `ask` (gracias a `applyModeToAgentPermissions`), **pero la sesion de OpenCode seguia pidiendo confirmacion** para `bash` en `developer-backend`, `developer-frontend`, `devops`, `qa-functional`, `tech-lead` y para `webfetch` en `business-analyst`, `solution-architect`, `tech-lead`.
+
+### Causa raiz
+
+Los archivos `.opencode/agents/<role>.md` (y `.claude/agents/<role>.md`) llevan su propio frontmatter `permission:` que **OpenCode trata como override** sobre `agent.<id>.permission` del `opencode.json`. El generador de agentes (`src/generator/{opencode,claude}/agent-generator.ts`) renderizaba `role.agent.permissions` **crudo del role YAML**, sin pasar por `applyModeToAgentPermissions`. Resultado: el `opencode.json` decia "allow" pero el frontmatter del `.md` decia "ask", y el segundo ganaba.
+
+`config-generator.ts` ya aplicaba la funcion correctamente; era un bug solo del agent-generator.
+
+### Fix
+
+- `src/generator/opencode/agent-generator.ts`: `generateAgentFile` y `generateAllAgentFiles` ahora aceptan `permissionMode: PermissionMode` (default `"recommended"` para back-compat) y aplican `applyModeToAgentPermissions(role.agent.permissions, mode)` antes de pasar el contexto al template Handlebars.
+- `src/generator/claude/agent-generator.ts`: mismo cambio (paridad con OpenCode).
+- `src/cli/pipeline.ts`: propaga `config.permissionMode ?? "recommended"` a ambos generators.
+
+### Tests
+
+Cuatro tests nuevos en `tests/unit/generator/opencode-generator.test.ts`:
+
+1. **full mode = cero `ask` en frontmatter** — recorre todos los `.md` generados y verifica `not.toMatch(/^\s+\w+: ask$/m)`.
+2. **full mode preserva `deny`** — `business-analyst.bash: deny` (arquitectonico) sigue siendo `deny`.
+3. **strict mode degrada `allow` a `ask`** y mantiene `deny`.
+4. **recommended mode es pass-through** — output identico al default.
+
+Suite local: 17/17 en `opencode-generator.test.ts` (incluye los 4 nuevos). Las 11 fallas restantes en CI local son `EACCES` en `mkdir` de tmp dirs (sandbox), pre-existentes y sin relacion con este fix.
+
+### Migracion
+
+Los proyectos ya regenerados con 0.1.34-0.1.38 en modo `full` tienen frontmatters con `ask` que siguen pidiendo confirmacion. Soluciones:
+
+- **Recomendada**: `abax-swarm regenerate --dir <ruta>` con la 0.1.39 instalada.
+- **Parche manual** (sin regenerar): `sed -i 's/: ask$/: allow/' .opencode/agents/*.md` o `.claude/agents/*.md`.
+
+Reiniciar la sesion / cliente de OpenCode despues del cambio (los `.md` se cargan al inicio de sesion, no en caliente).
+
 ## [0.1.38] — 2026-05-03
 
 ### Added — agent prompt declares its tool catalog (anti `tool: invalid` round trip)

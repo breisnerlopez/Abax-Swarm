@@ -94,6 +94,45 @@ describe("AgentGenerator", () => {
     const deniedBlock = file.content.split("NO puedes llamar:")[1] ?? "";
     expect(deniedBlock).not.toMatch(/`bash`/);
   });
+
+  // 0.1.39: incident — user picked `permission_mode: full` but every session
+  // kept asking confirmation for bash/webfetch on subagents. Cause: the .md
+  // frontmatter rendered raw `role.agent.permissions` (e.g. `bash: ask`) and
+  // OpenCode treats per-agent .md as override over opencode.json. The fix is
+  // to apply applyModeToAgentPermissions in agent-generator.ts BEFORE render.
+  it("full mode: no `ask` in frontmatter, all asks elevated to allow", () => {
+    const skillList = Array.from(skills.values());
+    const roleList = Array.from(roles.values());
+    const files = generateAllAgentFiles(roleList, skillList, undefined, "full");
+    for (const file of files) {
+      const fm = file.content.split("---")[1] ?? "";
+      // Zero `ask` in frontmatter; deny is preserved by design
+      expect(fm).not.toMatch(/^\s+\w+: ask$/m);
+    }
+  });
+
+  it("full mode: deny is preserved (architectural)", () => {
+    const ba = roles.get("business-analyst")!;
+    // BA has bash:deny in role YAML — must stay deny in full mode
+    const file = generateAgentFile(ba, [], undefined, "full");
+    expect(file.content).toMatch(/^\s+bash: deny$/m);
+  });
+
+  it("strict mode: every allow demoted to ask, deny preserved", () => {
+    const dev = roles.get("developer-backend")!;
+    const file = generateAgentFile(dev, [], undefined, "strict");
+    const fm = file.content.split("---")[1] ?? "";
+    expect(fm).not.toMatch(/^\s+\w+: allow$/m);
+    // webfetch was deny in role YAML — must remain deny under strict
+    expect(fm).toMatch(/^\s+webfetch: deny$/m);
+  });
+
+  it("recommended mode: pass-through (default), original values intact", () => {
+    const dev = roles.get("developer-backend")!;
+    const fileDefault = generateAgentFile(dev, []);
+    const fileExplicit = generateAgentFile(dev, [], undefined, "recommended");
+    expect(fileDefault.content).toBe(fileExplicit.content);
+  });
 });
 
 describe("SkillGenerator", () => {
