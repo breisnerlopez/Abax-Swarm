@@ -129,6 +129,70 @@ export function generateProjectManifest(
 
   return {
     path: "project-manifest.yaml",
-    content: stringify(manifest),
+    content: stringify(manifest) + POLICY_OVERRIDES_TRAILER,
   };
 }
+
+/**
+ * Documentation trailer appended to every generated project-manifest.yaml.
+ * Documents the 4 optional override blocks shipped in the v0.1.40 schema
+ * extension, with commented-out examples so users see the syntax they need.
+ *
+ * Trailer is appended AFTER `generated_by` so it doesn't interfere with
+ * the structured fields. YAML parsers ignore trailing comments — proven
+ * by `abax-swarm regenerate` round-tripping the file unchanged.
+ *
+ * Why a trailer instead of a wizard step:
+ * The 4 overrides have very different shapes (regex lists, nested limits,
+ * per-role model maps). A wizard could only meaningfully capture a small
+ * fraction of valid configurations and would mislead users into thinking
+ * the wizard was authoritative. A documented trailer lets users discover
+ * the feature when they open their manifest, copy the relevant block,
+ * uncomment, and edit — which is the actual workflow once they need it.
+ */
+const POLICY_OVERRIDES_TRAILER = `
+# ============================================================================
+# Optional policy overrides (v0.1.40+)
+# ============================================================================
+# Uncomment and edit any of the four blocks below to override the baselines
+# in /srv/repos/Abax-Swarm/data/rules/{task-contracts,secret-patterns,
+# runaway-limits}.yaml or to override the per-role model assignment.
+#
+# Lists merge by \`id\`: an entry with a baseline id REPLACES the baseline
+# entry; a new id is added. Scalar fields merge field-by-field. Empty
+# blocks are equivalent to "use baseline as-is".
+#
+# Re-run \`abax-swarm regenerate --dir .\` after editing.
+
+# ---- 1. Task atomicity overlay ---------------------------------------------
+# task_contracts_override:
+#   forbidden_combinations:
+#     - id: my-project-rule
+#       actions: [build, push, deploy]   # see baseline for the action vocabulary
+#       reason: |
+#         Why this combination is dangerous in this project.
+
+# ---- 2. Project-specific secret patterns -----------------------------------
+# secret_patterns_extra:
+#   - id: internal-microservice-token
+#     regex: 'svc_[A-Z0-9]{32}'
+#     severity: block       # block | warn
+#     description: Internal service auth token
+
+# ---- 3. Runaway limits overlay ---------------------------------------------
+# runaway_limits_override:
+#   by_role:
+#     developer-backend:
+#       parts_max: 700        # this role naturally runs longer
+#       duration_min_max: 90
+
+# ---- 4. Per-role explicit model assignment ---------------------------------
+# Escape hatch over the cognitive_tier+reasoning lookup. Use sparingly —
+# typically only for the orchestrator (high blast radius, low volume).
+# model_overrides_explicit:
+#   orchestrator:
+#     provider: anthropic
+#     model: claude-opus-4-7
+#     reasoning_effort: high
+`;
+
