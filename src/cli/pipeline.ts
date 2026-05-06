@@ -118,10 +118,25 @@ function generateFiles(
     config.name, adaptedRoles, ctx.dependencies, ctx.raci, governance, ctx.phaseDeliverables, orchFlags,
   );
   files.push(orchestratorFile);
+
+  // Emit policy plugin + merged policies JSON. Generic across team
+  // composition: project-level overlays (taskContractsOverride,
+  // secretPatternsExtra, runawayLimitsOverride) are merged here so the
+  // runtime plugin reads a single ready-to-use file.
+  const pluginFiles = oc.generatePluginFiles(
+    config,
+    adaptedRoles,
+    ctx.taskContracts,
+    ctx.secretPatterns,
+    ctx.runawayLimits,
+  );
+  files.push(...pluginFiles);
+
   files.push(oc.generateOpenCodeConfig(
     adaptedRoles, mix, undefined,
     permissionMode,
     config.isolationMode ?? "devcontainer",
+    [oc.PLUGIN_OPENCODE_PATH],
   ));
   files.push(oc.generateProjectManifest(config, selection, adaptedRoles, skills, tools, stack, governance));
 

@@ -23,6 +23,10 @@ export function generateOpenCodeConfig(
   orchestratorDescription?: string,
   permissionMode: PermissionMode = "recommended",
   isolationMode: IsolationMode = "devcontainer",
+  /** Module specifiers to add under opencode.json `plugin: [...]`. Each
+   * entry is a relative path or npm package id. Optional — when absent,
+   * the field is omitted from the output. */
+  pluginPaths: string[] = [],
 ): GeneratedFile {
   const agentConfig: Record<string, unknown> = {};
 
@@ -71,6 +75,7 @@ export function generateOpenCodeConfig(
     agent: agentConfig,
   };
   if (rootPermission !== undefined) config.permission = rootPermission;
+  if (pluginPaths.length > 0) config.plugin = pluginPaths;
 
   return {
     path: "opencode.json",
