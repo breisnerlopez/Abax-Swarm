@@ -1,4 +1,61 @@
 phases:
+  # ---- Phase 0: Discovery (narrative_only) -----------------------------
+  # The orchestrator template (orchestrator.md.hbs) carries the rich
+  # narrative for this phase — 8 numbered steps that walk through how
+  # to elicit vision, epicas, historias, backlog, design-system and the
+  # discovery presentation. We declare the phase HERE solely so the
+  # runtime plugin can recognise "discovery" as a phase id for
+  # iteration-scope enforcement (skip_phases, minimal_phases,
+  # require_scope_for_phases). `narrative_only: true` instructs the
+  # generator NOT to emit a duplicate "### Fase N: Descubrimiento"
+  # block in the rendered orchestrator.md — the loop that renders
+  # phaseGates skips phases marked narrative_only.
+  - id: discovery
+    name: Descubrimiento y Definicion de Alcance
+    gate_approver: product-owner
+    narrative_only: true
+    deliverables:
+      - id: vision-producto
+        name: Vision del Producto
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: epicas-features
+        name: Mapa de Epicas y Features
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: historias-usuario
+        name: Historias de Usuario con Criterios de Aceptacion
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: design-system-template
+        name: Design System de Presentaciones (HTML template)
+        # First-iteration deliverable. In subsequent iterations the
+        # template already exists and this deliverable is skipped via
+        # iteration-scopes. Falls back to ux-designer when present in
+        # the team; otherwise BA produces the initial template.
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: backlog-priorizado
+        name: Product Backlog Priorizado (MVP identificado)
+        responsible: business-analyst
+        approver: product-owner
+        mandatory: true
+        artifact_type: document
+      - id: discovery-presentation
+        name: Presentacion de Descubrimiento (HTML)
+        responsible: project-manager
+        approver: product-owner
+        mandatory: true
+        artifact_type: presentation
+
   - id: inception
     name: Inicio
     gate_approver: product-owner

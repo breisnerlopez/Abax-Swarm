@@ -189,3 +189,42 @@ describe("Orchestrator validation", () => {
     expect(file.content).toContain("Estricto y trazable");
   });
 });
+
+describe("Orchestrator: narrative_only phase handling", () => {
+  it("does NOT render a structured ### Fase block for phases marked narrative_only", () => {
+    // discovery phase in phase-deliverables.yaml has narrative_only: true.
+    // The orchestrator template carries the rich Phase 0 narrative inline,
+    // so the structured loop must skip it to avoid duplication.
+    const teamIds = [
+      "business-analyst",
+      "tech-lead",
+      "developer-backend",
+      "qa-functional",
+      "product-owner",
+      "project-manager",
+    ];
+    const { file } = generateForTeam(teamIds, "small", "narrative-test");
+    const allFaseHeadings = (file.content.match(/^### Fase \d+: [^\n]+/gm) || []);
+    // Index 0 is the hardcoded narrative "### Fase 0: Descubrimiento ...".
+    // Index 1 must be the FIRST structured loop entry: "Fase 1: Inicio".
+    // If the loop did NOT skip narrative_only, index 1 would be a
+    // duplicate "Fase 1: Descubrimiento..." (or shift everything by one).
+    expect(allFaseHeadings[0]).toMatch(/Fase 0: Descubrimiento/);
+    expect(allFaseHeadings[1]).toMatch(/Fase 1: Inicio/);
+    // Sanity: only one "Descubrimiento" heading total (the narrative).
+    const discoveryHeadings = allFaseHeadings.filter((l) =>
+      /Descubrimiento/i.test(l),
+    );
+    expect(discoveryHeadings).toHaveLength(1);
+  });
+
+  it("policies.phases (consumed by plugin) STILL includes narrative_only phases", async () => {
+    // The plugin needs to recognise `discovery` for iteration-scope
+    // enforcement even though the orchestrator template renders it as
+    // narrative. Verify the canonical phase id list is preserved.
+    const phaseIds = rules.phaseDeliverables.phases.map((p) => p.id);
+    expect(phaseIds).toContain("discovery");
+    const discovery = rules.phaseDeliverables.phases.find((p) => p.id === "discovery");
+    expect(discovery?.narrative_only).toBe(true);
+  });
+});

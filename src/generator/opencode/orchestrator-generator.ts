@@ -139,6 +139,11 @@ function buildPhaseGates(
   let order = 0;
 
   for (const p of phaseDeliverables.phases) {
+    // Phases marked narrative_only are owned by the orchestrator template
+    // text (e.g. Fase 0 Discovery has rich 8-step narrative). Skip them
+    // here so we don't render a duplicate structured "### Fase N: ..."
+    // block. The runtime plugin still sees the phase via policies.phases.
+    if (p.narrative_only) continue;
     // Only include mandatory deliverables whose responsible agent is in the team
     const deliverables = p.deliverables
       .filter((d) => d.mandatory && agentIds.has(d.responsible))

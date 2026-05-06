@@ -127,6 +127,9 @@ function buildPhaseGates(
   let order = 0;
 
   for (const p of phaseDeliverables.phases) {
+    // Skip phases owned by orchestrator template narrative — see
+    // opencode/orchestrator-generator.ts for the full reasoning.
+    if (p.narrative_only) continue;
     const deliverables = p.deliverables
       .filter((d) => d.mandatory && agentIds.has(d.responsible))
       .map((d) => ({

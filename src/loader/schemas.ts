@@ -416,6 +416,12 @@ const PhaseGateSchema = z.object({
   /** Verifiable conditions evaluated by the phase-state tool before the
    * gate approver can sign. Empty by default for backward compatibility. */
   gates: z.array(GateSchema).default([]),
+  /** When true, this phase exists for plugin/scope enforcement BUT is NOT
+   * rendered as a structured ### Fase N: section in the orchestrator
+   * template. Used when the orchestrator template carries rich narrative
+   * for that phase (currently only Fase 0 Discovery) and the structured
+   * representation would duplicate it. The plugin still sees the phase. */
+  narrative_only: z.boolean().default(false),
 });
 
 export const PhaseDeliverablesSchema = z.object({
