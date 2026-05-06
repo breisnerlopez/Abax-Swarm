@@ -84,11 +84,11 @@ scopes:
       - inception
     minimal_phases:
       functional-analysis:
-        - functional-spec        # solo para los items afectados
-        - acceptance-criteria    # idem
+        - functional-spec            # solo para los items afectados
+        - acceptance-criteria-doc    # idem
       technical-design:
-        - architecture-doc       # solo deltas de arquitectura
-        - technical-decomposition
+        - architecture-doc           # solo deltas de arquitectura
+        - technical-task-breakdown
     full_phases:
       - construction
       - qa-testing

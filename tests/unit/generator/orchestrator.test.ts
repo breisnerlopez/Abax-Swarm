@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { join } from "path";
+import { readFileSync } from "fs";
 import { loadRolesAsMap } from "../../../src/loader/role-loader.js";
 import { loadAllRules } from "../../../src/loader/rule-loader.js";
 import { generateOrchestratorFile } from "../../../src/generator/opencode/orchestrator-generator.js";
@@ -226,5 +227,39 @@ describe("Orchestrator: narrative_only phase handling", () => {
     expect(phaseIds).toContain("discovery");
     const discovery = rules.phaseDeliverables.phases.find((p) => p.id === "discovery");
     expect(discovery?.narrative_only).toBe(true);
+  });
+
+  it("every narrative_only phase has matching prose in orchestrator.md.hbs", () => {
+    // Guardrail for the fragility surfaced in the post-fix audit:
+    // narrative_only phases are skipped by the structured loop but the
+    // template carries hand-written prose for them. If a future commit
+    // adds a narrative_only phase WITHOUT corresponding prose in the
+    // template, the rendered orchestrator.md silently lacks that phase.
+    // This test fails on that drift.
+    const templatePath = join(__dirname, "../../../templates/opencode/orchestrator.md.hbs");
+    const template = readFileSync(templatePath, "utf8");
+
+    const missing: string[] = [];
+    for (const phase of rules.phaseDeliverables.phases) {
+      if (!phase.narrative_only) continue;
+      // Heuristic: phase id OR a recognisable token from `name`. We
+      // require the template to contain at least one of:
+      //   - "Fase N: <name prefix>"
+      //   - the literal phase id
+      // For the current "discovery" phase, the template has
+      //   "### Fase 0: Descubrimiento y Definicion de Alcance"
+      // — covered by both the phase.id check (discovery / Discovery)
+      // and the name check.
+      const idHit = new RegExp(`\\b${phase.id}\\b`, "i").test(template);
+      const namePrefix = phase.name.split(/\s+/)[0];   // "Descubrimiento"
+      const nameHit = new RegExp(`\\b${namePrefix}\\b`, "i").test(template);
+      if (!idHit && !nameHit) {
+        missing.push(`${phase.id} (name: "${phase.name}")`);
+      }
+    }
+    expect(
+      missing,
+      `narrative_only phases without matching prose in orchestrator.md.hbs:\n  ${missing.join("\n  ")}\n\nEither (a) add a "### Fase N: <name>" section to the template, OR (b) drop narrative_only:true and let the structured loop render it.`,
+    ).toEqual([]);
   });
 });

@@ -19,6 +19,7 @@ import {
   mergeIterationScopes,
 } from "../opencode/plugin-generator.js";
 import { resolveDeliverablesForTeam } from "../../engine/role-fallback.js";
+import { CC_HOOK_PATH, CC_POLICIES_PATH } from "../../engine/paths.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = join(__dirname, "../../../templates/claude/hooks/abax-policy.py");
@@ -88,14 +89,14 @@ export function generateClaudePolicyFiles(
 
   return [
     {
-      path: ".claude/hooks/abax-policy.py",
+      path: CC_HOOK_PATH,
       content: hookSource,
       // chmod is not part of GeneratedFile today; settings.json invokes
       // via `python3 .claude/hooks/abax-policy.py` to avoid relying on
       // executable bit (see HOOK_INVOCATION).
     },
     {
-      path: ".claude/policies/abax-policies.json",
+      path: CC_POLICIES_PATH,
       content: JSON.stringify(policies, null, 2) + "\n",
     },
   ];
@@ -106,7 +107,7 @@ export function generateClaudePolicyFiles(
  * `python3 <path>` removes any dependency on the executable bit being
  * preserved by the writer.
  */
-export const HOOK_INVOCATION = "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/abax-policy.py\"";
+export const HOOK_INVOCATION = `python3 "$CLAUDE_PROJECT_DIR/${CC_HOOK_PATH}"`;
 
 function stackCommandsForRuntime(stack: Stack): Record<string, Record<string, string>> {
   const out: Record<string, Record<string, string>> = {};

@@ -94,6 +94,7 @@ tools:
   - phase-state
   - attest-deliverable
   - set-iteration-scope
+  - suggest-iteration-scope
 
 stack_overrides:
   angular-springboot:

@@ -14,6 +14,7 @@ import type {
 import type { ProjectConfig } from "../../engine/types.js";
 import type { GeneratedFile } from "./agent-generator.js";
 import { resolveDeliverablesForTeam } from "../../engine/role-fallback.js";
+import { OC_PLUGIN_PATH, OC_POLICIES_PATH } from "../../engine/paths.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // templates/ is sibling to src/ in the package layout.
@@ -96,9 +97,9 @@ export function generatePluginFiles(
   }
 
   return [
-    { path: ".opencode/plugins/abax-policy.ts", content: pluginSource },
+    { path: OC_PLUGIN_PATH, content: pluginSource },
     {
-      path: ".opencode/policies/abax-policies.json",
+      path: OC_POLICIES_PATH,
       content: JSON.stringify(policies, null, 2) + "\n",
     },
   ];
@@ -122,8 +123,9 @@ function stackCommandsForRuntime(stack: Stack): Record<string, Record<string, st
   return out;
 }
 
-/** Path to the generated plugin file, used by config-generator. */
-export const PLUGIN_OPENCODE_PATH = ".opencode/plugins/abax-policy.ts";
+/** Path to the generated plugin file, used by config-generator.
+ * Re-exported from src/engine/paths.ts for stable import-paths. */
+export { PLUGIN_OPENCODE_PATH } from "../../engine/paths.js";
 
 // ---- Merge helpers (exported for unit testing) ----
 
