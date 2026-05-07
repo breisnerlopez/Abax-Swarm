@@ -94,10 +94,51 @@ export function printFileList(result: PipelineResult): void {
     }
   }
 
-  if (result.orchestratorWarnings.length > 0) {
-    console.log(`\n${YELLOW}  Advertencias del orquestador:${RESET}`);
-    for (const w of result.orchestratorWarnings) {
-      console.log(`  ${YELLOW}⚠${RESET} ${w}`);
+  printValidatorFindings(result);
+}
+
+/**
+ * Render validator findings with collapse semantics (introduced in 0.1.41):
+ *
+ *  - 0 warnings, 0 notices         → nothing printed (silent success)
+ *  - <= MAX_INLINE warnings        → all printed in full
+ *  - > MAX_INLINE warnings         → first WARNING_PREVIEW shown, rest collapsed
+ *                                    behind a hint to run `abax-swarm validate`
+ *  - notices                       → count only, never inline (use --verbose)
+ */
+const MAX_INLINE_WARNINGS = 10;
+const WARNING_PREVIEW = 5;
+
+export function printValidatorFindings(result: PipelineResult, verbose = false): void {
+  const w = result.orchestratorWarnings;
+  const n = result.orchestratorNotices;
+
+  if (w.length === 0 && n.length === 0) return;
+
+  if (w.length > 0) {
+    console.log(`\n${YELLOW}  Advertencias del orquestador (${w.length}):${RESET}`);
+    if (verbose || w.length <= MAX_INLINE_WARNINGS) {
+      for (const m of w) console.log(`  ${YELLOW}⚠${RESET} ${m}`);
+    } else {
+      for (let i = 0; i < WARNING_PREVIEW; i++) {
+        console.log(`  ${YELLOW}⚠${RESET} ${w[i]}`);
+      }
+      console.log(
+        `  ${DIM}… y ${w.length - WARNING_PREVIEW} más. ` +
+          `Ejecuta ${BOLD}abax-swarm validate${RESET}${DIM} (con --verbose) para ver el detalle.${RESET}`,
+      );
+    }
+  }
+
+  if (n.length > 0) {
+    if (verbose) {
+      console.log(`\n${CYAN}  Notas informativas (${n.length}):${RESET}`);
+      for (const m of n) console.log(`  ${CYAN}ℹ${RESET} ${m}`);
+    } else {
+      console.log(
+        `\n  ${CYAN}ℹ${RESET} ${n.length} ${n.length === 1 ? "nota informativa" : "notas informativas"} ` +
+          `(fallbacks aplicados o roles opcionales). ${DIM}Usa --verbose para verlos.${RESET}`,
+      );
     }
   }
 }

@@ -95,22 +95,27 @@ describe("validateGatesAgainstTeam", () => {
 });
 
 describe("validateGatesForDocumentMode", () => {
-  it("warns when a phase declares gates but the phase id is not in document mode", () => {
+  // 0.1.41: doc-mode bypass messages are informational (the user explicitly
+  // chose document mode; ignored gates aren't actionable). Now in `notices`.
+  it("notes when a phase declares gates but the phase id is not in document mode", () => {
     const result = validateGatesForDocumentMode(fixture, ["discovery", "documentation", "publication"]);
-    expect(result.warnings.length).toBe(1);
-    expect(result.warnings[0]).toMatch(/Phase "construction" declares 2 gate\(s\)/);
+    expect(result.warnings).toEqual([]);
+    expect(result.notices.length).toBe(1);
+    expect(result.notices[0]).toMatch(/Phase "construction" declares 2 gate\(s\)/);
   });
 
-  it("does not warn when the phase id IS one of the document phases", () => {
+  it("does not note when the phase id IS one of the document phases", () => {
     const result = validateGatesForDocumentMode(fixture, ["construction"]);
     expect(result.warnings).toEqual([]);
+    expect(result.notices).toEqual([]);
   });
 
-  it("does not warn for a phase with zero gates even if it's outside document mode", () => {
+  it("does not note for a phase with zero gates even if it's outside document mode", () => {
     const noGates: PhaseDeliverables = {
       phases: [{ ...fixture.phases[0], gates: [] }],
     };
     const result = validateGatesForDocumentMode(noGates, ["discovery"]);
     expect(result.warnings).toEqual([]);
+    expect(result.notices).toEqual([]);
   });
 });

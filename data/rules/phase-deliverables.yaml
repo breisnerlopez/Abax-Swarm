@@ -149,19 +149,25 @@ phases:
       - id: vision-producto
         name: Vision del Producto
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: epicas-features
         name: Mapa de Epicas y Features
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: historias-usuario
         name: Historias de Usuario con Criterios de Aceptacion
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: design-system-template
@@ -171,19 +177,24 @@ phases:
         # iteration-scopes. Falls back to ux-designer when present in
         # the team; otherwise BA produces the initial template.
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: backlog-priorizado
         name: Product Backlog Priorizado (MVP identificado)
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: discovery-presentation
         name: Presentacion de Descubrimiento (HTML)
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -195,30 +206,35 @@ phases:
         name: Acta de Constitucion del Proyecto
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: kickoff-presentation
         name: Presentacion de Kickoff
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: stakeholder-register
         name: Registro de Interesados
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: initial-risk-matrix
         name: Matriz de Riesgos Inicial
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: project-schedule
         name: Cronograma Preliminar
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: diagram
 
@@ -229,37 +245,49 @@ phases:
       - id: functional-spec
         name: Especificacion Funcional
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: business-rules-doc
         name: Documento de Reglas de Negocio
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: process-diagrams
         name: Diagramas de Proceso
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: diagram
       - id: acceptance-criteria-doc
         name: Criterios de Aceptacion
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: functional-presentation
         name: Presentacion de Propuesta Funcional
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: change-impact-report
         name: Analisis de Impacto del Cambio
         responsible: change-manager
+        responsible_fallback: [project-manager, business-analyst]
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: false
         artifact_type: document
 
@@ -271,6 +299,7 @@ phases:
         name: Documento de Arquitectura
         responsible: solution-architect
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         responsible_fallback: [tech-lead]
@@ -278,6 +307,7 @@ phases:
         name: Presentacion de Arquitectura
         responsible: solution-architect
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
         responsible_fallback: [tech-lead]
@@ -292,19 +322,24 @@ phases:
       - id: integration-design-doc
         name: Diseno de Integraciones
         responsible: integration-architect
+        responsible_fallback: [solution-architect, tech-lead]
         approver: solution-architect
+        approver_fallback: [tech-lead, project-manager, developer-backend]
         mandatory: false
         artifact_type: document
       - id: security-assessment
         name: Evaluacion de Seguridad
         responsible: security-architect
+        responsible_fallback: [solution-architect, tech-lead]
         approver: solution-architect
+        approver_fallback: [tech-lead, project-manager, developer-backend]
         mandatory: false
         artifact_type: document
       - id: test-strategy-doc
         name: Estrategia de Pruebas
         responsible: qa-lead
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: document
         responsible_fallback: [qa-functional]
@@ -312,6 +347,7 @@ phases:
         name: Descomposicion Tecnica de Tareas
         responsible: tech-lead
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: document
 
@@ -341,6 +377,7 @@ phases:
         name: Verificacion de entorno y dependencias
         responsible: devops
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         attestation_required: true
@@ -352,6 +389,7 @@ phases:
         name: Codigo Fuente Implementado
         responsible: developer-backend
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: code
         attestation_required: true
@@ -378,18 +416,21 @@ phases:
         name: Pruebas Unitarias
         responsible: developer-backend
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: code
       - id: api-documentation
         name: Documentacion de API
         responsible: developer-backend
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: false
         artifact_type: document
       - id: project-readme
         name: README del Proyecto
         responsible: tech-writer
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         responsible_fallback: [tech-lead]
@@ -400,6 +441,7 @@ phases:
         name: Esqueleto de docs/
         responsible: tech-writer
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         responsible_fallback: [tech-lead]
@@ -410,12 +452,14 @@ phases:
         name: Presentacion de Avance
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: code-review-report
         name: Reporte de Revision de Codigo
         responsible: tech-lead
         approver: solution-architect
+        approver_fallback: [tech-lead, project-manager, developer-backend]
         mandatory: true
         artifact_type: report
       # BLOQUEANTE — ULTIMO entregable de Construccion antes de fase QA.
@@ -429,7 +473,9 @@ phases:
       - id: feature-spec-compliance
         name: Verificacion de cumplimiento Feature vs Especificacion
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
 
@@ -441,31 +487,37 @@ phases:
         name: Casos de Prueba
         responsible: qa-functional
         approver: qa-lead
+        approver_fallback: [qa-functional, tech-lead, project-manager]
         mandatory: true
         artifact_type: document
       - id: test-execution-report
         name: Reporte de Ejecucion de Pruebas
         responsible: qa-functional
         approver: qa-lead
+        approver_fallback: [qa-functional, tech-lead, project-manager]
         mandatory: true
         artifact_type: report
       - id: defect-report
         name: Reporte de Defectos
         responsible: qa-functional
         approver: qa-lead
+        approver_fallback: [qa-functional, tech-lead, project-manager]
         mandatory: true
         artifact_type: report
       - id: qa-results-presentation
         name: Presentacion de Resultados QA
         responsible: qa-lead
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: presentation
         responsible_fallback: [qa-functional]
       - id: performance-report
         name: Reporte de Pruebas de Rendimiento
         responsible: qa-performance
+        responsible_fallback: [qa-functional, tech-lead]
         approver: qa-lead
+        approver_fallback: [qa-functional, tech-lead, project-manager]
         mandatory: false
         artifact_type: report
       - id: regression-report
@@ -484,25 +536,33 @@ phases:
       - id: uat-plan
         name: Plan de UAT
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: uat-execution-report
         name: Reporte de Ejecucion UAT
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
       - id: uat-signoff
         name: Acta de Aceptacion UAT
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: uat-presentation
         name: Presentacion de Resultados UAT
         responsible: business-analyst
+        responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -539,6 +599,7 @@ phases:
         # El orquestador no avanza a otros entregables de fase 7 sin esta
         # aprobacion. Sigue el skill `deployment-planning` (12 preguntas).
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
         attestation_required: true
@@ -546,6 +607,7 @@ phases:
         name: Plan de Rollback
         responsible: devops
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         attestation_required: true
@@ -554,25 +616,30 @@ phases:
         name: Presentacion Go-Live Readiness
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: communication-plan-doc
         name: Plan de Comunicacion
         responsible: change-manager
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: document
         responsible_fallback: [project-manager]
       - id: training-materials
         name: Materiales de Capacitacion
         responsible: change-manager
+        responsible_fallback: [project-manager, business-analyst]
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: false
         artifact_type: document
       - id: runbook
         name: Runbook Operativo
         responsible: tech-writer
         approver: tech-lead
+        approver_fallback: [solution-architect, project-manager, developer-backend]
         mandatory: true
         artifact_type: document
         responsible_fallback: [tech-lead]
@@ -585,18 +652,21 @@ phases:
         name: Reporte de Incidentes Post-Produccion
         responsible: tech-lead
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: report
       - id: support-status-report
         name: Reporte de Soporte
         responsible: tech-lead
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: report
       - id: stabilization-presentation
         name: Presentacion de Estabilizacion
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -608,24 +678,28 @@ phases:
         name: Informe de Cierre del Proyecto
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
       - id: lessons-learned
         name: Lecciones Aprendidas
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: closure-presentation
         name: Presentacion de Cierre
         responsible: project-manager
         approver: product-owner
+        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: final-documentation
         name: Documentacion Final del Proyecto
         responsible: tech-writer
         approver: project-manager
+        approver_fallback: [business-analyst, tech-lead, solution-architect]
         mandatory: true
         artifact_type: document
         responsible_fallback: [project-manager]

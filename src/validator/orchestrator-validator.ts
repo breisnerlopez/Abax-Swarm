@@ -1,11 +1,8 @@
 import type { Role } from "../loader/schemas.js";
 import type { GeneratedFile } from "../generator/opencode/agent-generator.js";
+import type { ValidationResult } from "./types.js";
 
-export interface OrchestratorValidationResult {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-}
+export type OrchestratorValidationResult = ValidationResult;
 
 /**
  * Validates that the orchestrator file only references agents that exist in the team.
@@ -51,6 +48,7 @@ export function validateOrchestrator(
     valid: errors.length === 0,
     errors,
     warnings,
+    notices: [],
   };
 }
 
