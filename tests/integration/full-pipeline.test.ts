@@ -282,15 +282,23 @@ describe("RACI Validation", () => {
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  it("should detect unknown roles in RACI", () => {
+  it("should detect unknown roles in RACI (as warnings, not errors, in 0.1.41+)", () => {
     const badRaci = {
       activities: {
         test_activity: { "ghost-role": "R" as const },
       },
     };
     const result = validateRaciRoles(badRaci, new Set(["real-role"]));
-    expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain("ghost-role");
+    // 0.1.41 demoted unknown-role-in-RACI from error to warning. Reasoning:
+    // RACI references roles not always present in the user's team (the
+    // catalogue caters to the full enterprise template); the activity still
+    // has other R/A roles. `valid` stays true because nothing is structurally
+    // broken.
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+    // Without ValidationContext, the unknown role lands in `warnings` (the
+    // safer default). With context, an "optional" role would land in notices.
+    expect(result.warnings.join("\n")).toContain("ghost-role");
   });
 });
 

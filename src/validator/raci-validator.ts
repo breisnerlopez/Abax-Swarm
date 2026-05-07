@@ -1,10 +1,11 @@
 import type { RaciMatrix, RaciValue } from "../loader/schemas.js";
+import {
+  type ValidationContext,
+  type ValidationResult,
+  severityForMissingRole,
+} from "./types.js";
 
-export interface RaciValidationResult {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-}
+export type RaciValidationResult = ValidationResult;
 
 /**
  * Validates RACI matrix completeness:
@@ -15,6 +16,7 @@ export interface RaciValidationResult {
 export function validateRaciMatrix(raci: RaciMatrix): RaciValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const notices: string[] = [];
 
   for (const [activity, roles] of Object.entries(raci.activities)) {
     const entries = Object.entries(roles) as [string, RaciValue][];
@@ -45,20 +47,40 @@ export function validateRaciMatrix(raci: RaciMatrix): RaciValidationResult {
     valid: errors.length === 0,
     errors,
     warnings,
+    notices,
   };
 }
 
 /**
  * Validates that all roles referenced in RACI exist in the given role set.
+ *
+ * Severity (introduced in 0.1.41):
+ *   - Role optional for project size → NOTICE (user knew it was skippable)
+ *   - Role recommended/indispensable/unknown → WARNING
+ *
+ * Demoted from "errors" in 0.1.40 because RACI references roles that may
+ * not be in the user's team — that is by design (the data file caters to
+ * the full enterprise template). The activity still has other R/A roles
+ * from the team; a missing reference just means one column is blank.
  */
-export function validateRaciRoles(raci: RaciMatrix, validRoleIds: Set<string>): RaciValidationResult {
+export function validateRaciRoles(
+  raci: RaciMatrix,
+  validRoleIds: Set<string>,
+  ctx?: ValidationContext,
+): RaciValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const notices: string[] = [];
 
   for (const [activity, roles] of Object.entries(raci.activities)) {
     for (const roleId of Object.keys(roles)) {
       if (!validRoleIds.has(roleId)) {
-        errors.push(`RACI activity "${activity}" references unknown role "${roleId}".`);
+        const msg = `RACI activity "${activity}" references unknown role "${roleId}".`;
+        if (severityForMissingRole(roleId, ctx) === "notice") {
+          notices.push(msg);
+        } else {
+          warnings.push(msg);
+        }
       }
     }
   }
@@ -67,5 +89,6 @@ export function validateRaciRoles(raci: RaciMatrix, validRoleIds: Set<string>): 
     valid: errors.length === 0,
     errors,
     warnings,
+    notices,
   };
 }

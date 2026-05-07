@@ -6,6 +6,149 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.41] — 2026-05-06
+
+Patch release driven by user feedback after running `abax-swarm init` on
+a small + lightweight project (9 roles): the wizard summary buried them
+under ~80 warnings, most of them informational ("approver X not in team
+and no fallback role resolved" for roles that were intentionally
+optional for the chosen team size).
+
+This release reduces visible warnings to **0** for the typical
+small/lightweight project and to **0 across all 36 e2e compositions** in
+the sweep. The information that previously dumped as warnings now flows
+through a separate notices channel and is shown as a single-line count.
+
+### Added — `approver_fallback` chains across 54/56 deliverables
+
+`data/rules/phase-deliverables.yaml` previously declared
+`approver_fallback` for 2 deliverables. Now declares it for **all 56**.
+Standard chains by approver:
+
+| Approver | Fallback chain |
+|---|---|
+| product-owner | `[business-analyst, project-manager, tech-lead]` |
+| qa-lead | `[qa-functional, tech-lead, project-manager]` |
+| solution-architect | `[tech-lead, project-manager, developer-backend]` |
+| project-manager | `[business-analyst, tech-lead, solution-architect]` |
+| tech-lead | `[solution-architect, project-manager, developer-backend]` |
+
+Combined with the `responsible_fallback` extension below, a small team
+of 9 roles now resolves every mandatory deliverable's responsible AND
+approver to someone real.
+
+### Added — `responsible_fallback` chains for 20 more deliverables
+
+Extended from 14 (in 0.1.40) to 34. Standard chains:
+
+| Responsible | Fallback chain |
+|---|---|
+| business-analyst | `[project-manager, tech-lead]` |
+| change-manager | `[project-manager, business-analyst]` |
+| integration-architect | `[solution-architect, tech-lead]` |
+| security-architect | `[solution-architect, tech-lead]` |
+| qa-performance | `[qa-functional, tech-lead]` |
+| qa-automation | `[qa-functional, tech-lead]` |
+| ux-designer | `[developer-frontend, business-analyst]` |
+| devops | `[tech-lead, developer-backend]` |
+
+### Added — segregation of duties in `resolveWithFallback`
+
+New `exclude` option on the resolver. When `resolveDeliverablesForTeam`
+resolves a deliverable's approver, it now passes the resolved
+responsible's id as `exclude` so the chain skips them. Prevents the
+edge case where both responsible and approver would land on the same
+person via fallback. Backward-compatible: the parameter is optional.
+
+### Added — validator severity model: notices vs warnings
+
+New `src/validator/types.ts` introduces a shared shape for all three
+validators (gates, raci, orchestrator):
+
+```typescript
+ValidationResult { valid, errors, warnings: string[], notices: string[] }
+ValidationContext { sizeMatrix?, projectSize?, mode? }
+```
+
+Severity rules:
+
+  - **error**: hard inconsistencies (orchestrator missing required
+    section, undeclared @mention)
+  - **warning**: actionable issues — role missing AND fallback didn't
+    resolve AND the role is `recommended`/`indispensable` for this
+    project size
+  - **notice**: informational — fallback resolved successfully OR the
+    missing role is `optional` for this size OR the project mode is
+    `document` (intentional minimal team)
+
+When `ValidationContext` is omitted, validators preserve pre-0.1.41
+behavior (everything goes to `warnings`). All call sites in the
+pipeline now pass full context.
+
+### Added — `mode === "document"` downgrades all role-related findings
+
+In document mode the user picked a docs-only team intentionally;
+RACI/phase-deliverables references to dev/qa/ops roles are not
+actionable. They flow to notices regardless of tier. Drops doc-mode
+sweep warnings from 5 → 0 per composition.
+
+### Added — `orchestratorNotices` field on `PipelineResult`
+
+Pipeline aggregates notices from all three validators into a separate
+channel. CLI consumers (format.ts, WizardApp.tsx) display them as a
+collapsed count by default.
+
+### Added — CLI collapse rules in `printValidatorFindings()`
+
+  - 0 warnings + 0 notices → silent
+  - ≤10 warnings → all printed inline
+  - >10 warnings → first 5 + `… y N más. Ejecuta abax-swarm validate`
+  - Notices always shown as count summary; full list only via verbose
+
+The wizard summary panel applies the same collapse: shows up to
+`WIZARD_WARNING_PREVIEW = 5` warnings inline, then a hint, plus a
+one-line notice count.
+
+### Added — 41 new tests across 4 new files
+
+  - `tests/unit/validator/severity-classification.test.ts` — 18
+    cases covering classifyRoleTier + severityForMissingRole including
+    document-mode downgrade
+  - `tests/integration/governance-aware-validators.test.ts` — 11
+    cases including the user's exact scenario (small + lightweight
+    must produce 0 warnings + ≥40 notices), large+full producing
+    0 of either, medium-incomplete still surfacing indispensable
+    misses as warnings, and dataset-level invariants (every approver
+    has a chain, every chain entry references a real role)
+  - `tests/integration/notices-vs-warnings.test.ts` — 12 cases
+    including pipeline aggregation, no overlap between channels, and
+    the new resolveWithFallback exclude option
+  - `tests/integration/format-collapse.test.ts` — 7 cases capturing
+    stdout to verify the collapse behaviour at boundaries (0, 7, 15,
+    1 notice, 83 notices, verbose mode)
+
+Total: **702 tests / 56 files** (was 660/52). All 36 e2e compositions
+in `tests/e2e/sweep-generation.sh` now report `warnings=0`.
+
+### Fixed — wizard E2E test forgot the orchestrator-model step
+
+`tests/e2e/wizard-flow.test.ts` was added for 0.1.14 and never updated
+when 0.1.40 inserted the `orchestrator-model` step between provider
+and permissions. Test waited for "Permisos de OpenCode" while wizard
+was on "Modelo del orquestador" → timeout. Test fix only; no product
+change. (The 0.1.40 release shipped because the test file-level
+failure didn't fail individual test cases under the dot reporter.)
+
+### Migración
+
+Run `sudo npm install -g abax-swarm@latest` to update the global CLI,
+then `abax-swarm regenerate --dir <project>` for any existing project.
+The regen will produce 0 visible warnings on small projects (was ~80
+in 0.1.40) and a single-line notice count.
+
+No data file format changes — pure additive. Projects that hand-edited
+`phase-deliverables.yaml` keep their edits.
+
 ## [0.1.40] — 2026-05-06
 
 Largest single release since 0.1.0: introduces a **manifest contract**

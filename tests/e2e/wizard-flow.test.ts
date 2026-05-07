@@ -90,6 +90,10 @@ describe("E2E wizard: full new-mode flow with all defaults", () => {
       await waitFor(buf, /Proveedor de IA/);
       proc.write("\r");
 
+      // Step 3c-bis: orchestrator-model (NEW in 0.1.40) — accept default
+      await waitFor(buf, /Modelo del orquestador/);
+      proc.write("\r");
+
       // Step 3d: permissions (NEW in 0.1.14)
       await waitFor(buf, /Permisos de OpenCode/);
       expect(buf.value).toMatch(/Recomendado/);

@@ -16,24 +16,49 @@
  * per-deliverable in the data layer, this file is pure mechanism.
  */
 
+export interface ResolveOptions {
+  /** Role ids to skip even if present in the team. Used to prevent
+   * self-approval: when resolving an approver fallback, pass the
+   * deliverable's resolved responsible so the chain skips the same
+   * person. Generic — caller chooses the exclusion semantics. */
+  exclude?: ReadonlySet<string> | readonly string[];
+}
+
 /**
  * Resolve a role reference with fallback chain. Returns the first role
- * id that is present in the team. If none match, returns null — the
- * caller decides what to do (typically silent drop for `responsible`,
- * "el usuario (sponsor)" string substitution for gate_approver).
+ * id that is present in the team AND not excluded. If none match,
+ * returns null — the caller decides what to do (typically silent drop
+ * for `responsible`, "el usuario (sponsor)" string substitution for
+ * gate_approver).
+ *
+ * The exclude option lets callers enforce segregation of duties: for
+ * approvers, pass the responsible's resolved id to prevent the chain
+ * from picking the same person to approve their own work. The check
+ * applies to BOTH the primary and fallback candidates — if the primary
+ * is excluded, the chain is consulted as if the primary weren't in
+ * the team.
  */
 export function resolveWithFallback(
   primary: string,
   fallbackChain: readonly string[] | undefined,
   teamIds: ReadonlySet<string>,
+  options?: ResolveOptions,
 ): string | null {
-  if (teamIds.has(primary)) return primary;
+  const excluded = toSet(options?.exclude);
+  if (teamIds.has(primary) && !excluded.has(primary)) return primary;
   if (!fallbackChain) return null;
   for (const candidate of fallbackChain) {
-    if (teamIds.has(candidate)) return candidate;
+    if (teamIds.has(candidate) && !excluded.has(candidate)) return candidate;
   }
   return null;
 }
+
+function toSet(v: ReadonlySet<string> | readonly string[] | undefined): ReadonlySet<string> {
+  if (!v) return EMPTY;
+  if (v instanceof Set) return v;
+  return new Set(v as readonly string[]);
+}
+const EMPTY: ReadonlySet<string> = new Set<string>();
 
 /**
  * Convenience: resolve OR return the primary unchanged (for cases
@@ -89,10 +114,14 @@ export function resolveDeliverablesForTeam<P extends ResolvablePhase>(
           teamIds,
         );
         if (!resolvedResp) return null;
+        // Approver resolution excludes the resolved responsible so a
+        // long fallback chain doesn't accidentally land on the same
+        // person — segregation of duties at the data layer.
         const resolvedApp = resolveWithFallback(
           d.approver,
           d.approver_fallback,
           teamIds,
+          { exclude: [resolvedResp] },
         );
         return {
           ...d,

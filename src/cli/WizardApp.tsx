@@ -108,6 +108,12 @@ interface Props {
 
 const TOTAL_STEPS = 8;
 
+// Cap on inline warnings shown in the wizard summary panel. Above this,
+// the rest collapse behind a "ver detalle" hint pointing to the
+// `abax-swarm validate` command. Notices are NEVER shown inline — only
+// counted. See src/validator/types.ts for the severity classification.
+const WIZARD_WARNING_PREVIEW = 5;
+
 function loadExistingManifest(targetDir: string): ExistingManifest | null {
   const manifestPath = resolve(targetDir, "project-manifest.yaml");
   if (!existsSync(manifestPath)) return null;
@@ -1129,14 +1135,37 @@ function ConfirmStep({
           </Box>
         )}
       </Box>
+      {/* Validator findings panel — collapse when many warnings to keep
+          the screen scannable. Notices (fallback resolved, optional roles)
+          are summarized as a count; full list available via
+          `abax-swarm validate --verbose` from the generated project. */}
       {result.orchestratorWarnings.length > 0 && (
-        <InfoBox title="Advertencias del orquestador" color="yellow">
-          {result.orchestratorWarnings.map((w, i) => (
-            <Text key={i} color="yellow">
+        <InfoBox
+          title={`Advertencias del orquestador (${result.orchestratorWarnings.length})`}
+          color="yellow"
+        >
+          {result.orchestratorWarnings.slice(0, WIZARD_WARNING_PREVIEW).map((w, i) => (
+            <Text key={`w-${i}`} color="yellow">
               ⚠ {w}
             </Text>
           ))}
+          {result.orchestratorWarnings.length > WIZARD_WARNING_PREVIEW && (
+            <Text dimColor>
+              … y {result.orchestratorWarnings.length - WIZARD_WARNING_PREVIEW} más.
+              {" "}Ejecuta <Text bold>abax-swarm validate --verbose</Text> en el
+              proyecto generado para ver el detalle completo.
+            </Text>
+          )}
         </InfoBox>
+      )}
+      {result.orchestratorNotices.length > 0 && (
+        <Box marginY={1}>
+          <Text color="cyan">
+            ℹ {result.orchestratorNotices.length}
+            {" "}{result.orchestratorNotices.length === 1 ? "nota informativa" : "notas informativas"}
+            {" "}(fallbacks aplicados o roles opcionales para tu tamaño de proyecto).
+          </Text>
+        </Box>
       )}
       <ConfirmInput
         label={confirmMsg}

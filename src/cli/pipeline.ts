@@ -31,7 +31,14 @@ import { generatePagesWorkflow, teamUsesPresentations as teamUsesPresentationsFo
 export interface PipelineResult {
   project: ResolvedProject;
   files: GeneratedFile[];
+  /** Actionable findings from the validator stack — the user probably
+   * wants to fix or knowingly accept each one. CLI surfaces them with
+   * a collapse if there are many. */
   orchestratorWarnings: string[];
+  /** Informational findings — fallback chains resolved successfully OR
+   * the missing role was optional for the project's size. CLI shows
+   * the count by default, full list only on --verbose. */
+  orchestratorNotices: string[];
 }
 
 /**
@@ -222,16 +229,30 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
   // the resolved team. These never block — they surface dangling references
   // so the user understands what is being silently filtered. Generic across
   // any team composition: more roles = fewer warnings, fewer roles = more.
+  //
+  // Pass governance-aware context so the validators downgrade warnings about
+  // roles that are "optional" for the project's size (the user knew they
+  // were skipping them) into informational notices. This collapses the
+  // ~80-warning wall the user saw on small projects in 0.1.40 to ~0
+  // surfaceable warnings — actionable items still surface, the rest move
+  // to notices.
   const validRoleIds = new Set(adaptedRoles.map((r) => r.id));
-  const raciCheck = validateRaciRoles(ctx.raci, validRoleIds);
-  const gatesTeamCheck = validateGatesAgainstTeam(ctx.phaseDeliverables, validRoleIds);
+  const validatorCtx = {
+    sizeMatrix: ctx.sizeMatrix,
+    projectSize: config.size,
+    mode: config.mode,
+  };
+  const raciCheck = validateRaciRoles(ctx.raci, validRoleIds, validatorCtx);
+  const gatesTeamCheck = validateGatesAgainstTeam(
+    ctx.phaseDeliverables, validRoleIds, validatorCtx,
+  );
   const gatesDocCheck =
     config.mode === "document" && ctx.documentMode
       ? validateGatesForDocumentMode(
           ctx.phaseDeliverables,
           ctx.documentMode.phases.map((p) => p.id),
         )
-      : { valid: true, errors: [] as string[], warnings: [] as string[] };
+      : { valid: true, errors: [], warnings: [], notices: [] };
 
   return {
     project: {
@@ -250,6 +271,12 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
       ...raciCheck.warnings,
       ...gatesTeamCheck.warnings,
       ...gatesDocCheck.warnings,
+    ],
+    orchestratorNotices: [
+      ...validation.notices,
+      ...raciCheck.notices,
+      ...gatesTeamCheck.notices,
+      ...gatesDocCheck.notices,
     ],
   };
 }
