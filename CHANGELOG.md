@@ -6,6 +6,94 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.43] — 2026-05-07
+
+Test infrastructure release. No product code changes — `dist/` output is
+identical to 0.1.42. Bumped version because we expanded the test
+plan substantially and ran a full LLM adversarial campaign with
+documented findings.
+
+### Added — `docs/TEST-PLAN.md`
+
+Comprehensive test plan with 12 tiers (0 through K), tier costs,
+cadences, anti-patterns, and metrics. Persisted alongside the code so
+future contributors can see what each tier protects against and why.
+
+### Added — Tier C+ (Cross-composition consistency, 14 tests)
+
+Verifies compositions are consistent ENTRE SÍ, not just within each.
+Catches asymmetric generators, schema drift, path divergence,
+non-determinism, init/regenerate disagreement.
+
+### Added — Tier C++ (Differential testing, 25 tests)
+
+"Changing ONE dimension changes ONLY the expected files." Catches
+spurious coupling: stack changes that affect phase IDs, size changes
+that break paths, name changes that affect anything beyond manifest.
+
+### Added — Tier F (Semantic snapshots, 20 tests)
+
+Verifies file CONTENT, not just presence. Catches the 0.1.41-class
+regression where vision-producto silently changed approver from
+sponsor to business-analyst. Asserts strategic deliverables route to
+sponsor, technical deliverables route to team members, no unresolved
+placeholders in narratives, deliverable IDs in policies match
+references in orchestrator.md.
+
+### Added — Tier E ampliado (Wizard PTY, 3 new scenarios)
+
+Claude target flow, document mode flow, OpenAI provider flow.
+Complements the existing happy-path test with branch coverage.
+
+### Added — Tier K (Drift across versions, 6 tests)
+
+In-process round-trip from 0.1.40-shape manifests through current
+schema. User overrides preserved, generated_by version updates,
+policies.json valid under current schema.
+
+### Added — Tier G + H LLM campaign artefacts
+
+`tests/e2e/llm/` directory with bash runners and CSV results from a
+real run against `deepseek/deepseek-v4-pro`:
+
+- **G (cooperated): 4/4 PASS.** Plugin atomicity verified end-to-end.
+- **H (adversarial): 7/8 PASS = 87.5% defense rate.** Single FAIL is
+  H4 role-confusion; documented as deferred (see findings).
+
+Total spend: ~$0.50 with DeepSeek (vs $36-83 estimated with
+gpt-5/claude opus — DeepSeek 150x cheaper makes this suite viable
+for per-PR runs in the future).
+
+### Added — `tests/e2e/llm/FINDINGS-2026-05-07.md`
+
+Writeup of H4 finding (LLM role-confusion bypassing sponsor gate via
+attest-deliverable) with proposed mitigations and explicit deferral
+decision. Threat model honest analysis included: H4 is user-issued
+not autonomous, so it's a self-discipline gate not a security
+boundary. Re-evaluation criteria documented for future regressions.
+
+### Added — `tests/e2e/llm/tier-i-real-workflow.md`
+
+Operator manual procedure for end-to-end real workflow validation.
+~3 hours wall clock, ~$5 with DeepSeek. Cadence: pre-release-mayor
+(0.2.0+) or quarterly. Includes 7-item checklist + variant suggestions.
+
+### Test summary
+
+- **780 tests / 61 files** (was 712/56 in 0.1.42, +68 tests)
+- **36/36 e2e compositions** still report `warnings=0`
+- **Tier H 87.5% defense rate** against 8 adversarial vectors
+- **`tsc --noEmit` clean** (no source changes)
+
+### No product code changes
+
+`dist/` byte-identical to 0.1.42. Users of `abax-swarm` (the npm
+package) see no behavioral difference. This release is for
+contributors / reviewers / future-me reading the test plan.
+
+If you don't care about test infrastructure: skip `npm install -g
+abax-swarm@latest` — your 0.1.42 install behaves identically.
+
 ## [0.1.42] — 2026-05-07
 
 Hot patch reverting a semantic regression introduced in 0.1.41 and adding
