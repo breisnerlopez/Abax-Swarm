@@ -3,12 +3,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { printValidatorFindings } from "../../src/cli/format.js";
 import type { PipelineResult } from "../../src/cli/pipeline.js";
 
-function makeResult(warnings: string[], notices: string[]): PipelineResult {
+function makeResult(
+  warnings: string[],
+  notices: string[],
+  sponsorApprovals: PipelineResult["sponsorApprovals"] = [],
+): PipelineResult {
   return {
     project: {} as PipelineResult["project"],
     files: [],
     orchestratorWarnings: warnings,
     orchestratorNotices: notices,
+    sponsorApprovals,
   };
 }
 
@@ -95,5 +100,70 @@ describe("printValidatorFindings collapse logic", () => {
     const joined = logs.join("\n");
     expect(joined).not.toContain("Advertencias del orquestador");
     expect(joined).toContain("83 notas informativas");
+  });
+
+  // Sponsor approvals (0.1.42): always shown, never collapsed past
+  // SPONSOR_PREVIEW=8. Visible signal even when warnings/notices empty.
+  it("renders sponsor approvals panel before warnings", () => {
+    const sponsors = [
+      { phaseId: "discovery", phaseName: "Descubrimiento", deliverableId: "vision-producto", deliverableName: "Vision del Producto" },
+      { phaseId: "discovery", phaseName: "Descubrimiento", deliverableId: "backlog-priorizado", deliverableName: "Backlog Priorizado" },
+    ];
+    printValidatorFindings(makeResult([], [], sponsors));
+    const joined = logs.join("\n");
+    expect(joined).toContain("Aprobaciones que requieren tu rol como sponsor (2)");
+    expect(joined).toContain("Vision del Producto");
+    expect(joined).toContain("Backlog Priorizado");
+    expect(joined).toContain("aprobación explícita");
+  });
+
+  it("collapses sponsor approvals beyond 8 with --verbose escape hatch", () => {
+    const sponsors = Array.from({ length: 12 }, (_, i) => ({
+      phaseId: `p${i}`, phaseName: `Phase ${i}`,
+      deliverableId: `d${i}`, deliverableName: `Deliverable ${i}`,
+    }));
+    printValidatorFindings(makeResult([], [], sponsors));
+    const joined = logs.join("\n");
+    expect(joined).toContain("(12)");
+    expect(joined).toContain("Deliverable 0");
+    expect(joined).toContain("Deliverable 7"); // 8th is shown (0-indexed)
+    expect(joined).not.toContain("Deliverable 8");
+    expect(joined).toContain("y 4 más");
+  });
+
+  it("verbose mode prints all sponsor approvals inline", () => {
+    const sponsors = Array.from({ length: 12 }, (_, i) => ({
+      phaseId: `p${i}`, phaseName: `Phase ${i}`,
+      deliverableId: `d${i}`, deliverableName: `Deliverable ${i}`,
+    }));
+    printValidatorFindings(makeResult([], [], sponsors), true);
+    const joined = logs.join("\n");
+    for (let i = 0; i < 12; i++) {
+      expect(joined).toContain(`Deliverable ${i}`);
+    }
+    expect(joined).not.toContain("y 4 más");
+  });
+
+  it("triple panel: sponsor + warnings + notices all rendered", () => {
+    const sponsors = [
+      { phaseId: "p", phaseName: "P", deliverableId: "d", deliverableName: "D" },
+    ];
+    printValidatorFindings(makeResult(["a warning"], ["a notice"], sponsors));
+    const joined = logs.join("\n");
+    expect(joined).toContain("Aprobaciones que requieren tu rol como sponsor (1)");
+    expect(joined).toContain("Advertencias del orquestador (1)");
+    expect(joined).toContain("a warning");
+    expect(joined).toContain("nota informativa");
+  });
+
+  it("sponsor-only output: no warnings/notices, only sponsor panel", () => {
+    const sponsors = [
+      { phaseId: "p", phaseName: "P", deliverableId: "d", deliverableName: "D" },
+    ];
+    printValidatorFindings(makeResult([], [], sponsors));
+    const joined = logs.join("\n");
+    expect(joined).toContain("Aprobaciones que requieren tu rol como sponsor (1)");
+    expect(joined).not.toContain("Advertencias del orquestador");
+    expect(joined).not.toContain("notas informativas");
   });
 });

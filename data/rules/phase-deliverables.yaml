@@ -151,7 +151,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: epicas-features
@@ -159,7 +158,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: historias-usuario
@@ -167,7 +165,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: design-system-template
@@ -179,7 +176,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: backlog-priorizado
@@ -187,14 +183,12 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: discovery-presentation
         name: Presentacion de Descubrimiento (HTML)
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -206,35 +200,30 @@ phases:
         name: Acta de Constitucion del Proyecto
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: kickoff-presentation
         name: Presentacion de Kickoff
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: stakeholder-register
         name: Registro de Interesados
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: initial-risk-matrix
         name: Matriz de Riesgos Inicial
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: project-schedule
         name: Cronograma Preliminar
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: diagram
 
@@ -247,7 +236,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: business-rules-doc
@@ -255,7 +243,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: process-diagrams
@@ -263,7 +250,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: diagram
       - id: acceptance-criteria-doc
@@ -271,7 +257,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: functional-presentation
@@ -279,7 +264,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: change-impact-report
@@ -307,7 +291,6 @@ phases:
         name: Presentacion de Arquitectura
         responsible: solution-architect
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
         responsible_fallback: [tech-lead]
@@ -452,7 +435,6 @@ phases:
         name: Presentacion de Avance
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: code-review-report
@@ -475,7 +457,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
 
@@ -538,7 +519,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: uat-execution-report
@@ -546,7 +526,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
       - id: uat-signoff
@@ -554,7 +533,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: uat-presentation
@@ -562,7 +540,6 @@ phases:
         responsible: business-analyst
         responsible_fallback: [project-manager, tech-lead]
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -599,7 +576,6 @@ phases:
         # El orquestador no avanza a otros entregables de fase 7 sin esta
         # aprobacion. Sigue el skill `deployment-planning` (12 preguntas).
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
         attestation_required: true
@@ -616,7 +592,6 @@ phases:
         name: Presentacion Go-Live Readiness
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: communication-plan-doc
@@ -666,7 +641,6 @@ phases:
         name: Presentacion de Estabilizacion
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
 
@@ -678,21 +652,18 @@ phases:
         name: Informe de Cierre del Proyecto
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: report
       - id: lessons-learned
         name: Lecciones Aprendidas
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: document
       - id: closure-presentation
         name: Presentacion de Cierre
         responsible: project-manager
         approver: product-owner
-        approver_fallback: [business-analyst, project-manager, tech-lead]
         mandatory: true
         artifact_type: presentation
       - id: final-documentation

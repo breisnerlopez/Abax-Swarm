@@ -6,6 +6,110 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.42] — 2026-05-07
+
+Hot patch reverting a semantic regression introduced in 0.1.41 and adding
+explicit visibility for the case it tried (and failed) to handle gracefully.
+
+### Context — what 0.1.41 got wrong
+
+0.1.41 added `approver_fallback` chains to all 56 deliverables to silence
+the wall of warnings on small projects. For 27 of those (qa-lead,
+tech-lead, change-manager, etc.) the fallback chains made sense — these
+are technical/operational roles that have natural team substitutes.
+
+For the 29 deliverables with `approver: product-owner`, the fallback
+chain `[business-analyst, project-manager, tech-lead]` quietly changed
+the semantic meaning: vision-producto, backlog-priorizado, project-charter,
+uat-signoff, closure-report and 24 others stopped requiring the user's
+explicit sponsor approval. Instead, business-analyst (a delegated agent)
+became the de-facto approver of strategic decisions. **That was a hidden
+regression** — the user lost a human-in-the-loop gate they didn't know
+they had.
+
+### Fixed — restore "el usuario (sponsor)" as approver for PO deliverables
+
+Removed `approver_fallback` from the 29 deliverables where
+`approver: product-owner`. When PO is not in the team, the orchestrator
+template now correctly substitutes "el usuario (sponsor)" for these
+strategic gates, matching pre-0.1.41 behaviour for the 29 deliverables:
+
+  - Discovery: vision-producto, epicas-features, historias-usuario,
+    design-system-template, backlog-priorizado, discovery-presentation
+  - Inception: project-charter, kickoff-presentation, stakeholder-register,
+    initial-risk-matrix, project-schedule
+  - Functional Analysis: functional-spec, business-rules-doc,
+    process-diagrams, acceptance-criteria-doc, functional-presentation
+  - Technical Design: architecture-presentation
+  - Construction: sprint-status-presentation, feature-spec-compliance
+  - UAT: uat-plan, uat-execution-report, uat-signoff, uat-presentation
+  - Deployment: deployment-plan-doc, go-live-presentation
+  - Stabilization: stabilization-presentation
+  - Closure: closure-report, lessons-learned, closure-presentation
+
+The 27 non-PO approvers (qa-lead, tech-lead, change-manager, etc.) keep
+their fallback chains — those are correct delegations, not regressions.
+
+### Added — `sponsorApprovals` field on `PipelineResult`
+
+Pipeline now returns a structured list of deliverables that the user
+will personally approve. Computed once: when product-owner is not in
+the team, every mandatory deliverable with `approver: product-owner`
+shows up here. Empty when PO is in the team (medium/large projects).
+
+```typescript
+sponsorApprovals: Array<{
+  phaseId: string;
+  phaseName: string;
+  deliverableId: string;
+  deliverableName: string;
+}>
+```
+
+### Added — sponsor approvals panel in CLI + wizard
+
+Most prominent panel in the post-generation summary. Always visible,
+never collapsed below 8 entries:
+
+```
+🎯 Aprobaciones que requieren tu rol como sponsor (29):
+  • Descubrimiento / Vision del Producto
+  • Descubrimiento / Backlog Priorizado
+  • ...
+  … y 21 más. Usa --verbose para ver todas.
+  El orquestador pedirá tu aprobación explícita en cada uno.
+```
+
+This is the visibility the user lost in 0.1.41. The signal is:
+"these are the strategic gates you, the human, retain — not delegated
+to any agent." Distinct from warnings (actionable problems) and notices
+(silent fallbacks).
+
+### Added — 10 new tests
+
+  - `notices-vs-warnings.test.ts` (+4): sponsorApprovals populated for
+    small+lightweight, count = 29, structured shape, content includes
+    strategic deliverables, empty when PO in team
+  - `format-collapse.test.ts` (+5): sponsor panel rendering, collapse
+    rules, --verbose, multi-panel composition
+  - `governance-aware-validators.test.ts` (+1): dataset invariant
+    flipped — every NON-PO approver has a fallback chain, every PO
+    approver does NOT (preserves sponsor semantics)
+
+Total: **712 tests / 56 files** (was 702/56). 36/36 e2e compositions
+report `warnings=0`. Empirically verified against the user's reported
+manifest (small + lightweight, 9 roles): output is 0 warnings + 29
+sponsor approvals listed by name + 83 notices collapsed to one line.
+
+### Migración
+
+`sudo npm install -g abax-swarm@latest` → `abax-swarm regenerate --dir <project>`.
+
+If you're already on 0.1.41 with the regression and your generated
+orchestrator.md or `policies.json` shows business-analyst approving
+vision-producto, charter, etc., regenerating with 0.1.42 restores
+sponsor (user) approval. No data file format changes.
+
 ## [0.1.41] — 2026-05-06
 
 Patch release driven by user feedback after running `abax-swarm init` on

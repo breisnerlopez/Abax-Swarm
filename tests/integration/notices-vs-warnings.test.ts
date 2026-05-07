@@ -67,6 +67,59 @@ describe("Pipeline aggregates notices separately from warnings", () => {
     const overlap = result.orchestratorNotices.filter((n) => wSet.has(n));
     expect(overlap, "notices and warnings should not contain the same message").toEqual([]);
   });
+
+  // 0.1.42: sponsor approvals
+  it("sponsorApprovals is populated for small+lightweight (PO not in team)", () => {
+    const selection = runSelection(SMALL_LIGHTWEIGHT_CONFIG, ctx);
+    const result = runPipeline(SMALL_LIGHTWEIGHT_CONFIG, selection, ctx);
+    expect(result.sponsorApprovals).toBeDefined();
+    expect(result.sponsorApprovals.length).toBeGreaterThan(0);
+    // The 29 PO-approved deliverables in the catalogue should all surface
+    expect(result.sponsorApprovals.length).toBe(29);
+  });
+
+  it("each sponsor approval entry has phase + deliverable identifiers", () => {
+    const selection = runSelection(SMALL_LIGHTWEIGHT_CONFIG, ctx);
+    const result = runPipeline(SMALL_LIGHTWEIGHT_CONFIG, selection, ctx);
+    for (const a of result.sponsorApprovals) {
+      expect(a.phaseId).toBeTruthy();
+      expect(a.phaseName).toBeTruthy();
+      expect(a.deliverableId).toBeTruthy();
+      expect(a.deliverableName).toBeTruthy();
+    }
+  });
+
+  it("sponsor approvals include the strategic deliverables (vision, backlog, charter, closure)", () => {
+    const selection = runSelection(SMALL_LIGHTWEIGHT_CONFIG, ctx);
+    const result = runPipeline(SMALL_LIGHTWEIGHT_CONFIG, selection, ctx);
+    const ids = new Set(result.sponsorApprovals.map((a) => a.deliverableId));
+    // Spot-check that the user retains approval over key strategic gates.
+    expect(ids.has("vision-producto")).toBe(true);
+    expect(ids.has("backlog-priorizado")).toBe(true);
+    expect(ids.has("project-charter")).toBe(true);
+    expect(ids.has("closure-report")).toBe(true);
+    expect(ids.has("uat-signoff")).toBe(true);
+  });
+
+  it("sponsorApprovals is empty when product-owner IS in the team", () => {
+    const withPO = {
+      ...SMALL_LIGHTWEIGHT_CONFIG,
+      // Force a team that explicitly includes product-owner.
+      criteria: [],
+    };
+    // Build a selection manually with PO in team.
+    const selection = runSelection(withPO, ctx);
+    const augmentedCtx = { ...ctx };
+    // Inject PO into the resolved roles to simulate.
+    const poRole = ctx.roles.get("product-owner");
+    if (!poRole) throw new Error("product-owner role missing from catalogue");
+    const augmentedSelection = {
+      ...selection,
+      roles: [...selection.roles, { roleId: "product-owner", reason: "manual" as const }],
+    };
+    const result = runPipeline(withPO, augmentedSelection, augmentedCtx);
+    expect(result.sponsorApprovals).toEqual([]);
+  });
 });
 
 describe("resolveWithFallback exclude option (segregation of duties)", () => {
