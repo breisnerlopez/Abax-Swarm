@@ -112,8 +112,31 @@ const WARNING_PREVIEW = 5;
 export function printValidatorFindings(result: PipelineResult, verbose = false): void {
   const w = result.orchestratorWarnings;
   const n = result.orchestratorNotices;
+  const s = result.sponsorApprovals;
 
-  if (w.length === 0 && n.length === 0) return;
+  if (w.length === 0 && n.length === 0 && s.length === 0) return;
+
+  // Sponsor approvals come FIRST: this is the most important signal —
+  // these are decisions the user personally makes. Always shown,
+  // never collapsed past a soft preview.
+  if (s.length > 0) {
+    console.log(
+      `\n${BOLD}${CYAN}  🎯 Aprobaciones que requieren tu rol como sponsor (${s.length}):${RESET}`,
+    );
+    const SPONSOR_PREVIEW = 8;
+    const items = verbose ? s : s.slice(0, SPONSOR_PREVIEW);
+    for (const a of items) {
+      console.log(`  ${CYAN}•${RESET} ${a.phaseName} / ${a.deliverableName}`);
+    }
+    if (!verbose && s.length > SPONSOR_PREVIEW) {
+      console.log(
+        `  ${DIM}… y ${s.length - SPONSOR_PREVIEW} más. Usa --verbose para ver todas.${RESET}`,
+      );
+    }
+    console.log(
+      `  ${DIM}El orquestador pedirá tu aprobación explícita en cada uno.${RESET}`,
+    );
+  }
 
   if (w.length > 0) {
     console.log(`\n${YELLOW}  Advertencias del orquestador (${w.length}):${RESET}`);

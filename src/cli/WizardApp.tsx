@@ -1135,6 +1135,30 @@ function ConfirmStep({
           </Box>
         )}
       </Box>
+      {/* Sponsor approvals panel — strategic deliverables the user
+          personally approves (when team has no product-owner). Always
+          shown, never collapsed below a soft preview. Visible signal,
+          not a warning, not a notice. */}
+      {result.sponsorApprovals.length > 0 && (
+        <InfoBox
+          title={`🎯 Aprobaciones que requieren tu rol como sponsor (${result.sponsorApprovals.length})`}
+          color="cyan"
+        >
+          {result.sponsorApprovals.slice(0, 8).map((a) => (
+            <Text key={`${a.phaseId}-${a.deliverableId}`} color="cyan">
+              • {a.phaseName} / {a.deliverableName}
+            </Text>
+          ))}
+          {result.sponsorApprovals.length > 8 && (
+            <Text dimColor>
+              … y {result.sponsorApprovals.length - 8} más.
+            </Text>
+          )}
+          <Text dimColor>
+            El orquestador pedirá tu aprobación explícita en cada uno.
+          </Text>
+        </InfoBox>
+      )}
       {/* Validator findings panel — collapse when many warnings to keep
           the screen scannable. Notices (fallback resolved, optional roles)
           are summarized as a count; full list available via

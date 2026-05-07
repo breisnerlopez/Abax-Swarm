@@ -109,17 +109,36 @@ describe("Governance-aware validator behaviour (0.1.41)", () => {
     });
   });
 
-  describe("Dataset-level invariant: every approver has a fallback chain", () => {
-    it("every deliverable in phase-deliverables.yaml declares approver_fallback", () => {
+  describe("Dataset-level invariant: fallback chains are correctly distributed", () => {
+    // 0.1.42: product-owner approver intentionally has NO fallback chain.
+    // This preserves the "el usuario (sponsor)" approver semantics for
+    // strategic deliverables (vision, backlog, charter, closure, uat
+    // signoff). All other approvers have fallback chains so technical
+    // and operational deliverables resolve to a team member silently.
+    it("every NON-product-owner approver declares approver_fallback", () => {
       for (const phase of rules.phaseDeliverables.phases) {
         for (const d of phase.deliverables) {
+          if (d.approver === "product-owner") continue;
           expect(
             d.approver_fallback,
-            `phase ${phase.id} / deliverable ${d.id} is missing approver_fallback`,
+            `phase ${phase.id} / deliverable ${d.id} (approver: ${d.approver}) is missing approver_fallback`,
           ).toBeDefined();
           expect(d.approver_fallback.length).toBeGreaterThan(0);
         }
       }
+    });
+
+    it("product-owner approvers do NOT declare approver_fallback (sponsor approves)", () => {
+      const violations: string[] = [];
+      for (const phase of rules.phaseDeliverables.phases) {
+        for (const d of phase.deliverables) {
+          if (d.approver !== "product-owner") continue;
+          if (d.approver_fallback && d.approver_fallback.length > 0) {
+            violations.push(`${phase.id}/${d.id} has approver_fallback (should fall to user/sponsor)`);
+          }
+        }
+      }
+      expect(violations).toEqual([]);
     });
 
     it("every fallback chain entry refers to a real role in the catalogue", () => {

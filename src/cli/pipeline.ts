@@ -28,6 +28,13 @@ import { generateDocsSiteFiles } from "../generator/docs-site-generator.js";
 import { generateDevcontainerFile, shouldEmitDevcontainer } from "../generator/devcontainer-generator.js";
 import { generatePagesWorkflow, teamUsesPresentations as teamUsesPresentationsForPages } from "../generator/pages-generator.js";
 
+export interface SponsorApproval {
+  phaseId: string;
+  phaseName: string;
+  deliverableId: string;
+  deliverableName: string;
+}
+
 export interface PipelineResult {
   project: ResolvedProject;
   files: GeneratedFile[];
@@ -39,6 +46,14 @@ export interface PipelineResult {
    * the missing role was optional for the project's size. CLI shows
    * the count by default, full list only on --verbose. */
   orchestratorNotices: string[];
+  /** Deliverables where the user personally will approve as sponsor —
+   * happens when `approver: product-owner` is declared but the team
+   * doesn't include product-owner. These are STRATEGIC gates (vision,
+   * backlog, charter, closure) where the orchestrator template will
+   * substitute "el usuario (sponsor)" for the approver line. Surfaced
+   * as its own signal (not a warning, not a notice) because the user
+   * needs visibility into which decisions they retain personally. */
+  sponsorApprovals: SponsorApproval[];
 }
 
 /**
@@ -278,7 +293,44 @@ export function runPipeline(config: ProjectConfig, selection: SelectionResult, c
       ...gatesTeamCheck.notices,
       ...gatesDocCheck.notices,
     ],
+    sponsorApprovals: collectSponsorApprovals(ctx, validRoleIds),
   };
+}
+
+/**
+ * Identifies mandatory deliverables whose approver is product-owner AND
+ * product-owner is NOT in the team. The orchestrator generator
+ * substitutes "el usuario (sponsor)" for these — meaning the user will
+ * personally approve them. Returned as a structured list so the CLI can
+ * surface them as a distinct, visible signal (not buried in notices).
+ *
+ * Why product-owner specifically: PO represents strategic intent. When
+ * PO is absent (typical in small/lightweight projects), the user
+ * themselves is the source of truth for the project vision — they
+ * should see vision-producto, backlog, project-charter, closure-report
+ * etc. listed so they know which decisions remain personal. Other
+ * approvers (qa-lead, tech-lead, etc.) have fallback chains in the
+ * data layer that resolve to team members; PO does not by design.
+ */
+function collectSponsorApprovals(
+  ctx: DataContext,
+  validRoleIds: Set<string>,
+): SponsorApproval[] {
+  if (validRoleIds.has("product-owner")) return [];
+  const out: SponsorApproval[] = [];
+  for (const phase of ctx.phaseDeliverables.phases) {
+    for (const d of phase.deliverables) {
+      if (!d.mandatory) continue;
+      if (d.approver !== "product-owner") continue;
+      out.push({
+        phaseId: phase.id,
+        phaseName: phase.name,
+        deliverableId: d.id,
+        deliverableName: d.name,
+      });
+    }
+  }
+  return out;
 }
 
 /**
