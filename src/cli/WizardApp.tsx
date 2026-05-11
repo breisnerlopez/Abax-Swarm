@@ -969,6 +969,18 @@ function renderStep(
               )}
             </Box>
           )}
+          {data.target === "opencode" && (
+            <Box flexDirection="column" marginBottom={1}>
+              <Text color="yellow">Siguiente paso obligatorio:</Text>
+              <Text dimColor>
+                Los tools generados importan @opencode-ai/plugin en runtime.
+              </Text>
+              <Text>
+                cd {data.targetDir}/.opencode && bun install
+              </Text>
+              <Text dimColor>(o npm install si no usas bun)</Text>
+            </Box>
+          )}
           <ConfirmInput
             label={`¿Abrir ${cliName} en ${data.targetDir}?`}
             defaultValue={false}

@@ -25,6 +25,13 @@ export const OC_PLUGIN_DEBUG_LOG = ".opencode/abax-policy-debug.log";
 export const OC_AGENTS_DIR = ".opencode/agents";
 export const OC_TOOLS_DIR = ".opencode/tools";
 export const OC_SKILLS_DIR = ".opencode/skills";
+// Declares @opencode-ai/plugin so generated tools (`import { tool } from
+// "@opencode-ai/plugin"`) resolve at runtime. Users must run
+// `cd .opencode && bun install` (or npm) once after generation.
+export const OC_PACKAGE_JSON_PATH = ".opencode/package.json";
+// Pinned to a caret range so patch/minor updates flow but the major is
+// fixed against the SDK we tested with. Bump after validating a new major.
+export const OC_PLUGIN_SDK_VERSION = "^1.14.0";
 
 // ---- Claude target ----
 export const CC_HOOK_PATH = ".claude/hooks/abax-policy.py";

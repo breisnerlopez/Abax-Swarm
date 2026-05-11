@@ -6,6 +6,56 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.44] — 2026-05-10
+
+OpenCode runtime fixes. Three findings reported from a real opencode session
+(polymarket) — all verified against v0.1.43, planned in
+`docs/opencode-runtime-fixes.md`, and resolved.
+
+### Fixed — `opencode.json` now emits `default_agent`
+
+`src/generator/opencode/config-generator.ts` adds `"default_agent": "orchestrator"`
+to the generated config. Without this field opencode silently fell back to
+the built-in `build` agent and never reached the generated orchestrator or
+its subagents — making the entire swarm invisible at runtime. Documented in
+the opencode reference: https://opencode.ai/docs/config/#default-agent.
+
+This was also the root cause of the secondary symptom "`skill` tool reports
+No skills are currently available" — `build` doesn't scan `.opencode/skills/`,
+but the actual subagents (with `permission.skill: "allow"`) do. With
+`default_agent` in place the chain orchestrator → task delegation →
+subagent → native skill load works as documented.
+
+### Fixed — `.opencode/package.json` emitted with runtime SDK declared
+
+`src/generator/opencode/plugin-generator.ts` now emits a third file
+`.opencode/package.json` declaring `@opencode-ai/plugin` (`^1.14.0`) as
+runtime dependency. Generated tools (`.opencode/tools/<id>.ts`) value-import
+`{ tool } from "@opencode-ai/plugin"`; without the package installed
+opencode failed to resolve them at load time. Users must run
+`cd .opencode && bun install` (or `npm install`) once after generation.
+
+Constants centralized in `src/engine/paths.ts`:
+- `OC_PACKAGE_JSON_PATH = ".opencode/package.json"`
+- `OC_PLUGIN_SDK_VERSION = "^1.14.0"` (bump after validating a new SDK major)
+
+### Added — post-generation install notice
+
+Both `src/cli/format.ts::printSuccess` and the wizard's final screen
+(`src/cli/WizardApp.tsx`) now print the install instruction for
+opencode targets:
+
+```
+Siguiente paso obligatorio:
+cd <targetDir>/.opencode && bun install
+```
+
+### Added — `docs/opencode-runtime-fixes.md`
+
+Full diagnostic + resolution log: original findings, static verification
+against v0.1.43, refined diagnosis, step-by-step plan with each step
+marked resolved.
+
 ## [0.1.43] — 2026-05-07
 
 Test infrastructure release. No product code changes — `dist/` output is

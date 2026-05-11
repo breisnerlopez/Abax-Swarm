@@ -72,6 +72,10 @@ export function generateOpenCodeConfig(
   const rootPermission = buildOpenCodePermission(permissionMode, isolationMode);
   const config: Record<string, unknown> = {
     $schema: "https://opencode.ai/config.json",
+    // Without this, opencode falls back to the built-in `build` agent and
+    // never reaches our orchestrator (or any of the generated subagents'
+    // skills). See docs/opencode-runtime-fixes.md §Finding #1.
+    default_agent: "orchestrator",
     agent: agentConfig,
   };
   if (rootPermission !== undefined) config.permission = rootPermission;

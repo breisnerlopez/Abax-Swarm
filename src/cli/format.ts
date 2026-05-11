@@ -166,9 +166,16 @@ export function printValidatorFindings(result: PipelineResult, verbose = false):
   }
 }
 
-export function printSuccess(targetDir: string, fileCount: number): void {
+export function printSuccess(targetDir: string, fileCount: number, target: "opencode" | "claude" = "opencode"): void {
   console.log(`\n${GREEN}${BOLD}  ✓ Proyecto generado exitosamente${RESET}`);
   console.log(`  ${DIM}${fileCount} archivos escritos en ${targetDir}${RESET}\n`);
+  if (target === "opencode") {
+    console.log(`  ${YELLOW}Siguiente paso obligatorio:${RESET}`);
+    console.log(`  ${DIM}Los tools generados en .opencode/tools/ importan @opencode-ai/plugin en runtime.${RESET}`);
+    console.log(`  ${DIM}Instala la dependencia (una sola vez) con:${RESET}`);
+    console.log(`    ${BOLD}cd ${targetDir}/.opencode && bun install${RESET}`);
+    console.log(`    ${DIM}(o npm install si no usas bun)${RESET}\n`);
+  }
 }
 
 export function printDryRun(fileCount: number): void {

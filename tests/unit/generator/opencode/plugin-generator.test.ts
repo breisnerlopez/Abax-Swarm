@@ -154,7 +154,7 @@ describe("mergeRunawayLimits", () => {
 // ---- End-to-end generator output ----
 
 describe("generatePluginFiles", () => {
-  it("emits exactly two files at the documented opencode paths", () => {
+  it("emits the documented opencode files (plugin + policies + package.json)", () => {
     const files = generatePluginFiles(
       minimalConfig,
       [makeRole("developer-backend", "construction")],
@@ -164,10 +164,19 @@ describe("generatePluginFiles", () => {
     );
     const paths = files.map((f) => f.path).sort();
     expect(paths).toEqual([
+      ".opencode/package.json",
       ".opencode/plugins/abax-policy.ts",
       ".opencode/policies/abax-policies.json",
     ]);
     expect(PLUGIN_OPENCODE_PATH).toBe(".opencode/plugins/abax-policy.ts");
+
+    // package.json must declare @opencode-ai/plugin so generated tools can
+    // resolve `import { tool } from "@opencode-ai/plugin"` at runtime.
+    // Without this file `cd .opencode && bun install` has nothing to read.
+    const pkg = files.find((f) => f.path === ".opencode/package.json")!;
+    const parsed = JSON.parse(pkg.content);
+    expect(parsed.dependencies["@opencode-ai/plugin"]).toMatch(/^\^?1\./);
+    expect(parsed.private).toBe(true);
   });
 
   it("plugin .ts file is non-empty TypeScript (read from template)", () => {

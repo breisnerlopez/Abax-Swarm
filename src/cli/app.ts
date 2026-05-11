@@ -151,7 +151,7 @@ program
       }
 
       writePipeline(result, false);
-      printSuccess(dir, result.files.length);
+      printSuccess(dir, result.files.length, config.target);
     } catch (err) {
       console.error("\n  ✗ Error:", (err as Error).message, "\n");
       process.exit(1);

@@ -250,6 +250,10 @@ describe("ConfigGenerator", () => {
     expect(parsed.agent).toHaveProperty("business-analyst");
     expect(parsed.agent).toHaveProperty("developer-backend");
 
+    // default_agent must point to orchestrator — without this opencode falls
+    // back to the built-in `build` agent and skips our entire team.
+    expect(parsed.default_agent).toBe("orchestrator");
+
     // Orchestrator must have task:allow for subagent delegation
     expect(parsed.agent.orchestrator.permission.task).toBe("allow");
     expect(parsed.agent.orchestrator.mode).toBe("primary");
