@@ -1,6 +1,6 @@
 {
   "name": "abax-swarm",
-  "version": "0.1.44",
+  "version": "0.1.45",
   "description": "Abax Swarm — AI agent orchestration for software projects",
   "type": "module",
   "main": "dist/cli/app.js",
@@ -17,9 +17,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli/app.ts",
-    "test": "vitest run --exclude tests/e2e/**",
-    "test:watch": "vitest --exclude tests/e2e/**",
-    "test:coverage": "vitest run --coverage --exclude tests/e2e/**",
+    "test": "vitest run --exclude 'tests/e2e/**'",
+    "test:watch": "vitest --exclude 'tests/e2e/**'",
+    "test:coverage": "vitest run --coverage --exclude 'tests/e2e/**'",
     "test:e2e": "npm run build && vitest run tests/e2e/ --testTimeout=60000",
     "validate": "tsx src/cli/app.ts validate",
     "lint": "eslint src/ tests/",

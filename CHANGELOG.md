@@ -6,6 +6,31 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.45] — 2026-05-10
+
+CI hotfix. No product code changes — fixes the release pipeline that has
+been failing silently since 0.1.41.
+
+### Fixed — `npm test` no longer picks up e2e tests in CI
+
+`package.json` test scripts now quote the exclude glob:
+
+```
+"test": "vitest run --exclude 'tests/e2e/**'"
+```
+
+The unquoted form (`--exclude tests/e2e/**`) was shell-expanded by `sh -c`
+before reaching vitest. With `dist/` present (local dev) the expanded args
+happened to land harmlessly; in CI the runner has no `dist/` when `Tests`
+runs, so the e2e tests would import the built CLI and abort the entire
+suite. End result: every release since 0.1.41 had `Tests: failure` in the
+GitHub Actions workflow, with the publish step skipped — releases had to
+be cut manually from local. With the glob quoted, vitest receives the
+literal pattern and applies it as a real exclude, so CI now runs the
+non-e2e suite as intended and the workflow can publish on tag push.
+
+The same fix applies to `test:watch` and `test:coverage`.
+
 ## [0.1.44] — 2026-05-10
 
 OpenCode runtime fixes. Three findings reported from a real opencode session
