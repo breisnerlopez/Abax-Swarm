@@ -17,10 +17,16 @@ import { describe, it, expect } from "vitest";
 import { parse as yamlParse, stringify as yamlStringify } from "yaml";
 import { mkdtempSync, rmSync, writeFileSync, readFileSync } from "fs";
 import { tmpdir } from "os";
-import { join } from "path";
+import { join, resolve } from "path";
+import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
-const REPO = "/srv/repos/Abax-Swarm";
+// Derive the repo root from this file's location so the test works in
+// any checkout (CI runner uses /home/runner/work/Abax-Swarm/Abax-Swarm,
+// local devs use /srv/repos/Abax-Swarm, etc.). A hardcoded path passed
+// CI for years only because the suite never reached this file — e2e
+// tests crashed earlier (fixed in 0.1.45 by quoting the exclude glob).
+const REPO = resolve(fileURLToPath(import.meta.url), "../../..");
 const CLI_TSX = `node --import tsx ${REPO}/src/cli/app.ts`;
 
 // 0.1.40-shape manifest — pre-policy-override fields, no

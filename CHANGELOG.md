@@ -6,10 +6,12 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.45] — 2026-05-10
+## [0.1.46] — 2026-05-10
 
 CI hotfix. No product code changes — fixes the release pipeline that has
-been failing silently since 0.1.41.
+been failing silently since 0.1.41. Supersedes 0.1.45, which fixed the
+e2e glob but exposed a second pre-existing failure (hardcoded repo path)
+that had been masked by the first.
 
 ### Fixed — `npm test` no longer picks up e2e tests in CI
 
@@ -30,6 +32,15 @@ literal pattern and applies it as a real exclude, so CI now runs the
 non-e2e suite as intended and the workflow can publish on tag push.
 
 The same fix applies to `test:watch` and `test:coverage`.
+
+### Fixed — `tests/integration/version-drift.test.ts` derives repo from `import.meta.url`
+
+The Tier K drift suite hardcoded `REPO = "/srv/repos/Abax-Swarm"`, which
+only resolved on the maintainer's machine. The test passed CI for years
+only because the e2e tests crashed the suite before it ever reached
+this file. With the e2e exclude fixed, Tier K runs in CI and would fail
+on path resolution. Switched to `resolve(fileURLToPath(import.meta.url),
+"../../..")` so the test works from any checkout.
 
 ## [0.1.44] — 2026-05-10
 
