@@ -6,11 +6,117 @@
 
 | Quiero… | Mira |
 |---|---|
-| Agregar un rol, habilidad, herramienta o stack | [README — Personalizar tu equipo](README.md#personalizar-tu-equipo) |
 | Reportar un bug o pedir una feature | [Issues en GitHub](https://github.com/breisnerlopez/Abax-Swarm/issues) |
 | Mandar un Pull Request con código | Sección [Flujo de PR](#flujo-de-pr) abajo |
+| Agregar un rol, habilidad, herramienta o stack | Sección [Personalizar el equipo](#personalizar-el-equipo) abajo |
 | Entender la arquitectura | [docs/architecture.md](docs/architecture.md) |
 | Ver el modelo de datos | [docs/data-model.md](docs/data-model.md) |
+
+## Arquitectura
+
+Cuatro capas con flujo unidireccional:
+
+```
+data/ (YAML)  →  loader/  →  engine/  →  generator/  →  .opencode/ ó .claude/
+                  (Zod)     (puro)      (Handlebars)
+```
+
+- **Loader**: lee YAML, valida con Zod, devuelve mapas tipados.
+- **Engine**: funciones puras (sin I/O). Selecciona roles, resuelve dependencias, deduce skills/tools, adapta al stack, escoge gobernanza.
+- **Generator**: dos targets paralelos (OpenCode, Claude Code) que comparten salida del engine pero producen estructuras de archivo distintas.
+- **Validator**: chequeos post-generación (referencias del orquestador, completitud RACI).
+
+Documentación detallada: [docs/architecture.md](docs/architecture.md) y [docs/data-model.md](docs/data-model.md).
+
+### Estructura del repo
+
+```
+src/
+├── cli/         ← TUI Ink (WizardApp.tsx) + comandos
+├── engine/      ← Selección, dependencias, adaptación al stack
+├── generator/   ← Generadores OpenCode y Claude
+├── loader/      ← Carga + validación Zod de YAML
+└── validator/   ← Validación post-generación
+
+data/            ← Datos canónicos (YAML, fuente de verdad)
+├── roles/       ← 20 roles
+├── skills/      ← 80 habilidades
+├── tools/       ← 7 herramientas
+├── stacks/      ← 14 stacks (incluye legacy-other)
+└── rules/       ← Matrices (size, RACI, dependencies, criteria, document-mode)
+
+templates/       ← Plantillas Handlebars (.md.hbs) + design-system/
+tests/           ← Vitest, unit + integración (>492 tests)
+docs/            ← Documentación detallada
+```
+
+### Comandos de desarrollo
+
+```bash
+npm install                       # instalar dependencias
+npm test                          # >492 tests (Vitest)
+npm run test:watch                # modo watch
+npm run typecheck                 # tsc --noEmit
+npm run lint                      # ESLint sobre src/ y tests/
+npm run validate                  # validar todos los YAML de data/
+npm run dev -- init               # ejecutar el wizard en modo dev (sin build)
+npm run build                     # compilar TypeScript a dist/
+```
+
+### Workflow de Git
+
+GitHub Flow simple:
+
+- Trunk: `main`. Es la rama que se publica.
+- Trabajo en ramas cortas con prefijo: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `chore/`.
+- Squash merge a `main` vía PR. CI corre `validate` como required check.
+- Releases: tag `vX.Y.Z` sobre `main` dispara `release.yml` → npm publish + GitHub Release con tarball.
+
+## Personalizar el equipo
+
+Toda la definición de roles, skills, tools, stacks y reglas vive en YAML dentro de `data/`. **No hace falta tocar TypeScript** para añadir un rol propio o cambiar un comportamiento.
+
+### Agregar un rol propio
+
+```bash
+git clone https://github.com/breisnerlopez/Abax-Swarm.git
+cd Abax-Swarm && npm install
+```
+
+1. Crea `data/roles/mi-rol.yaml` (estructura mínima en [docs/guides/adding-roles.md](docs/guides/adding-roles.md)).
+2. Decide su clasificación para los **4 guard rails** (sino CI falla):
+   - `role-boundaries` — añadir a `used_by` o a `EXEMPT_FROM_ROLE_BOUNDARIES`.
+   - `anti-mock` rule — embeber si implementa código de producción.
+   - `git-collaboration` — declarar la skill si tiene `bash != "deny"`.
+   - `stack_overrides` — completos para los 14 stacks si declaras alguno.
+3. Regístralo en `size-matrix.yaml`, `dependency-graph.yaml`, `raci-matrix.yaml`.
+4. `npm run validate && npm test` — verifica todo de un golpe.
+
+Detalle exhaustivo en [docs/guides/adding-roles.md](docs/guides/adding-roles.md).
+
+### Otros casos rápidos
+
+| Quiero… | Mira |
+|---|---|
+| Añadir una skill | [docs/guides/adding-skills.md](docs/guides/adding-skills.md) |
+| Añadir un stack | [docs/guides/adding-stacks.md](docs/guides/adding-stacks.md) |
+| Cambiar el modelo de un rol | [docs/model-mix.md](docs/model-mix.md) |
+| Cambiar el color de un agente | [docs/agent-colors.md](docs/agent-colors.md) |
+| Modificar el flujo del orquestador | [docs/guides/orchestrator-flow.md](docs/guides/orchestrator-flow.md) |
+
+### Guard rails
+
+Siete reglas sistémicas activas, cada una nacida de un incidente concreto y cubierta por tests automatizados que fallan en CI si alguien intenta diluirlas:
+
+| Guard rail | Qué impide | Documentación |
+|---|---|---|
+| `role-boundaries` | Que un agente ejecute trabajo de otro rol "para acelerar" | [docs/role-boundaries.md](docs/role-boundaries.md) |
+| Anti-mock 3 capas | Que un developer implemente con regex/InMemory/Mock | [docs/quality-gates.md](docs/quality-gates.md) |
+| `git-collaboration` | Que un rol con `bash` haga commits a `main` sin convención | [docs/git-collaboration.md](docs/git-collaboration.md) |
+| `deployment-planning` | Que se llegue a deploy sin contestar las 12 preguntas | [docs/deployment-planning.md](docs/deployment-planning.md) |
+| `code-naming-convention` | Que los agentes mezclen español e inglés en identificadores | [docs/code-naming.md](docs/code-naming.md) |
+| `existing-docs-update-protocol` + `iteration-strategy` | Que un agente sobreescriba docs preexistentes sin preservar v1 | [docs/iteration-strategies.md](docs/iteration-strategies.md) |
+| `delegation-discipline` | Que el orquestador delegue a subagents nativos en lugar de roles del proyecto | [docs/delegation-discipline.md](docs/delegation-discipline.md) |
 
 ## Antes de abrir un PR
 
