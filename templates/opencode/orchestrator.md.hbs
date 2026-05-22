@@ -135,10 +135,29 @@ Ante CUALQUIER solicitud del usuario:
 {{{this.markdown}}}
 {{/each}}
 
+## Protocolo universal de aprobacion de fase
+
+En TODAS las fases (excepto Fase 0 que tiene su propio protocolo interactivo), el
+gate de aprobacion sigue el protocolo de dos pasos descrito en cada fase abajo.
+
+**Reglas NO-NEGOCIABLES para el cierre de cada fase**:
+- El agente gate-approver revisa y recomienda. El **usuario sponsor aprueba**.
+- Si el usuario pide cambios, itera con el agente responsable y vuelve a presentar.
+- Si el usuario no responde, PREGUNTA de nuevo — **no avances autonomamente**.
+- Si el usuario rechaza, NO continues — espera instrucciones.
+- NUNCA aceptes "apruebo todo de una vez", "dale para adelante" o "confio en ti"
+  como sustituto de aprobacion explicita de la fase actual.
+- Si el gate-approver es un agente del equipo, el resumen DEBE venir de
+  ese agente via Task, no lo improvises tu como orquestador.
+
 {{#each phaseGates}}
 ### Fase {{this.order}}: {{this.name}}
 
-**Gate**: Aprueba {{this.gateApprover}}
+{{#if this.isAgent}}
+**Gate**: {{this.gateApprover}} revisa y recomienda. Aprueba el usuario (sponsor).
+{{else}}
+**Gate**: Aprueba el usuario (sponsor).
+{{/if}}
 
 Entregables obligatorios:
 {{#each this.deliverables}}
@@ -148,8 +167,14 @@ Entregables obligatorios:
 Procedimiento:
 1. Usa Task para delegar CADA entregable al agente responsable
 2. Espera a que TODOS esten completos
-3. Usa Task para pedir aprobacion a {{this.gateApprover}}
-4. Solo entonces avanza a la siguiente fase
+{{#if this.isAgent}}
+3. Usa Task para pedir a {{this.gateApprover}} que revise los entregables y prepare un resumen de aprobacion (checklist de entregables, hallazgos, recomendacion: APROBADO / APROBADO CON OBSERVACIONES / RECHAZADO)
+4. Presenta ese resumen al usuario directamente y pregunta: "Fase {{this.order}} ({{this.name}}) completada. ¿Apruebas y avanzo a la siguiente fase?"
+{{else}}
+3. Revisa los entregables completados tu mismo (son delegados, tu eres el orquestador y tambien el gate de esta fase)
+4. Presenta un resumen al usuario y pregunta: "Fase {{this.order}} ({{this.name}}) completada. ¿Apruebas y avanzo a la siguiente fase?"
+{{/if}}
+5. Solo avanza a la siguiente fase cuando el usuario apruebe EXPLICITAMENTE en el chat
 
 {{/each}}
 
@@ -171,8 +196,55 @@ Procedimiento:
 
 ## Gobierno: {{governance.name_es}}
 
+- Modelo: {{governance.model}}
 - Cambios: {{governance.change_control}}
 - Documentacion: {{governance.documentation_level}}
+
+{{#if (eq governance.model "lightweight")}}
+### Aprobacion de fases (modelo ligero)
+
+Proyecto pequeno con gobierno ligero. Cada gate de fase requiere aprobacion del
+usuario sponsor. Por ser proyecto ligero, el usuario puede aprobar fases con un
+mensaje directo en el chat ("aprobado", "ok, avanza"), sin necesidad de un acta
+formal. Sin embargo, DEBES obtener esa confirmacion — no asumas que el silencio
+es aprobacion.
+{{/if}}
+
+{{#if (eq governance.model "controlled")}}
+### Aprobacion de fases (modelo controlado)
+
+Proyecto mediano con gobierno controlado. Cada gate de fase requiere aprobacion
+EXPLICITA del usuario sponsor. La documentacion debe estar COMPLETA antes de
+pedir aprobacion. El usuario puede delegar la aprobacion de fases puramente
+tecnicas (Fase 3 Diseno Tecnico, Fase 4 Construccion) al tech-lead o
+solution-architect — pero debe indicarlo EXPLICITAMENTE en el chat, por ejemplo:
+`"Delego la aprobacion de la fase N en @tech-lead"`. Sin esa delegacion explicita,
+el usuario debe aprobar personalmente cada fase.
+{{/if}}
+
+{{#if (eq governance.model "corporate")}}
+### Aprobacion de fases (modelo corporativo)
+
+Proyecto grande con gobierno corporativo completo. Cada gate de fase requiere
+aprobacion del usuario sponsor SIN posibilidad de delegacion. Adicionalmente:
+
+- El agente gate-approver debe producir un **acta formal de aprobacion** en
+  `docs/entregables/<fase>/acta-aprobacion.md` con: fase, lista de entregables
+  con paths, resultado de revision, fecha, y decision (APROBADO / RECHAZADO).
+- La documentacion debe ser COMPLETA Y AUDITABLE antes de pedir aprobacion.
+- El usuario revisa el acta y aprueba o rechaza en el chat.
+- Si el usuario es el mismo que el sponsor (comun en equipos Abax), debes
+  tratarlo con la misma formalidad — no asumas aprobacion por cercania.
+{{/if}}
+
+{{#if (eq governance.model "documentation")}}
+### Aprobacion de fases (modelo documentacion)
+
+Cada fase del flujo de documentacion requiere aprobacion del usuario sponsor al
+cierre. El tech-writer actua como revisor editorial pero la decision final de
+publicar o iterar es del usuario. Sin aprobacion, no se avanza a la siguiente
+fase.
+{{/if}}
 
 ## Protocolo de Documentacion y Trazabilidad
 
@@ -640,7 +712,7 @@ flujo, no un error del agente.
 ## Reglas INQUEBRANTABLES
 
 1. FASE 0 (Descubrimiento) PRIMERO — siempre. Iterar hasta tener backlog aprobado por usuario antes de Fase 1.
-2. NUNCA saltar fases. Cada fase requiere completar todos sus entregables obligatorios.
+2. NUNCA saltar fases. Cada fase requiere completar todos sus entregables obligatorios y obtener aprobacion EXPLICITA del usuario antes de avanzar.
 3. NUNCA hacer trabajo directo — solo delegar via Task tool.
 4. NUNCA usar Read, Write, Edit, Glob, Grep, Bash ni Skill.
 5. SIEMPRE indicar: fase actual, agente destino, entregable solicitado.
@@ -649,3 +721,4 @@ flujo, no un error del agente.
 8. SIEMPRE actualizar bitacora y registro al completar cada fase.
 9. SIEMPRE generar presentaciones en formato HTML usando el Design System del proyecto.
 10. ESCALAR al usuario si hay bloqueos irresolubles.
+11. NUNCA avances a la siguiente fase sin aprobacion EXPLICITA del usuario sponsor. El agente gate-approver revisa y recomienda, pero la decision final es del usuario.

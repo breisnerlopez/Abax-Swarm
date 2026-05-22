@@ -73,14 +73,16 @@ describe("Tier F — Semantic snapshots of generated content", () => {
     });
   });
 
-  describe("Technical deliverables — team member approves, NOT sponsor", () => {
+  describe("Technical deliverables — team member reviews, sponsor approves", () => {
     const result = generate(SMALL_LIGHTWEIGHT, ctx);
     const orchFile = result.files.find((f) => f.path.match(/agents\/orchestrator\.md$/))!;
     const orch = orchFile.content;
 
     // env-verification, source-code, unit-tests, runbook etc. — all
-    // technical deliverables. Approvers should be team members
-    // (tech-lead, solution-architect), never sponsor.
+    // technical deliverables. The gate line must mention BOTH the team
+    // member who reviews (tech-lead, etc.) AND the sponsor who approves.
+    // Fixed in v0.1.47: previously agent gates self-approved without
+    // user involvement; now every phase gate requires the user/sponsor.
     const policiesFile2 = result.files.find((f) => f.path.includes("abax-policies.json"))!;
     const policies = JSON.parse(policiesFile2.content);
 
@@ -90,22 +92,22 @@ describe("Tier F — Semantic snapshots of generated content", () => {
       return extractDeliverableSection(orch, name);
     }
 
-    it("env-verification routes to tech-lead, not sponsor", () => {
+    it("env-verification: reviewed by tech-lead, approved by sponsor", () => {
       const section = findSection("env-verification");
       expect(section, "env-verification not in orchestrator").toMatch(/@tech-lead/);
-      expect(section).not.toMatch(/sponsor/);
+      expect(section).toMatch(/sponsor/);
     });
 
-    it("source-code routes to tech-lead, not sponsor", () => {
+    it("source-code: reviewed by tech-lead, approved by sponsor", () => {
       const section = findSection("source-code");
       expect(section).toMatch(/@tech-lead/);
-      expect(section).not.toMatch(/sponsor/);
+      expect(section).toMatch(/sponsor/);
     });
 
-    it("project-readme falls back from tech-writer to tech-lead (not sponsor)", () => {
+    it("project-readme: reviewed by tech-lead (or tech-writer), approved by sponsor", () => {
       const section = findSection("project-readme");
       expect(section).toMatch(/@(tech-writer|tech-lead)/);
-      expect(section).not.toMatch(/sponsor/);
+      expect(section).toMatch(/sponsor/);
     });
   });
 

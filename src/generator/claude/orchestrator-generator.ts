@@ -24,6 +24,9 @@ interface PhaseGateInfo {
   id: string;
   name: string;
   gateApprover: string;
+  /** True when the gate approver is an agent in the team (has @ prefix).
+   *  False when it fell back to "el usuario (sponsor)". */
+  isAgent: boolean;
   deliverables: Array<{ name: string; responsible: string; mandatory: boolean }>;
 }
 
@@ -147,6 +150,7 @@ function buildPhaseGates(
       id: p.id,
       name: p.name,
       gateApprover: agentIds.has(p.gate_approver) ? `@${p.gate_approver}` : "el usuario (sponsor)",
+      isAgent: agentIds.has(p.gate_approver),
       deliverables,
     });
   }

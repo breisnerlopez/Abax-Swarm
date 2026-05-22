@@ -130,14 +130,46 @@ describe("Orchestrator: Large project", () => {
 });
 
 describe("Orchestrator: Phase adaptation", () => {
-  it("should use 'el usuario (sponsor)' when gate approver is missing", () => {
-    // Team without solution-architect: Phase 3 gate approver (solution-architect) is missing
+  it("should fallback to 'el usuario (sponsor)' as reviewer when gate approver is missing", () => {
+    // Team without solution-architect: Phase 3 (technical-design) gate_approver is solution-architect.
+    // When missing, the gate line renders "el usuario (sponsor) revisa y recomienda" instead of "@solution-architect revisa..."
     const teamIds = ["business-analyst", "tech-lead", "developer-backend", "product-owner", "project-manager"];
     const { file } = generateForTeam(teamIds, "small");
 
-    // If any phase lacks its gate approver, it should fallback to "el usuario (sponsor)"
+    // Phase 3 should NOT have @solution-architect in its gate line since sa is not in the team
     if (file.content.includes("Diseno Tecnico")) {
+      // All phases mention "el usuario (sponsor)" for final approval, but
+      // the reviewer should be "el usuario (sponsor)" instead of @solution-architect
       expect(file.content).toContain("el usuario (sponsor)");
+      // The gate line for this phase should NOT reference @solution-architect
+      const disenoSection = file.content.split(/### Fase \d+: Diseno Tecnico/)[1]?.split("### Fase")[0] ?? "";
+      expect(disenoSection).not.toContain("@solution-architect");
+    }
+  });
+
+  it("should require user approval in every phase gate", () => {
+    // Every phase gate (Fase 1-9) must state that the user/sponsor approves.
+    // This guards against regressions where agent gates self-approve without the user.
+    const teamIds = [
+      "business-analyst", "tech-lead", "developer-backend", "developer-frontend",
+      "qa-functional", "qa-lead", "solution-architect", "dba", "devops",
+      "product-owner", "project-manager", "change-manager", "tech-writer",
+    ];
+    const { file } = generateForTeam(teamIds, "medium");
+
+    // Each phase gate block is delimited by "### Fase N:"
+    const gateBlocks = file.content.split("### Fase ").slice(1);
+    // Gate blocks should be > 0 (the narrative Phase 0 is separate)
+    expect(gateBlocks.length).toBeGreaterThan(0);
+
+    for (const block of gateBlocks) {
+      // Skip narrative Phase 0 which has its own interactive approval protocol
+      if (block.startsWith("0:") || block.startsWith("0 ")) continue;
+      // Every structured phase gate must mention "el usuario (sponsor)"
+      expect(
+        block,
+        `Phase gate block starting "${block.slice(0, 40)}..." must contain user approval language`,
+      ).toContain("el usuario (sponsor)");
     }
   });
 

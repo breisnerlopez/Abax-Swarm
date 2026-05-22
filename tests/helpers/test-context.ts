@@ -128,7 +128,7 @@ export function extractDeliverableSection(orchestratorMd: string, idOrName: stri
   // contexts, paths) or by human name (in prose tables). Search both.
   const idx = orchestratorMd.indexOf(idOrName);
   if (idx === -1) return "";
-  const start = Math.max(0, idx - 100);
+  const start = Math.max(0, idx - 500);
   const end = Math.min(orchestratorMd.length, idx + 500);
   return orchestratorMd.slice(start, end);
 }
