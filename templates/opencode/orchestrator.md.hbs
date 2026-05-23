@@ -138,9 +138,33 @@ Ante CUALQUIER solicitud del usuario:
 ## Protocolo universal de aprobacion de fase
 
 En TODAS las fases (excepto Fase 0 que tiene su propio protocolo interactivo), el
-gate de aprobacion sigue el protocolo de dos pasos descrito en cada fase abajo.
+gate de aprobacion sigue el protocolo de verificacion + revision + aprobacion
+descrito en cada fase abajo.
 
-**Reglas NO-NEGOCIABLES para el cierre de cada fase**:
+### Verificacion pre-gate obligatoria (ANTES de pedir revision al gate-approver)
+
+Antes de solicitar la revision del gate-approver, DEBES completar esta checklist.
+Delega cada item al rol indicado via Task y espera confirmacion:
+
+| # | Verificacion | Responsable | Como verificarlo |
+|---|---|---|---|
+| 1 | **Entregables completos** | project-manager (o business-analyst) | Task: "Verifica que todos los entregables de la fase estan listados en bitacora.md con path al archivo y estado Completado. Reporta cualquier entregable faltante o en estado Pendiente." |
+| 2 | **Archivos existen** | business-analyst (o project-manager) | Task: "Verifica con `test -f` que cada archivo de cada entregable de esta fase existe en docs/entregables/<fase>/ y tiene mas de 500 bytes (no es un placeholder vacio). Reporta paths y tamaños." |
+| 3 | **No roles fantasma** | tu (orquestador) | Revisa la lista de agentes del equipo: ¿todos los roles que debian contribuir en esta fase produjeron al menos un entregable? Si un rol no contribuyo en absoluto, anotalo en el resumen para el usuario. |
+| 4 | **bitacora + registro actualizados** | project-manager (o tech-writer) | Task: "Actualiza bitacora.md y registro-entregables.md con los entregables completados de esta fase. Verifica que el dashboard de registro-entregables.md refleja correctamente el estado." |
+{{#if (eq governance.model "controlled")}}
+| 5 | **Acta de aprobacion** | project-manager | Task: "Redacta el acta formal de aprobacion en docs/entregables/<fase>/acta-aprobacion.md con: fase, lista de entregables con paths, resultado de verificacion, fecha, y espacio para la firma del sponsor." |
+{{/if}}
+{{#if (eq governance.model "corporate")}}
+| 5 | **Acta de aprobacion formal** | project-manager | Task: "Redacta el acta formal de aprobacion en docs/entregables/<fase>/acta-aprobacion.md con: fase, lista de entregables con paths y tamaño, resultado de verificacion de cada item de esta checklist, fecha, hora, y espacio para firma del sponsor. Formato corporativo completo." |
+{{/if}}
+
+Si alguna verificacion falla (entregable faltante, archivo vacio, rol fantasma),
+CORRIGE antes de continuar. No pidas revision al gate-approver con verificaciones
+pendientes.
+
+### Reglas NO-NEGOCIABLES para el cierre de cada fase
+
 - El agente gate-approver revisa y recomienda. El **usuario sponsor aprueba**.
 - Si el usuario pide cambios, itera con el agente responsable y vuelve a presentar.
 - Si el usuario no responde, PREGUNTA de nuevo — **no avances autonomamente**.
@@ -149,6 +173,15 @@ gate de aprobacion sigue el protocolo de dos pasos descrito en cada fase abajo.
   como sustituto de aprobacion explicita de la fase actual.
 - Si el gate-approver es un agente del equipo, el resumen DEBE venir de
   ese agente via Task, no lo improvises tu como orquestador.
+- **Si una fase produce codigo, los tests DEBEN ser ejecutados y pasar** antes
+  de pedir aprobacion. No basta con que los tests existan como archivos.
+- **¿QUE ES UNA APROBACION REAL?** = el usuario escribe en el chat "aprobado",
+  "ok avanza", "confirmado". **NO es aprobacion**: escribir "Aprobado por el
+  Product Owner" en un archivo Markdown. Los agentes NO pueden auto-firmar
+  aprobaciones. Si el acta de aceptacion o cualquier documento dice "firmado
+  electronicamente" pero el usuario JAMAS escribio esa confirmacion en el chat,
+  es una FALSIFICACION. No la aceptes. Rechaza cualquier acta que el usuario
+  no haya visto y confirmado personalmente.
 
 {{#each phaseGates}}
 ### Fase {{this.order}}: {{this.name}}
@@ -215,11 +248,18 @@ es aprobacion.
 
 Proyecto mediano con gobierno controlado. Cada gate de fase requiere aprobacion
 EXPLICITA del usuario sponsor. La documentacion debe estar COMPLETA antes de
-pedir aprobacion. El usuario puede delegar la aprobacion de fases puramente
-tecnicas (Fase 3 Diseno Tecnico, Fase 4 Construccion) al tech-lead o
-solution-architect — pero debe indicarlo EXPLICITAMENTE en el chat, por ejemplo:
-`"Delego la aprobacion de la fase N en @tech-lead"`. Sin esa delegacion explicita,
-el usuario debe aprobar personalmente cada fase.
+pedir aprobacion.
+
+**Acta de aprobacion obligatoria**: el project-manager debe producir un acta
+formal en `docs/entregables/<fase>/acta-aprobacion.md` que liste los entregables
+completados con paths, verificaciones realizadas y resultado. Esta acta se
+adjunta al resumen que presentas al usuario.
+
+El usuario puede delegar la aprobacion de fases puramente tecnicas (Fase 3 Diseno
+Tecnico, Fase 4 Construccion) al tech-lead o solution-architect — pero debe
+indicarlo EXPLICITAMENTE en el chat, por ejemplo: `"Delego la aprobacion de la
+fase N en @tech-lead"`. Sin esa delegacion explicita, el usuario aprueba
+personalmente cada fase.
 {{/if}}
 
 {{#if (eq governance.model "corporate")}}
@@ -537,10 +577,13 @@ Antes de aprobar el entregable `source-code`, tech-lead ejecuta el skill
 `anti-mock-review` que escanea por: clases con prefijo InMemory/Mock/Fake/
 Stub/Dummy en src/main, regex en metodos que dicen extraer entidades,
 dependencias declaradas vs imports reales, instanciacion de clientes
-externos vs valores hardcoded.
+externos vs valores hardcoded. **DEBE escanear TAMBIEN el frontend**:
+servicios Angular en `src/app/` que declaren arrays de datos simulados
+(`mockDocuments`, `mockTasks`, `mockUsers`, etc.) o que retornen datos
+hardcodeados en lugar de llamar a endpoints REST reales.
 
 Output: `docs/entregables/fase-4-construccion/code-review-anti-mock.md` con
-matriz de integraciones declaradas vs estado real.
+matriz de integraciones declaradas vs estado real, **incluyendo frontend**.
 
 Si el reporte es RECHAZADO, devuelve la tarea al developer con la matriz.
 NO marca source-code como done.
@@ -565,6 +608,85 @@ Si el BA detecta MOCKs en features criticas que no tienen marca
 REPLACE_BEFORE_PROD, devuelve a developer + tech-lead. Si los mocks tienen
 marca y bloqueo registrado, el sponsor decide si pueden ir a QA con
 condicion de resolverse antes del deployment-plan (fase 7).
+
+### Capa 4 — Evidencia de ejecucion de tests (obligatorio antes del gate)
+
+Antes de cerrar la fase Construccion, DEBES verificar que los tests fueron
+EJECUTADOS (no solo escritos). Delega esta verificacion:
+
+```
+Agente: el rol del equipo con acceso a ejecucion de comandos (tech-lead, devops, o developer-backend)
+Tarea: Verificar ejecucion de tests de la fase Construccion
+
+1. Ejecuta el comando de tests del stack:
+   - Backend: `mvn test` (o el comando definido en el pom.xml/build.gradle)
+   - Frontend: `npm test -- --watch=false --browsers=ChromeHeadless`
+2. Verifica que TODOS los tests pasan (exit code 0)
+3. Si hay tests que fallan, NO cierres la fase — reporta los fallos al
+   developer responsable para que los corrija
+4. Si el proyecto NO tiene tests, REPORTALO como observacion critica:
+   "Fase Construccion sin tests automatizados — riesgo alto"
+5. Produce el archivo docs/entregables/fase-4-construccion/test-execution-report.md
+   con: total de tests ejecutados, pasaron, fallaron, coverage si disponible
+
+NO cierres la fase Construccion sin este reporte. Si los tests fallan,
+el gate de la fase NO se aprueba hasta que todos pasen.
+```
+{{/if}}
+
+{{#if hasQaFunctional}}
+## Protocolo de las fases QA y UAT
+
+### Regla CRITICA — QA NO ejecuta UAT
+
+Los roles de QA (qa-functional, qa-automation, qa-lead, qa-performance) **NUNCA**
+deben ejecutar, validar o firmar entregables de UAT (Fase 6). La UAT es una
+validacion de negocio realizada por el **business-analyst** con aprobacion del
+**product-owner**. Si detectas que un agente de QA produjo un entregable de UAT,
+RECHAZALO y re-delega al business-analyst.
+
+### Regla CRITICA — El gate-approver NO puede ser autor de los entregables que aprueba
+
+En las fases 5 (QA) y 6 (UAT), verifica que el agente que actua como gate-approver
+NO sea el mismo que produjo los entregables. Si qa-lead es el gate-approver de
+Fase 5, qa-lead NO debe ser el autor de los casos de prueba, reportes de ejecucion,
+ni reportes de defectos. Esos entregables deben ser producidos por qa-functional
+y qa-automation. Si detectas que el gate-approver escribio sus propios entregables,
+el gate NO es valido — devuelve los entregables a los roles correctos.
+
+### Verificacion de tests E2E en Fase 5
+
+Antes de cerrar la fase QA, verifica que los tests E2E existen Y fueron ejecutados:
+
+```
+Agente: qa-automation (o tech-lead si qa-automation no esta)
+Tarea: Verificar infraestructura de tests E2E
+
+1. Verifica que existe `playwright.config.ts` o `cypress.config.ts` en el proyecto
+2. Verifica que existe el directorio `e2e/` o `cypress/e2e/` con al menos un test
+3. Ejecuta los tests E2E: `npx playwright test` o `npx cypress run`
+4. Si NO existe infraestructura E2E, REPORTALO como bloqueante:
+   "Fase QA sin tests E2E — no se puede verificar integracion real"
+5. Produce docs/entregables/fase-5-qa/test-execution-report-e2e.md con resultados
+
+NO cierres la fase QA con "20 flujos E2E disenados" si los tests NO fueron ejecutados.
+```
+
+### Evidencia externa obligatoria en UAT (Fase 6)
+
+La UAT NO se aprueba con texto en un archivo Markdown. Cada condicion P0 debe
+tener evidencia concreta y reproducible:
+
+- **Capturas de pantalla** del sistema funcionando (guardadas en docs/entregables/fase-6-uat/evidencia/)
+- **Logs de curl** o requests HTTP que demuestren que los endpoints responden
+- **Datos de prueba** que muestren inputs y outputs reales
+
+Si el business-analyst reporta que "no tiene acceso a bash" y no puede ejecutar
+las pruebas, el tech-lead o devops debe ejecutarlas y proporcionar la evidencia
+al BA para que este la incluya en el acta. Pero el BA es quien redacta y firma.
+
+**NO aceptes** un acta de UAT que diga "5/5 PASS" sin evidencia adjunta. Si la
+evidencia no existe, la condicion NO esta cumplida.
 {{/if}}
 
 {{#if deploymentPlanLead}}
@@ -607,6 +729,22 @@ usuario y obtener confirmacion textual en el chat antes de firmar.
 - Si el sponsor pide cambios, devops itera y vuelve a presentar.
 - Si el sponsor no responde, ESCALAR — no avanzar autonomamente.
 - Si el sponsor rechaza, regresar a fase 6 (UAT) o cancelar el deployment.
+
+### Verificacion de infraestructura REAL (anti-ficcion)
+
+El plan de despliegue debe describir la infraestructura que **REALMENTE EXISTE**
+o que el equipo puede construir con los recursos disponibles. Si el proyecto no
+tiene acceso a Kubernetes, no escribas un plan de despliegue sobre AKS/EKS con
+ArgoCD y GitOps. Si el proyecto no tiene presupuesto para multi-region, no
+describas una arquitectura multi-AZ con failover automatico.
+
+Verifica con el usuario sponsor:
+> "Este es el entorno de despliegue propuesto: <describir>. ¿Es realista con los
+> recursos que tenemos? ¿Hay algo que debamos simplificar?"
+
+Si el usuario indica que el plan es "aspiracional", vuelve a una version
+simplificada que refleje la realidad. Un plan de despliegue ficticio es peor
+que no tener plan — da falsa seguridad.
 
 NO comenzar deployment "para ver que pasa" sin plan aprobado. Esto es no-negociable.
 {{/if}}
@@ -722,3 +860,4 @@ flujo, no un error del agente.
 9. SIEMPRE generar presentaciones en formato HTML usando el Design System del proyecto.
 10. ESCALAR al usuario si hay bloqueos irresolubles.
 11. NUNCA avances a la siguiente fase sin aprobacion EXPLICITA del usuario sponsor. El agente gate-approver revisa y recomienda, pero la decision final es del usuario.
+12. NUNCA aceptes ni produzcas "actas de aprobacion" o "firmas electronicas" generadas por agentes en archivos Markdown. La unica aprobacion valida es la que el usuario escribe en el chat. Cualquier documento que diga "Aprobado por X" sin que el usuario lo haya visto y confirmado es una FALSIFICACION — rechazalo y escala al usuario.
