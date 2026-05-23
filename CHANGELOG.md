@@ -6,6 +6,32 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **El orquestador solo pedía aprobación al usuario en Fase 0, en las fases 1-9 delegaba la aprobación a un agente que se auto-aprobaba sin involucrar al usuario.** El `gate_approver` en `phase-deliverables.yaml` siempre es un rol del equipo (product-owner, tech-lead, etc.); la plantilla decía "Aprueba @rol" y el LLM delegaba la aprobación a ese agente. Ahora todas las fases siguen el protocolo: agente revisa y recomienda → usuario aprueba explícitamente en el chat. Se añadió campo `isAgent` a `PhaseGateInfo` para manejar limpiamente el caso fallback cuando el rol gate-approver no está en el equipo.
+- **El modelo de gobernanza (lightweight/controlled/corporate) era solo texto informativo, no conductual.** Ahora cada modelo emite instrucciones específicas: modelo `controlled` requiere acta formal de aprobación, modelo `corporate` prohíbe delegación de aprobaciones, modelo `lightweight` permite aprobación directa en chat pero exige confirmación explícita.
+
+### Added
+- **Checklist de verificación pre-gate** — 5 verificaciones obligatorias que el orquestador debe completar ANTES de pedir revisión al gate-approver: (1) entregables completos en bitácora, (2) archivos existen y tienen contenido >500 bytes, (3) no hay roles fantasma sin contribuciones, (4) bitácora y registro actualizados, (5) acta formal de aprobación (modelos controlled/corporate).
+- **Capa 4 anti-mock: evidencia de ejecución de tests** — antes de cerrar Construcción, se exige ejecutar los tests (`mvn test`, `npm test`) y producir `test-execution-report.md`. No basta con que los tests existan como archivos.
+- **Capa 2 anti-mock extendida a frontend** — el code review ahora escanea `src/app/` buscando servicios Angular con arrays de datos simulados (`mockDocuments`, `mockTasks`).
+- **Regla anti-falsificación** — definición explícita de qué es una aprobación real (usuario escribe en el chat) vs falsificación (agente escribe "Aprobado" en un archivo Markdown). INQUEBRANTABLE #12.
+- **Firewall QA-UAT** — prohibición explícita: roles de QA (qa-functional, qa-automation, qa-lead) NUNCA ejecutan UAT. Si un agente QA produce un entregable UAT, se rechaza y re-delega al business-analyst.
+- **Regla de conflicto de interés** — el gate-approver no puede ser autor de los entregables que aprueba. Si qa-lead aprobó casos de prueba que él mismo escribió, el gate no es válido.
+- **Verificación de tests E2E reales** — en Fase 5 se exige `playwright.config.ts`, directorio `e2e/`, y ejecución real. Sin infraestructura E2E, es bloqueante.
+- **Evidencia externa obligatoria en UAT** — cada condición P0 requiere capturas de pantalla, logs curl, o datos de prueba reales. No se aceptan actas "5/5 PASS" sin evidencia adjunta.
+- **Anti-ficción en despliegue** — el plan debe reflejar infraestructura REAL. Si no hay Kubernetes, no se escribe un plan sobre AKS/EKS. Se pregunta al usuario si el plan es realista.
+- **Reglas INQUEBRANTABLES actualizadas** — regla #2 incluye aprobación explícita del usuario, regla #11 prohíbe avanzar sin aprobación, regla #12 prohíbe actas auto-generadas.
+
+### Changed
+- **Gobernanza conductual**: los bloques de gobernanza en el orquestador ahora emiten instrucciones de comportamiento según el modelo (lightweight/controlled/corporate/documentation), no solo texto descriptivo.
+- **Plantilla OpenCode y Claude mantenidas en sincronía** con todos los cambios anteriores.
+- **`extractDeliverableSection` en tests**: ventana de extracción ampliada de 100 a 500 caracteres para alcanzar la línea de gate en entregables al final de la lista de fase.
+
+### Fixed (secundarios)
+- `@rol` como placeholder en la plantilla causaba falsos positivos en el validador de @mentions — eliminado.
+- `@tech-lead` en texto de gobernanza envuelto en backticks para que el validador lo ignore.
+- Palabra "escribiendo" duplicada en bloque de gobernanza controlled — corregido.
+
 ## [0.1.46] — 2026-05-10
 
 CI hotfix. No product code changes — fixes the release pipeline that has
