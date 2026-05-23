@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.47] — 2026-05-22
 
 ### Fixed
 - **El orquestador solo pedía aprobación al usuario en Fase 0, en las fases 1-9 delegaba la aprobación a un agente que se auto-aprobaba sin involucrar al usuario.** El `gate_approver` en `phase-deliverables.yaml` siempre es un rol del equipo (product-owner, tech-lead, etc.); la plantilla decía "Aprueba @rol" y el LLM delegaba la aprobación a ese agente. Ahora todas las fases siguen el protocolo: agente revisa y recomienda → usuario aprueba explícitamente en el chat. Se añadió campo `isAgent` a `PhaseGateInfo` para manejar limpiamente el caso fallback cuando el rol gate-approver no está en el equipo.
